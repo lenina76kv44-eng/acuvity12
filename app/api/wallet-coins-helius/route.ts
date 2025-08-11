@@ -20,11 +20,9 @@ export async function GET(req: Request) {
     const wallet = (url.searchParams.get("wallet") || "").trim();
     if (!wallet) return NextResponse.json({ ok:false, error:"Missing ?wallet" }, { status:400 });
 
-    const programsCSV = (url.searchParams.get("programIds") || process.env.BAGS_PROGRAM_IDS || "").trim();
+    // Use BAGS_PROGRAM_IDS from environment
+    const programsCSV = process.env.BAGS_PROGRAM_IDS || "";
     const programIds = programsCSV.split(",").map(s => s.trim()).filter(Boolean);
-    if (!programIds.length) {
-      return NextResponse.json({ ok:false, error:"Provide ?programIds=a,b or set BAGS_PROGRAM_IDS" }, { status:400 });
-    }
     const PROG = new Set(programIds);
 
     const actorIds = BAGS_ACTOR_IDS.split(",").map(s => s.trim()).filter(Boolean);

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const API_BASE = "https://public-api-v2.bags.fm/api/v1";
-const KEY = "bags_prod_WLmpt-ZMCdFmN3WsFBON5aJnhYMzkwAUsyIJLZ3tORY";
+const KEY = process.env.BAGS_API_KEY || "bags_prod_WLmpt-ZMCdFmN3WsFBON5aJnhYMzkwAUsyIJLZ3tORY";
 
 async function bags(path: string) {
   if (!KEY) return { ok: false, error: "Missing BAGS_API_KEY" };

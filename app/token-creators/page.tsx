@@ -40,6 +40,12 @@ function CaToCreatorsCard() {
     setLoading(true); setError(""); setRows([]);
     const clean = ca.trim();
     
+    if (!clean) {
+      setError("Please enter a contract address");
+      setLoading(false);
+      return;
+    }
+    
     if (clean.length < 32 || clean.length > 44) {
       setError("Invalid CA format");
       setLoading(false);
@@ -66,7 +72,8 @@ function CaToCreatorsCard() {
       setRows(creators);
       if (!creators.length) setError("No creators found for this CA.");
     } catch (e: any) {
-      setError("Find failed. Try again.");
+      console.error("Fetch creators error:", e);
+      setError("Find failed. Please check the contract address and try again.");
     } finally {
       setLoading(false);
     }

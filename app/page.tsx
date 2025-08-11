@@ -138,13 +138,24 @@ function XToWalletCard() {
     setHError("");
 
     const clean = devTag.trim().replace(/^@/, "").toLowerCase();
+    
+    if (!clean) {
+      setError("Please enter a dev tag");
+      setLoading(false);
+      return;
+    }
+    
     try {
       // 1) Twitter → Wallet
       const j = await fetchJson(`/api/twitter-wallet?handle=${encodeURIComponent(clean)}`);
       if (!j.ok) throw new Error(j.error || "Request failed");
       const addr = j.wallet || null;
       setWallet(addr);
-      if (!addr) { setError("Couldn't find it this time."); return; }
+      if (!addr) { 
+        setError("No wallet found for this dev tag"); 
+        setLoading(false);
+        return; 
+      }
 
       // 2) Load balance and Helius coins
       await Promise.all([
@@ -152,7 +163,8 @@ function XToWalletCard() {
         loadHeliusCoins(addr),
       ]);
     } catch (e: any) {
-      setError(e.message || String(e));
+      console.error("Find wallet error:", e);
+      setError("Find failed. Please try again.");
     } finally {
       setLoading(false);
     }
