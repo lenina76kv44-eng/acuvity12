@@ -27,7 +27,7 @@ export default function Page() {
           
           <div className="mt-6 max-w-md mx-auto">
             <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-2 font-semibold text-center">
-              Example CA
+              $BAGSFINDER
             </div>
             <div className="flex items-center gap-2 bg-black/30 border border-neutral-800 rounded-xl p-3">
               <code className="flex-1 font-mono text-xs text-green-200 break-all">
