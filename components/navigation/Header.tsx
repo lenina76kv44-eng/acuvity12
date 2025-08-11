@@ -25,9 +25,6 @@ export default function Header() {
               alt="Bags Finder" 
               className="w-8 h-8 rounded-lg"
             />
-            <span className="text-xl font-bold bg-gradient-to-r from-[#00ff88] to-[#00cc6a] bg-clip-text text-transparent">
-              Bags Finder
-            </span>
           </Link>
 
           {/* Desktop Navigation */}
