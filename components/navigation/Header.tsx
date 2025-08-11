@@ -23,7 +23,7 @@ export default function Header() {
             <img 
               src="https://i.imgur.com/KQRAG1D.png" 
               alt="Bags Finder" 
-              className="w-8 h-8 rounded-lg"
+             className="w-12 h-12 rounded-lg"
             />
           </Link>
 
