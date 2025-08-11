@@ -173,6 +173,5 @@ function CaToCreatorsCard() {
         )}
       </div>
     </div>
-    </div>
   );
 }
