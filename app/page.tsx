@@ -399,7 +399,6 @@ function CaToCreatorsCard() {
 
         {error && (
           <div className="text-red-400 mt-3 text-sm">{error}</div>
-          </div>
         )}
 
         {rows.length > 0 && (
