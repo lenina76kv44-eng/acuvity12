@@ -4,88 +4,104 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const HELIUS = `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY || ""}`;
+const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "";
+const addrTx = (a: string, limit = 100, before?: string) =>
+  `https://api.helius.xyz/v0/addresses/${a}/transactions?api-key=${HELIUS_API_KEY}&limit=${limit}` +
+  (before ? `&before=${before}` : "");
 
-async function rpc(method: string, params: any) {
-  if (!process.env.HELIUS_API_KEY) throw new Error("Missing HELIUS_API_KEY");
-  const r = await fetch(HELIUS, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: "bags", method, params }),
-  });
-  const raw = await r.text();
-  if (!r.ok) throw new Error(`${r.status}: ${raw.slice(0,200)}`);
-  let j: any; try { j = JSON.parse(raw); } catch { throw new Error(`Invalid JSON: ${raw.slice(0,200)}`); }
-  if (j.error) throw new Error(j.error.message || "RPC error");
-  return j.result;
-}
-
-const asItems = (res: any) =>
-  Array.isArray(res?.items) ? res.items : (Array.isArray(res) ? res : []);
+type Row = { mint: string; role: "launch" | "fee-claim" | "program-match"; tx: string; time?: number|null; programId?: string|null };
 
 export async function GET(req: Request) {
   try {
+    if (!HELIUS_API_KEY) return NextResponse.json({ ok:false, error:"Missing HELIUS_API_KEY" }, { status:500 });
+
     const url = new URL(req.url);
     const wallet = (url.searchParams.get("wallet") || "").trim();
     if (!wallet) return NextResponse.json({ ok:false, error:"Missing ?wallet" }, { status:400 });
 
-    // 1) Активы, где адрес указан как creator (фанджиблы)
-    let itemsCreator: any[] = [];
-    try {
-      const s = await rpc("searchAssets", { creatorAddress: wallet, page: 1, limit: 500 });
-      itemsCreator = asItems(s);
-    } catch { itemsCreator = []; } // если версия/параметр не поддержан — просто пропустим
+    const programsCSV = (url.searchParams.get("programIds") || process.env.BAGS_PROGRAM_IDS || "").trim();
+    const programIds = programsCSV.split(",").map(s => s.trim()).filter(Boolean);
+    if (!programIds.length) {
+      return NextResponse.json({ ok:false, error:"Provide ?programIds=a,b or set BAGS_PROGRAM_IDS" }, { status:400 });
+    }
+    const PROG = new Set(programIds);
 
-    // 2) Активы, где адрес — update authority
-    let itemsAuthority: any[] = [];
-    try {
-      const s = await rpc("getAssetsByAuthority", { authorityAddress: wallet, page: 1, limit: 500 });
-      itemsAuthority = asItems(s);
-    } catch { itemsAuthority = []; }
+    const PAGES = Number(url.searchParams.get("pages") || 5);
+    const LIMIT = Number(url.searchParams.get("limit") || 100);
+    const MAX = Number(url.searchParams.get("max") || 200);
 
-    const all = [...itemsCreator, ...itemsAuthority];
-    const seen = new Set<string>();
-    const out: Array<{ mint: string; name: string | null; symbol: string | null; image?: string | null; role: "creator" | "authority" | "unknown" }> = [];
+    const out = new Map<string, Row>();
+    let before: string | undefined;
 
-    for (const a of all) {
-      // фильтруем на фанджиблы
-      const iface = a?.interface || a?.interfaceType;
-      if (iface && iface !== "FungibleToken") continue;
+    for (let p = 0; p < PAGES; p++) {
+      const r = await fetch(addrTx(wallet, LIMIT, before));
+      const raw = await r.text();
+      if (!r.ok) return NextResponse.json({ ok:false, error:`${r.status}: ${raw.slice(0,200)}` }, { status:502 });
 
-      const mint = a?.id || a?.mint || a?.token?.mint;
-      if (!mint || seen.has(mint)) continue;
+      let list: any[]; try { list = JSON.parse(raw); } catch { return NextResponse.json({ ok:false, error:`Invalid JSON: ${raw.slice(0,200)}` }, { status:502 }); }
+      if (!Array.isArray(list) || list.length === 0) break;
 
-      // поля из разных версий DAS
-      const creators = (a?.creators || a?.content?.metadata?.creators || [])
-        .map((c: any) => c?.address || c).filter(Boolean);
-      const authority =
-        a?.authorities?.[0]?.address ||
-        a?.authority ||
-        a?.updateAuthority ||
-        null;
+      for (const tx of list) {
+        const sig: string = tx?.signature || tx?.id || "";
+        const ts: number | null = typeof tx?.timestamp === "number" ? tx.timestamp : null;
 
-      let role: "creator" | "authority" | "unknown" = "unknown";
-      if (creators.includes(wallet)) role = "creator";
-      else if (authority === wallet) role = "authority";
+        const flatIns: any[] = [
+          ...(Array.isArray(tx?.instructions) ? tx.instructions : []),
+          ...((Array.isArray(tx?.innerInstructions) ? tx.innerInstructions : [])
+             .flatMap((ii: any) => Array.isArray(ii?.instructions) ? ii.instructions : [])),
+        ];
+        const matched = flatIns.filter((ins: any) => PROG.has(String(ins?.programId || "")));
+        if (!matched.length) continue;
 
-      out.push({
-        mint,
-        name: a?.content?.metadata?.name ?? a?.token_info?.name ?? null,
-        symbol: a?.token_info?.symbol ?? a?.content?.metadata?.symbol ?? null,
-        image: a?.content?.links?.image ?? null,
-        role,
-      });
-      seen.add(mint);
+        const looksLaunch = matched.some((ins: any) => {
+          const t = (ins?.instructionName || ins?.type || ins?.parsed?.type || "").toString().toLowerCase();
+          return t.includes("launch") || t.includes("initialize") || t.includes("init");
+        });
+
+        const tokenTransfers: any[] = Array.isArray(tx?.tokenTransfers) ? tx.tokenTransfers : [];
+        let minted = 0;
+
+        for (const tt of tokenTransfers) {
+          const mint = String(tt?.mint || "");
+          if (!mint) continue;
+
+          const toMe =
+            String(tt?.toUserAccountOwner || "").toLowerCase() === wallet.toLowerCase() ||
+            String(tt?.toUserAccount || "").toLowerCase() === wallet.toLowerCase();
+
+          const role: Row["role"] = looksLaunch ? "launch" : (toMe ? "fee-claim" : "program-match");
+          upsert(out, mint, { mint, role, tx: sig, time: ts, programId: matched[0]?.programId || null });
+          minted++;
+        }
+
+        if (!minted && looksLaunch) {
+          for (const ins of matched) {
+            for (const acc of (ins?.accounts || [])) {
+              const a = String(acc || "");
+              if (a.length >= 32 && a.length <= 44) {
+                upsert(out, a, { mint: a, role: "launch", tx: sig, time: ts, programId: ins?.programId || null });
+              }
+            }
+          }
+        }
+
+        if (out.size >= MAX) break;
+      }
+
+      before = String(list[list.length - 1]?.signature || "");
+      if (!before || out.size >= MAX) break;
     }
 
-    // Сначала creator, потом authority, затем unknown
-    out.sort((a, b) => {
-      const rank = (r: string) => (r === "creator" ? 0 : r === "authority" ? 1 : 2);
-      return rank(a.role) - rank(b.role);
-    });
-
-    return NextResponse.json({ ok: true, data: out });
+    const data = Array.from(out.values()).sort((a, b) => rank(a.role) - rank(b.role) || (b.time || 0) - (a.time || 0));
+    return NextResponse.json({ ok:true, wallet, programIds, found: data.length, data });
   } catch (e: any) {
     return NextResponse.json({ ok:false, error: e?.message || String(e) }, { status:500 });
   }
+}
+
+function rank(r: Row["role"]) { return r === "launch" ? 0 : r === "fee-claim" ? 1 : 2; }
+function upsert(map: Map<string, Row>, mint: string, row: Row) {
+  const prev = map.get(mint);
+  if (!prev) { map.set(mint, row); return; }
+  if (rank(row.role) < rank(prev.role)) map.set(mint, { ...prev, ...row });
 }

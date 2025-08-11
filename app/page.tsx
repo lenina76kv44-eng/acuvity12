@@ -71,7 +71,9 @@ function TwitterToWalletCard() {
   const [handle, setHandle] = useState("");
   const [wallet, setWallet] = useState<string | null>(null);
   const [sol, setSol] = useState<number | null>(null);
-  const [coins, setCoins] = useState<any[]>([]);
+  const [heliusCoins, setHeliusCoins] = useState<any[]>([]);
+  const [scanningCoins, setScanningCoins] = useState(false);
+  const [coinsError, setCoinsError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -87,22 +89,29 @@ function TwitterToWalletCard() {
     const j = await fetchJson(`/api/wallet-overview?address=${encodeURIComponent(addr)}`);
     if (!j.ok) throw new Error(j.error || "Overview failed");
     setSol(typeof j.solBalance === "number" ? j.solBalance : null);
+  }
 
-    // Загружаем созданные монеты через Helius
+  async function scanHeliusCoins() {
+    if (!wallet) return;
+    setScanningCoins(true);
+    setCoinsError("");
+    setHeliusCoins([]);
+
     try {
-      const coinsJ = await fetchJson(`/api/wallet-coins-helius?wallet=${encodeURIComponent(addr)}`);
-      if (coinsJ.ok && Array.isArray(coinsJ.data)) {
-        setCoins(coinsJ.data);
-      }
-    } catch (e) {
-      console.warn("Failed to load coins:", e);
-      setCoins([]);
+      const j = await fetchJson(`/api/wallet-coins-helius?wallet=${encodeURIComponent(wallet)}`);
+      if (!j.ok) throw new Error(j.error || "Scan failed");
+      setHeliusCoins(Array.isArray(j.data) ? j.data : []);
+    } catch (e: any) {
+      setCoinsError(e.message || String(e));
+    } finally {
+      setScanningCoins(false);
     }
   }
 
   async function findWallet() {
     setLoading(true); setError("");
-    setWallet(null); setSol(null); setCoins([]);
+    setWallet(null); setSol(null); setHeliusCoins([]);
+    setCoinsError("");
 
     const clean = handle.trim().replace(/^@/, "").toLowerCase();
     try {
@@ -186,57 +195,77 @@ function TwitterToWalletCard() {
                     <div key={i} className="bg-black/50 border border-neutral-800 rounded-xl p-3">
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2">
-                          {c.image && (
-                            <img 
-                              src={c.image} 
-                              alt={c.name || c.symbol || "Token"} 
-                              className="w-6 h-6 rounded object-cover"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                            />
-                          )}
-                          <div>
-                            <div className="text-sm font-medium text-green-100">
-                              {c.name || c.symbol || "Unknown Token"}
-                            </div>
-                            {c.symbol && c.name && (
-                              <div className="text-xs text-green-300/60">{c.symbol}</div>
-                            )}
-                          </div>
-                        </div>
-                        <div className={`text-xs rounded-full px-2 py-1 font-semibold border ${
-                          c.role === "creator" 
-                            ? "bg-green-600/20 border-green-600/30 text-green-400" 
-                            : "bg-blue-600/20 border-blue-600/30 text-blue-400"
-                        }`}>
-                          {c.role === "creator" ? "Creator" : "Authority"}
-                        </div>
-                      </div>
-                      <a
-                        href={`https://solscan.io/token/${c.mint}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-mono text-green-300/70 hover:text-green-300 underline decoration-green-600/50 hover:decoration-green-400 break-all transition-colors"
-                      >
-                        {c.mint}
-                      </a>
-                    </div>
-                  ))}
-                  {coins.length > 10 && (
-                    <div className="text-xs text-green-300/60 text-center py-2">
-                      Showing first 10 of {coins.length} coins
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+        {/* Helius Coins Scanner */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm text-green-300/70">Coins (Enhanced Transactions)</div>
+            <button
+              onClick={scanHeliusCoins}
+              disabled={scanningCoins || !wallet}
+              className="text-xs bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 text-green-400 px-3 py-1 rounded-lg font-medium disabled:opacity-50 transition-colors"
+            >
+              {scanningCoins ? "Scanning..." : "Scan"}
+            </button>
           </div>
-        )}
 
-        {!error && !wallet && !loading && (
-          <div className="text-green-300/60 mt-4">Enter a handle and press Find.</div>
-        )}
+          {coinsError && (
+            <div className="text-red-400 text-xs mb-2">{coinsError}</div>
+          )}
+
+          {heliusCoins.length > 0 && (
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {heliusCoins.slice(0, 10).map((c, i) => (
+                <div key={i} className="bg-black/50 border border-neutral-800 rounded-xl p-3">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="text-sm font-medium text-green-100 font-mono break-all">
+                      {c.mint}
+                    </div>
+                    <div className={`text-xs rounded-full px-2 py-1 font-semibold border ${
+                      c.role === "launch" 
+                        ? "bg-green-600/20 border-green-600/30 text-green-400" 
+                        : c.role === "fee-claim"
+                        ? "bg-blue-600/20 border-blue-600/30 text-blue-400"
+                        : "bg-gray-600/20 border-gray-600/30 text-gray-400"
+                    }`}>
+                      {c.role === "launch" ? "Launch" : c.role === "fee-claim" ? "Fee Claim" : "Program Match"}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <a
+                      href={`https://solscan.io/token/${c.mint}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-green-300/70 hover:text-green-300 underline decoration-green-600/50 hover:decoration-green-400 transition-colors"
+                    >
+                      View on Solscan
+                    </a>
+                    {c.time && (
+                      <div className="text-green-300/50">
+                        {new Date(c.time * 1000).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {heliusCoins.length > 10 && (
+                <div className="text-xs text-green-300/60 text-center py-2">
+                  Showing first 10 of {heliusCoins.length} coins
+                </div>
+              )}
+            </div>
+          )}
+
+          {!coinsError && !heliusCoins.length && !scanningCoins && wallet && (
+            <div className="text-green-300/60 text-xs">Click "Scan" to find coins via Enhanced Transactions</div>
+          )}
+        </div>
       </div>
-    </div>
+    )}
+
+    {!error && !wallet && !loading && (
+      <div className="text-green-300/60 mt-4">Enter a handle and press Find.</div>
+    )}
+</div>
   );
 }
 
@@ -371,6 +400,148 @@ function CaToCreatorsCard() {
                       {c.wallet || "—"}
                     </div>
                   </div>
+                              src={c.image} 
+                    <div className="text-[#666666] font-semibold mb-1 uppercase tracking-wide">Royalty</div>
+                    <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-2 text-[#cccccc] font-medium">
+                      {c.royaltyPct != null ? `${c.royaltyPct}%` : "—"}
+                      <a
+                        href={`https://solscan.io/token/${c.mint}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-mono text-green-300/70 hover:text-green-300 underline decoration-green-600/50 hover:decoration-green-400 break-all transition-colors"
+                      >
+                        {c.mint}
+                      </a>
+                    </div>
+                  ))}
+                  {coins.length > 10 && (
+                    <div className="text-xs text-green-300/60 text-center py-2">
+                      Showing first 10 of {coins.length} coins
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {!error && !wallet && !loading && (
+          <div className="text-green-300/60 mt-4">Enter a handle and press Find.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CaToCreatorsCard() {
+  const [ca, setCa] = useState("");
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function fetchCreators() {
+    setLoading(true); setError(""); setRows([]);
+    const clean = ca.trim();
+    
+    // Light base58 sanity check
+    if (clean.length < 32 || clean.length > 44) {
+      setError("Invalid CA format");
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      const res = await fetch(`/api/token-creators?ca=${encodeURIComponent(clean)}`);
+      const raw = await res.text();
+      const p = parseJsonSafe(raw);
+      if (!p.ok) throw new Error(p.error);
+      const j = p.data;
+      if (!j.ok) throw new Error(j.error || "Request failed");
+      
+      const creators = (Array.isArray(j.data) ? j.data : []).map((c: any) => ({
+        username: c?.username ?? null,
+        twitter: c?.twitterUsername ?? null,
+        wallet: c?.wallet ?? null,
+        royaltyPct: typeof c?.royaltyBps === "number" ? c.royaltyBps / 100 : null,
+        isCreator: !!c?.isCreator,
+        pfp: c?.pfp ?? null,
+      }));
+      
+      setRows(creators);
+      if (!creators.length) setError("No creators found for this CA.");
+    } catch (e: any) {
+      setError(e.message || String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && ca.trim() && !loading) {
+      fetchCreators();
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-[#1a1a1a] bg-[#111111] hover:bg-[#151515] transition-all duration-200 p-6">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-white mb-2">Token CA → Creators</h2>
+        <p className="text-[#888888] text-sm leading-relaxed">
+          Enter a token contract address to discover creators and fee shares
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex gap-2">
+          <input
+            value={ca}
+            onChange={(e) => setCa(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Contract address"
+            className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] text-white px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-[#00ff88] focus:border-[#00ff88] transition-all duration-200 placeholder-[#666666] font-medium"
+          />
+          <button
+            onClick={fetchCreators}
+            disabled={loading || !ca.trim()}
+            className="rounded-lg bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-w-[80px] text-sm"
+                  </div>
+          </div>
+            {rows.map((c, i) => (
+              <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] hover:bg-[#1f1f1f] transition-colors duration-200 p-4">
+                <div className="flex items-center gap-4 mb-4">
+                  {c.pfp ? (
+                    <img 
+                      src={c.pfp} 
+                      alt={c.username || "User"} 
+                      className="w-10 h-10 rounded-lg object-cover border border-[#2a2a2a]" 
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-[#2a2a2a] flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#666666]" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <div className="font-semibold text-white text-sm">
+                      {c.username || "Unknown User"}
+                    </div>
+                    {c.twitter && (
+                      <div className="text-xs text-[#888888]">@{c.twitter}</div>
+                    )}
+                  </div>
+                  <div className={`text-xs rounded-full px-2 py-1 font-semibold border ${c.isCreator ? "bg-[#00ff88]/10 border-[#00ff88]/20 text-[#00ff88]" : "bg-[#4488ff]/10 border-[#4488ff]/20 text-[#4488ff]"}`}>
+                      {c.isCreator ? "Creator" : "Fee Share"}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <div className="text-[#666666] font-semibold mb-1 uppercase tracking-wide">Wallet</div>
+                    <div className="font-mono text-xs break-all bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-2 text-[#cccccc]">
+                      {c.wallet || "—"}
+                    </div>
+                  </div>
                   <div>
                     <div className="text-[#666666] font-semibold mb-1 uppercase tracking-wide">Royalty</div>
                     <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-2 text-[#cccccc] font-medium">
@@ -379,10 +550,14 @@ function CaToCreatorsCard() {
                   </div>
                 </div>
               </div>
+              </div>
             ))}
           </div>
         )}
 
+        {!error && !rows.length && !loading && (
+          <div className="text-center py-8">
+            <div className="text-[#666666] text-sm">Enter a contract address and press Find to get started</div>
         {!error && !rows.length && !loading && (
           <div className="text-center py-8">
             <div className="text-[#666666] text-sm">Enter a contract address and press Find to get started</div>
