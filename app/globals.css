@@ -119,6 +119,31 @@
   animation: shine 3s ease-in-out infinite;
 }
 
+.find-green-gradient {
+  background: linear-gradient(
+    45deg,
+    #006644 0%,
+    #00aa66 25%,
+    #00ff88 50%,
+    #66ffaa 75%,
+    #00cc6a 100%
+  );
+  background-size: 300% 300%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: greenShimmer 4s ease-in-out infinite;
+}
+
+@keyframes greenShimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 @keyframes shine {
   0%, 100% {
     background-position: 200% 0;
