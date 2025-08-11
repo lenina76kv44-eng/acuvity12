@@ -86,6 +86,9 @@ function TwitterToWalletCard() {
   const [handle, setHandle] = useState("");
   const [wallet, setWallet] = useState<string | null>(null);
   const [sol, setSol] = useState<number | null>(null);
+  const [coins, setCoins] = useState<any[]>([]);
+  const [coinsLoading, setCoinsLoading] = useState(false);
+  const [filter, setFilter] = useState<"all" | "creator" | "fee-share">("all");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -99,7 +102,7 @@ function TwitterToWalletCard() {
 
   async function findWallet() {
     setLoading(true); setError("");
-    setWallet(null); setSol(null);
+    setWallet(null); setSol(null); setCoins([]);
 
     const clean = handle.trim().replace(/^@/, "").toLowerCase();
     try {
@@ -115,6 +118,18 @@ function TwitterToWalletCard() {
       if (!ov.ok) throw new Error(ov.error || "Balance failed");
       setSol(typeof ov.solBalance === "number" ? ov.solBalance : null);
     } catch (e: any) {
+      // 3) Получаем токены кошелька
+      setCoinsLoading(true);
+      try {
+        const coinsRes = await fetchJson(`/api/wallet-coins?wallet=${encodeURIComponent(addr)}`);
+        if (coinsRes.ok) {
+          setCoins(coinsRes.data || []);
+        }
+      } catch (e: any) {
+        console.warn("Failed to load coins:", e.message);
+      } finally {
+        setCoinsLoading(false);
+      }
       setError(e.message || String(e));
     } finally {
       setLoading(false);
@@ -126,13 +141,20 @@ function TwitterToWalletCard() {
       findWallet();
     }
   };
+  const filteredCoins = coins.filter(coin => {
+    if (filter === "all") return true;
+    return coin.role === filter;
+  });
+
+  const creatorCount = coins.filter(c => c.role === "creator").length;
+  const feeShareCount = coins.filter(c => c.role === "fee-share").length;
 
   return (
     <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 shadow-[0_0_0_1px_rgba(16,185,129,0.02)]">
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-green-300 mb-2">Twitter → Wallet</h2>
         <p className="text-green-300/70 text-sm leading-relaxed">
-          Enter a Twitter handle to get the mapped wallet and SOL balance.
+          Enter a Twitter handle to get the mapped wallet, SOL balance, and created tokens.
         </p>
       </div>
 
@@ -173,11 +195,93 @@ function TwitterToWalletCard() {
                 {sol != null ? `${sol} SOL` : "—"}
               </div>
             </div>
+
+            {/* Токены */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-sm text-green-300/70">
+                  Created tokens {coins.length > 0 && (
+                    <span className="text-green-400">
+                      ({creatorCount} creators / {feeShareCount} fee-share)
+                    </span>
+                  )}
+                </div>
+                {coins.length > 0 && (
+                  <div className="flex gap-1">
+                    {["all", "creator", "fee-share"].map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setFilter(f as any)}
+                        className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                          filter === f
+                            ? "bg-green-600 text-black"
+                            : "bg-neutral-800 text-green-300/70 hover:bg-neutral-700"
+                        }`}
+                      >
+                        {f === "all" ? "All" : f === "creator" ? "Creator" : "Fee-share"}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {coinsLoading ? (
+                <div className="bg-black/50 border border-neutral-800 rounded-xl p-4 text-center">
+                  <div className="text-green-300/60">Loading tokens...</div>
+                </div>
+              ) : coins.length === 0 ? (
+                <div className="bg-black/50 border border-neutral-800 rounded-xl p-4 text-center">
+                  <div className="text-green-300/60">No tokens found for this wallet</div>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {filteredCoins.map((coin, i) => (
+                    <div key={i} className="bg-black/50 border border-neutral-800 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                            coin.role === "creator" 
+                              ? "bg-green-600/20 text-green-400 border border-green-600/30"
+                              : "bg-blue-600/20 text-blue-400 border border-blue-600/30"
+                          }`}>
+                            {coin.role === "creator" ? "Creator" : "Fee-share"}
+                          </span>
+                          {coin.royaltyPct != null && (
+                            <span className="text-xs text-green-300/60">
+                              {coin.royaltyPct}%
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(coin.mint)}
+                          className="text-xs text-green-300/60 hover:text-green-300 transition-colors"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      
+                      <div className="font-mono text-xs break-all text-green-100 mb-2">
+                        {coin.mint}
+                      </div>
+                      
+                      {(coin.username || coin.twitter) && (
+                        <div className="text-xs text-green-300/70">
+                          {coin.username && <span>{coin.username}</span>}
+                          {coin.twitter && (
+                            <span className="ml-2">@{coin.twitter}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {!error && !wallet && !loading && (
-          <div className="text-green-300/60 mt-4">Enter a handle and press Find.</div>
+          <div className="text-green-300/60 mt-4">Enter a Twitter handle and press Find.</div>
         )}
       </div>
     </div>
