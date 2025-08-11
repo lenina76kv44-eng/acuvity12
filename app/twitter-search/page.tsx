@@ -141,7 +141,14 @@ function TwitterToWalletCard() {
             </div>
 
             <div>
-              <div className="text-sm text-green-300/70">Balance</div>
+              <div className="text-sm text-green-300/70 flex items-center gap-2">
+                Balance
+                <img 
+                  src="https://i.imgur.com/X5Fsrnb.png" 
+                  alt="SOL" 
+                  className="w-4 h-4"
+                />
+              </div>
               <div className="mt-1 font-mono bg-black/50 border border-neutral-800 rounded-xl p-3 inline-block">
                 {sol != null ? `${sol} SOL` : "—"}
               </div>
