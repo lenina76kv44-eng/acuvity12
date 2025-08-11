@@ -86,38 +86,20 @@ function TwitterToWalletCard() {
   const [handle, setHandle] = useState("");
   const [wallet, setWallet] = useState<string | null>(null);
   const [sol, setSol] = useState<number | null>(null);
-  const [topTokens, setTopTokens] = useState<Array<{symbol:string|null; displayBalance:number|null}>>([]);
-  const [coins, setCoins] = useState<any[]>([]);
-  const [heliusCoins, setHeliusCoins] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function loadWalletOverview(addr: string) {
-    const j = await fetchJson(`/api/wallet-overview?address=${encodeURIComponent(addr)}`);
-    if (!j.ok) throw new Error(j.error || "Overview failed");
-    setSol(typeof j.solBalance === "number" ? j.solBalance : null);
-    setTopTokens(Array.isArray(j.topTokens) ? j.topTokens : []);
+  async function fetchJson(url: string) {
+    const res = await fetch(url);
+    const raw = await res.text();
+    const p = parseJsonSafe(raw);
+    if (!p.ok) throw new Error(p.error);
+    return p.data;
   }
 
-  async function loadWalletCoins(addr: string) {
-    const j = await fetchJson(`/api/wallet-coins?wallet=${encodeURIComponent(addr)}`);
-    if (!j.ok) throw new Error(j.error || "Coins failed");
-    setCoins(Array.isArray(j.data) ? j.data : []);
-  }
-
-  async function loadHeliusCoins(addr: string) {
-    try {
-      const j = await fetchJson(`/api/wallet-coins-helius?wallet=${encodeURIComponent(addr)}`);
-      if (j.ok) setHeliusCoins(Array.isArray(j.data) ? j.data : []);
-    } catch (e) {
-      // Helius может не работать - не критично
-      console.warn("Helius coins failed:", e);
-      setHeliusCoins([]);
-    }
-  }
   async function findWallet() {
     setLoading(true); setError("");
-    setWallet(null); setSol(null); setTopTokens([]); setCoins([]); setHeliusCoins([]);
+    setWallet(null); setSol(null);
 
     const clean = handle.trim().replace(/^@/, "").toLowerCase();
     try {
@@ -128,8 +110,10 @@ function TwitterToWalletCard() {
       setWallet(addr);
       if (!addr) { setError("No wallet mapping found for this handle."); return; }
 
-      // 2) Параллельно тянем баланс, список монет из Bags и Helius
-      await Promise.all([loadWalletOverview(addr), loadWalletCoins(addr), loadHeliusCoins(addr)]);
+      // 2) Только SOL-баланс
+      const ov = await fetchJson(`/api/wallet-overview?address=${encodeURIComponent(addr)}`);
+      if (!ov.ok) throw new Error(ov.error || "Balance failed");
+      setSol(typeof ov.solBalance === "number" ? ov.solBalance : null);
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {
@@ -137,7 +121,7 @@ function TwitterToWalletCard() {
     }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const onEnter = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && handle.trim() && !loading) {
       findWallet();
     }
@@ -148,7 +132,7 @@ function TwitterToWalletCard() {
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-green-300 mb-2">Twitter → Wallet</h2>
         <p className="text-green-300/70 text-sm leading-relaxed">
-          Enter a Twitter handle to get the mapped wallet from Bags, plus wallet overview and created coins.
+          Enter a Twitter handle to get the mapped wallet and SOL balance.
         </p>
       </div>
 
@@ -157,7 +141,7 @@ function TwitterToWalletCard() {
           <input
             value={handle}
             onChange={(e) => setHandle(e.target.value)}
-            onKeyDown={handleKeyDown}
+            onKeyDown={onEnter}
             placeholder="@creator"
             className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600"
           />
@@ -176,7 +160,6 @@ function TwitterToWalletCard() {
 
         {wallet && (
           <div className="mt-4 space-y-4">
-            {/* Адрес */}
             <div>
               <div className="text-sm text-green-300/70">Mapped wallet</div>
               <div className="mt-1 font-mono break-all bg-black/50 border border-neutral-800 rounded-xl p-3">
@@ -184,78 +167,11 @@ function TwitterToWalletCard() {
               </div>
             </div>
 
-            {/* Баланс */}
             <div>
-              <div className="text-sm text-green-300/70">Balance</div>
+              <div className="text-sm text-green-300/70">SOL balance</div>
               <div className="mt-1 font-mono bg-black/50 border border-neutral-800 rounded-xl p-3 inline-block">
                 {sol != null ? `${sol} SOL` : "—"}
               </div>
-
-              <div className="text-sm text-green-300/70 mt-3">Top tokens</div>
-              <div className="mt-1 bg-black/50 border border-neutral-800 rounded-xl p-3">
-                {topTokens?.length
-                  ? topTokens.map((t, i) => (
-                      <div key={i} className="font-mono">
-                        {(t.symbol || "(token)")} — {typeof t.displayBalance === "number" ? t.displayBalance.toFixed(4) : "—"}
-                      </div>
-                    ))
-                  : <div className="text-green-300/60">—</div>}
-              </div>
-            </div>
-
-            {/* Монеты из Bags */}
-            <div>
-              <div className="text-sm text-green-300/70">Coins by this wallet (Bags view)</div>
-              {coins.length ? (
-                <div className="mt-2 space-y-2">
-                  {coins.map((c, i) => (
-                    <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs rounded-full border border-neutral-700 px-2 py-0.5 bg-neutral-900 text-green-300/80">
-                          {c.role === "creator" ? "Creator" : "Fee Share"}
-                        </span>
-                        {c.royaltyPct != null && (
-                          <span className="text-xs text-green-300/70">Royalty: {c.royaltyPct}%</span>
-                        )}
-                        <span className="ml-auto text-green-300/70 text-xs">
-                          {c.twitter ? `@${c.twitter}` : (c.username || "")}
-                        </span>
-                      </div>
-                      <div className="mt-2 font-mono break-all text-green-100">
-                        {c.mint}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-1 text-green-300/60">No coins found for this wallet.</div>
-              )}
-            </div>
-
-            {/* Монеты из Helius (on-chain view) */}
-            <div>
-              <div className="text-sm text-green-300/70">On-chain tokens (Helius view)</div>
-              {heliusCoins.length ? (
-                <div className="mt-2 space-y-2">
-                  {heliusCoins.map((c, i) => (
-                    <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs rounded-full border border-neutral-700 px-2 py-0.5 bg-neutral-900 text-blue-300/80">
-                          {c.role === "creator" ? "Creator" : c.role === "authority" ? "Authority" : "Unknown"}
-                        </span>
-                        <span className="ml-auto text-green-300/70 text-xs">
-                          {c.name || c.symbol || "Unnamed"}
-                        </span>
-                      </div>
-                      <div className="mt-2 font-mono break-all text-green-100">
-                        {c.mint}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-1 text-green-300/60">No on-chain tokens found as creator/authority.</div>
-              )}
             </div>
           </div>
         )}
