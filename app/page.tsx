@@ -95,9 +95,38 @@ function TwitterToWalletCard() {
   const [wallet, setWallet] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [balanceData, setBalanceData] = useState<{
+    solBalance: number;
+    topTokens: Array<{ mint: string; symbol: string | null; displayBalance: number | null }>;
+  } | null>(null);
 
+  async function loadWalletOverview(address: string) {
+    setBalanceLoading(true);
+    try {
+      const resp = await fetch(`/api/wallet-overview?address=${encodeURIComponent(address)}`);
+      const raw = await resp.text();
+      let j: any;
+      try { 
+        j = JSON.parse(raw); 
+      } catch { 
+        throw new Error(raw || "Empty response"); 
+      }
+      if (!j.ok) throw new Error(j.error || "Overview failed");
+      
+      setBalanceData({
+        solBalance: j.solBalance,
+        topTokens: j.topTokens || []
+      });
+    } catch (e: any) {
+      console.error("Balance loading failed:", e.message);
+      // Don't show balance error to user, just silently fail
+    } finally {
+      setBalanceLoading(false);
+    }
+  }
   async function findWallet() {
-    setLoading(true); setError(""); setWallet(null);
+    setLoading(true); setError(""); setWallet(null); setBalanceData(null);
     const clean = handle.trim().replace(/^@/, "").toLowerCase();
     
     // Validate Twitter handle
@@ -113,7 +142,12 @@ function TwitterToWalletCard() {
       
       const wallet = r.json?.response ?? null;
       setWallet(wallet);
-      if (!wallet) setError("No wallet mapping found for this handle.");
+      if (!wallet) {
+        setError("No wallet mapping found for this handle.");
+      } else {
+        // Load wallet balance after finding wallet
+        await loadWalletOverview(wallet);
+      }
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {
@@ -173,6 +207,41 @@ function TwitterToWalletCard() {
             <div className="text-xs font-semibold text-[#00ff88] mb-2 uppercase tracking-wide">Wallet Address</div>
             <div className="font-mono text-sm break-all bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-3 text-white">
               {wallet}
+            </div>
+            
+            {/* Balance Section */}
+            <div className="mt-4 pt-4 border-t border-[#2a2a2a]">
+              <div className="text-xs font-semibold text-[#888888] mb-2 uppercase tracking-wide">Balance</div>
+              {balanceLoading ? (
+                <div className="flex items-center gap-2 text-sm text-[#666666]">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Loading balance...
+                </div>
+              ) : balanceData ? (
+                <div className="space-y-3">
+                  <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-3">
+                    <div className="font-mono text-sm text-white">
+                      {balanceData.solBalance} SOL
+                    </div>
+                  </div>
+                  
+                  {balanceData.topTokens.length > 0 && (
+                    <div>
+                      <div className="text-xs font-semibold text-[#888888] mb-2 uppercase tracking-wide">Top Tokens</div>
+                      <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-3 space-y-2">
+                        {balanceData.topTokens.map((token, i) => (
+                          <div key={i} className="font-mono text-xs text-[#cccccc]">
+                            {token.symbol || "(token)"} — {token.displayBalance?.toFixed?.(4) ?? token.displayBalance}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
           </div>
         )}
