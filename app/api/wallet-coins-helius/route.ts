@@ -4,9 +4,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "";
+const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
 const addrTx = (a: string, limit = 100, before?: string) =>
-  `https://api.helius.xyz/v0/addresses/${a}/transactions?api-key=${HELIUS_API_KEY}&limit=${limit}` +
+  `https://api.helius.xyz/v0/addresses/${a}/transactions?api-key=${HELIUS_API_KEY || ''}&limit=${limit}` +
   (before ? `&before=${before}` : "");
 
 type Row = { mint: string; role: "launch" | "fee-claim" | "program-match"; tx: string; time?: number|null; programId?: string|null };

@@ -4,10 +4,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const HELIUS_URL = `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY || ""}`;
+const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
+const HELIUS_URL = `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY || ''}`;
 
 async function heliusRpc(method: string, params: any) {
-  if (!process.env.HELIUS_API_KEY) throw new Error("Missing HELIUS_API_KEY");
+  if (!HELIUS_API_KEY) throw new Error("Missing HELIUS_API_KEY");
   const r = await fetch(HELIUS_URL, {
     method: "POST",
     headers: { "content-type": "application/json" },
