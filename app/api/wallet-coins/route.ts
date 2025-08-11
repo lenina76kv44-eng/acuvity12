@@ -32,7 +32,11 @@ export async function GET(req: Request) {
 
   // 1) кошелёк → его запуски (минты)
   const lRes = await bags(`/token-launch/wallet?wallet=${encodeURIComponent(wallet)}`);
-  if (!lRes.ok) return NextResponse.json({ ok:false, error:lRes.error }, { status:502 });
+  if (!lRes.ok) {
+    // If the Bags API endpoint returns 404 or other errors, return empty data instead of 502
+    console.warn(`Bags API error for wallet ${wallet}:`, lRes.error);
+    return NextResponse.json({ ok:true, data: [] });
+  }
 
   const mints = Array.from(new Set(
     asArray(lRes.json?.response).map((t: any) => String(t?.tokenMint)).filter(Boolean)
