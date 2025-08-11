@@ -24,24 +24,6 @@ export default function Page() {
           <p className="text-[#888888] text-base max-w-2xl mx-auto font-medium">
             Find wallets by X dev tag and find creators by CA. No hopium, just data.
           </p>
-          
-          <div className="mt-6 flex items-center justify-center gap-3 max-w-md mx-auto">
-            <div className="flex-1 bg-black/50 border border-neutral-800 rounded-xl px-4 py-3">
-              <div className="text-xs text-[#7AEFB8] font-semibold mb-1">Example CA:</div>
-              <div className="font-mono text-sm text-green-200 break-all">
-                FAF6GNMFTgVumqyv9C9Ddqgd758yUKBFADuJ4AqFBAGS
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText('FAF6GNMFTgVumqyv9C9Ddqgd758yUKBFADuJ4AqFBAGS');
-                // Simple feedback - could add toast notification here
-              }}
-              className="px-4 py-3 bg-green-600 hover:bg-green-500 text-black font-semibold rounded-xl transition-colors duration-200 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)]"
-            >
-              Copy
-            </button>
-          </div>
         </header>
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-16">
