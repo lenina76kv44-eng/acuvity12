@@ -14,7 +14,7 @@ export default function Page() {
         <Breadcrumbs />
         
         <header className="mb-16 text-center">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">
+          <h1 className="text-4xl font-bold tracking-tight mb-4 text-[#00ff88]">
             Bags Finder
           </h1>
           <p className="text-xl font-semibold text-white mb-4 tracking-tight">
