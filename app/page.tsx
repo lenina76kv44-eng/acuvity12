@@ -71,9 +71,9 @@ function TwitterToWalletCard() {
   const [handle, setHandle] = useState("");
   const [wallet, setWallet] = useState<string | null>(null);
   const [sol, setSol] = useState<number | null>(null);
-  const [heliusCoins, setHeliusCoins] = useState<any[]>([]);
-  const [scanningCoins, setScanningCoins] = useState(false);
-  const [coinsError, setCoinsError] = useState("");
+  const [hCoins, setHCoins] = useState<any[]>([]);
+  const [hLoading, setHLoading] = useState(false);
+  const [hError, setHError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -91,27 +91,36 @@ function TwitterToWalletCard() {
     setSol(typeof j.solBalance === "number" ? j.solBalance : null);
   }
 
-  async function scanHeliusCoins() {
-    if (!wallet) return;
-    setScanningCoins(true);
-    setCoinsError("");
-    setHeliusCoins([]);
-
+  async function loadHeliusCoins(addr: string) {
     try {
-      const j = await fetchJson(`/api/wallet-coins-helius?wallet=${encodeURIComponent(wallet)}`);
-      if (!j.ok) throw new Error(j.error || "Scan failed");
-      setHeliusCoins(Array.isArray(j.data) ? j.data : []);
+      setHLoading(true); setHError(""); setHCoins([]);
+      const res = await fetch(`/api/wallet-coins-helius?wallet=${encodeURIComponent(addr)}`);
+      const j = await res.json();
+      if (!j?.ok) throw new Error(j?.error || "Helius scan failed");
+      
+      // Filter out noise
+      const EXCLUDE = new Set([
+        "So11111111111111111111111111111111111111112", // wSOL
+        "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+        "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", // USDT
+      ]);
+      
+      const cleaned = (Array.isArray(j.data) ? j.data : [])
+        .filter((r: any) => r.role !== "program-match")
+        .filter((r: any) => !EXCLUDE.has(r.mint));
+      
+      setHCoins(cleaned);
     } catch (e: any) {
-      setCoinsError(e.message || String(e));
+      setHError(e.message || String(e));
     } finally {
-      setScanningCoins(false);
+      setHLoading(false);
     }
   }
 
   async function findWallet() {
     setLoading(true); setError("");
-    setWallet(null); setSol(null); setHeliusCoins([]);
-    setCoinsError("");
+    setWallet(null); setSol(null); setHCoins([]);
+    setHError("");
 
     const clean = handle.trim().replace(/^@/, "").toLowerCase();
     try {
@@ -122,8 +131,11 @@ function TwitterToWalletCard() {
       setWallet(addr);
       if (!addr) { setError("No wallet mapping found for this handle."); return; }
 
-      // 2) Тянем только баланс
-      await loadWalletOverview(addr);
+      // 2) Load balance and Helius coins
+      await Promise.all([
+        loadWalletOverview(addr),
+        loadHeliusCoins(addr),
+      ]);
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {
@@ -186,75 +198,72 @@ function TwitterToWalletCard() {
               </div>
             </div>
 
-            {/* Helius Coins Scanner */}
+            {/* Coins (Helius) */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm text-green-300/70">Coins (Enhanced Transactions)</div>
-                <button
-                  onClick={scanHeliusCoins}
-                  disabled={scanningCoins || !wallet}
-                  className="text-xs bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 text-green-400 px-3 py-1 rounded-lg font-medium disabled:opacity-50 transition-colors"
-                >
-                  {scanningCoins ? "Scanning..." : "Scan"}
-                </button>
+              <div className="text-sm text-green-300/70 mb-2">
+                Coins (on-chain via Helius)
               </div>
 
-              {coinsError && (
-                <div className="text-red-400 text-xs mb-2">{coinsError}</div>
-              )}
+              {hLoading && <div className="text-green-300/60 text-xs">Scanning transactions...</div>}
+              {hError && <div className="text-red-400 text-xs">{hError}</div>}
 
-              {heliusCoins.length > 0 && (
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {heliusCoins.slice(0, 10).map((c, i) => (
-                    <div key={i} className="bg-black/50 border border-neutral-800 rounded-xl p-3">
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <div className="text-sm font-medium text-green-100 font-mono break-all">
-                          {c.mint}
+              {!hLoading && !hError && (
+                hCoins.length ? (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    <div className="text-xs text-green-300/60 mb-2">
+                      Found {hCoins.length} tokens (fee-claim/launch)
+                    </div>
+                    {hCoins.slice(0, 15).map((c, i) => (
+                      <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
+                        <div className="flex items-center gap-2 text-xs mb-2">
+                          <span className={
+                            "px-2 py-0.5 rounded-full border font-medium " +
+                            (c.role === "launch"
+                              ? "bg-green-500/10 border-green-500/30 text-green-400"
+                              : "bg-amber-500/10 border-amber-500/30 text-amber-300")
+                          }>
+                            {c.role === "launch" ? "Launch" : "Fee-claim"}
+                          </span>
+                          <span className="ml-auto text-neutral-400">
+                            {c.time ? new Date(c.time * 1000).toLocaleDateString() : ""}
+                          </span>
                         </div>
-                        <div className={`text-xs rounded-full px-2 py-1 font-semibold border ${
-                          c.role === "launch" 
-                            ? "bg-green-600/20 border-green-600/30 text-green-400" 
-                            : c.role === "fee-claim"
-                            ? "bg-blue-600/20 border-blue-600/30 text-blue-400"
-                            : "bg-gray-600/20 border-gray-600/30 text-gray-400"
-                        }`}>
-                          {c.role === "launch" ? "Launch" : c.role === "fee-claim" ? "Fee Claim" : "Program Match"}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <a
-                          href={`https://solscan.io/token/${c.mint}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-green-300/70 hover:text-green-300 underline decoration-green-600/50 hover:decoration-green-400 transition-colors"
-                        >
-                          View on Solscan
-                        </a>
-                        {c.time && (
-                          <div className="text-green-300/50">
-                            {new Date(c.time * 1000).toLocaleDateString()}
+                        <div className="space-y-1">
+                          <a
+                            href={`https://solscan.io/token/${c.mint}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="block font-mono text-xs underline decoration-green-600/40 hover:decoration-green-400 break-all text-green-100"
+                          >
+                            {c.mint}
+                          </a>
+                          <div className="text-xs text-neutral-500">
+                            tx: <a
+                              href={`https://solscan.io/tx/${c.tx}`}
+                              target="_blank" rel="noopener noreferrer"
+                              className="underline decoration-neutral-600 hover:decoration-neutral-400"
+                            >
+                              {c.tx.slice(0, 8)}…{c.tx.slice(-8)}
+                            </a>
                           </div>
-                        )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  {heliusCoins.length > 10 && (
-                    <div className="text-xs text-green-300/60 text-center py-2">
-                      Showing first 10 of {heliusCoins.length} coins
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!coinsError && !heliusCoins.length && !scanningCoins && wallet && (
-                <div className="text-green-300/60 text-xs">Click "Scan" to find coins via Enhanced Transactions</div>
+                    ))}
+                    {hCoins.length > 15 && (
+                      <div className="text-xs text-green-300/60 text-center py-2">
+                        Showing first 15 of {hCoins.length} tokens
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-green-300/60 text-xs">No tokens detected by Helius.</div>
+                )
               )}
             </div>
           </div>
         )}
 
         {!error && !wallet && !loading && (
-          <div className="text-green-300/60 mt-4">Enter a handle and press Find.</div>
+          <div className="text-green-300/60 mt-4 text-xs">Enter a handle and press Find.</div>
         )}
       </div>
     </div>
