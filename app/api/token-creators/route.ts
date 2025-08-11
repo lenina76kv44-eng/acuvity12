@@ -5,45 +5,37 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const API_BASE = "https://public-api-v2.bags.fm/api/v1";
-const API_KEY = "bags_prod_WLmpt-ZMCdFmN3WsFBON5aJnhYMzkwAUsyIJLZ3tORY";
+const KEY = process.env.BAGS_API_KEY || "";
 
-async function bagsApi(path: string) {
+async function bags(path: string) {
+  if (!KEY) return { ok: false, error: "Missing BAGS_API_KEY" };
   try {
-    const res = await fetch(`${API_BASE}${path}`, {
-      headers: { 
-        "x-api-key": API_KEY, 
-        "accept": "application/json" 
-      },
+    const r = await fetch(`${API_BASE}${path}`, {
+      headers: { "x-api-key": KEY, accept: "application/json" },
+      cache: "no-store",
     });
-    const raw = await res.text();
-    if (!res.ok) return { ok: false, error: `${res.status}: ${raw.slice(0,200)}` };
-    try { 
-      return { ok: true, json: JSON.parse(raw) }; 
-    } catch { 
-      return { ok: false, error: `Invalid JSON: ${raw.slice(0,200)}` }; 
-    }
+    const raw = await r.text();
+    if (!r.ok) return { ok: false, error: `${r.status}: ${raw.slice(0,200)}` };
+    try { return { ok: true, json: JSON.parse(raw) }; }
+    catch { return { ok: false, error: `Invalid JSON: ${raw.slice(0,200)}` }; }
   } catch (e: any) {
-    return { ok: false, error: `Fetch failed: ${String(e?.message || e)}` };
+    return { ok: false, error: `Fetch failed: ${e?.message || e}` };
   }
 }
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const ca = (url.searchParams.get("ca") || "").trim();
+  const ca = (url.searchParams.get("ca") || url.searchParams.get("mint") || "").trim();
   if (!ca) return NextResponse.json({ ok:false, error:"Missing ?ca" }, { status:400 });
 
-  // Light base58 sanity check
+  // Небольшая проверка формата (у Solana mint обычно 32–44 символа)
   if (ca.length < 32 || ca.length > 48) {
     return NextResponse.json({ ok:false, error:"Invalid CA format" }, { status:400 });
   }
-  
-  try {
-    const r = await bagsApi(`/token-launch/creator/v2?tokenMint=${encodeURIComponent(ca)}`);
-    if (!r.ok) throw new Error(r.error);
-    
-    const data = Array.isArray(r.json?.response) ? r.json.response : [];
-    return NextResponse.json({ ok: true, data });
-  } catch (e: any) {
-    return NextResponse.json({ ok:false, error: e.message || String(e) }, { status: 500 });
-  }
+
+  const r = await bags(`/token-launch/creator/v2?tokenMint=${encodeURIComponent(ca)}`);
+  if (!r.ok) return NextResponse.json({ ok:false, error:r.error }, { status:502 });
+
+  const data = Array.isArray(r.json?.response) ? r.json.response : [];
+  return NextResponse.json({ ok:true, data });
 }
