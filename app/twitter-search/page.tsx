@@ -185,7 +185,7 @@ function TwitterToWalletCard() {
                         </div>
                         <div className="space-y-1">
                           <a
-                            href={`https://solscan.io/token/${c.mint}`}
+                            href={`https://bags.fm/${c.mint}`}
                             target="_blank" rel="noopener noreferrer"
                             className="block font-mono text-xs underline decoration-green-600/40 hover:decoration-green-400 break-all text-green-100"
                           >
