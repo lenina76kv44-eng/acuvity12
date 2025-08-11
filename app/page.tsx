@@ -71,6 +71,7 @@ function TwitterToWalletCard() {
   const [handle, setHandle] = useState("");
   const [wallet, setWallet] = useState<string | null>(null);
   const [sol, setSol] = useState<number | null>(null);
+  const [coins, setCoins] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -86,11 +87,22 @@ function TwitterToWalletCard() {
     const j = await fetchJson(`/api/wallet-overview?address=${encodeURIComponent(addr)}`);
     if (!j.ok) throw new Error(j.error || "Overview failed");
     setSol(typeof j.solBalance === "number" ? j.solBalance : null);
+
+    // Загружаем созданные монеты через Helius
+    try {
+      const coinsJ = await fetchJson(`/api/wallet-coins-helius?wallet=${encodeURIComponent(addr)}`);
+      if (coinsJ.ok && Array.isArray(coinsJ.data)) {
+        setCoins(coinsJ.data);
+      }
+    } catch (e) {
+      console.warn("Failed to load coins:", e);
+      setCoins([]);
+    }
   }
 
   async function findWallet() {
     setLoading(true); setError("");
-    setWallet(null); setSol(null);
+    setWallet(null); setSol(null); setCoins([]);
 
     const clean = handle.trim().replace(/^@/, "").toLowerCase();
     try {
@@ -164,6 +176,59 @@ function TwitterToWalletCard() {
                 {sol != null ? `${sol} SOL` : "—"}
               </div>
             </div>
+
+            {/* Созданные монеты */}
+            {coins.length > 0 && (
+              <div>
+                <div className="text-sm text-green-300/70 mb-2">Coins (on-chain via Helius)</div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {coins.slice(0, 10).map((c, i) => (
+                    <div key={i} className="bg-black/50 border border-neutral-800 rounded-xl p-3">
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          {c.image && (
+                            <img 
+                              src={c.image} 
+                              alt={c.name || c.symbol || "Token"} 
+                              className="w-6 h-6 rounded object-cover"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                          )}
+                          <div>
+                            <div className="text-sm font-medium text-green-100">
+                              {c.name || c.symbol || "Unknown Token"}
+                            </div>
+                            {c.symbol && c.name && (
+                              <div className="text-xs text-green-300/60">{c.symbol}</div>
+                            )}
+                          </div>
+                        </div>
+                        <div className={`text-xs rounded-full px-2 py-1 font-semibold border ${
+                          c.role === "creator" 
+                            ? "bg-green-600/20 border-green-600/30 text-green-400" 
+                            : "bg-blue-600/20 border-blue-600/30 text-blue-400"
+                        }`}>
+                          {c.role === "creator" ? "Creator" : "Authority"}
+                        </div>
+                      </div>
+                      <a
+                        href={`https://solscan.io/token/${c.mint}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-mono text-green-300/70 hover:text-green-300 underline decoration-green-600/50 hover:decoration-green-400 break-all transition-colors"
+                      >
+                        {c.mint}
+                      </a>
+                    </div>
+                  ))}
+                  {coins.length > 10 && (
+                    <div className="text-xs text-green-300/60 text-center py-2">
+                      Showing first 10 of {coins.length} coins
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
