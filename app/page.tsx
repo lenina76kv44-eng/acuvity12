@@ -93,61 +93,48 @@ export default function Page() {
 function TwitterToWalletCard() {
   const [handle, setHandle] = useState("");
   const [wallet, setWallet] = useState<string | null>(null);
+  const [sol, setSol] = useState<number | null>(null);
+  const [topTokens, setTopTokens] = useState<Array<{symbol:string|null; displayBalance:number|null}>>([]);
+  const [coins, setCoins] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [balanceLoading, setBalanceLoading] = useState(false);
-  const [balanceData, setBalanceData] = useState<{
-    solBalance: number;
-    topTokens: Array<{ mint: string; symbol: string | null; displayBalance: number | null }>;
-  } | null>(null);
 
-  async function loadWalletOverview(address: string) {
-    setBalanceLoading(true);
-    try {
-      const resp = await fetch(`/api/wallet-overview?address=${encodeURIComponent(address)}`);
-      const raw = await resp.text();
-      let j: any;
-      try { 
-        j = JSON.parse(raw); 
-      } catch { 
-        throw new Error(raw || "Empty response"); 
-      }
-      if (!j.ok) throw new Error(j.error || "Overview failed");
-      
-      setBalanceData({
-        solBalance: j.solBalance,
-        topTokens: j.topTokens || []
-      });
-    } catch (e: any) {
-      console.error("Balance loading failed:", e.message);
-      // Don't show balance error to user, just silently fail
-    } finally {
-      setBalanceLoading(false);
-    }
+  async function fetchJson(url: string) {
+    const res = await fetch(url);
+    const raw = await res.text();
+    const p = parseJsonSafe(raw);
+    if (!p.ok) throw new Error(p.error);
+    return p.data;
   }
+
+  async function loadWalletOverview(addr: string) {
+    const j = await fetchJson(`/api/wallet-overview?address=${encodeURIComponent(addr)}`);
+    if (!j.ok) throw new Error(j.error || "Overview failed");
+    setSol(typeof j.solBalance === "number" ? j.solBalance : null);
+    setTopTokens(Array.isArray(j.topTokens) ? j.topTokens : []);
+  }
+
+  async function loadWalletCoins(addr: string) {
+    const j = await fetchJson(`/api/wallet-coins?wallet=${encodeURIComponent(addr)}`);
+    if (!j.ok) throw new Error(j.error || "Coins failed");
+    setCoins(Array.isArray(j.data) ? j.data : []);
+  }
+
   async function findWallet() {
-    setLoading(true); setError(""); setWallet(null); setBalanceData(null);
+    setLoading(true); setError("");
+    setWallet(null); setSol(null); setTopTokens([]); setCoins([]);
+
     const clean = handle.trim().replace(/^@/, "").toLowerCase();
-    
-    // Validate Twitter handle
-    if (!/^[a-z0-9_]{1,15}$/.test(clean)) {
-      setError("Invalid Twitter handle");
-      setLoading(false);
-      return;
-    }
-    
     try {
-      const r = await bagsApi(`/token-launch/fee-share/wallet/twitter?twitterUsername=${encodeURIComponent(clean)}`);
-      if (!r.ok) throw new Error(r.error);
-      
-      const wallet = r.json?.response ?? null;
-      setWallet(wallet);
-      if (!wallet) {
-        setError("No wallet mapping found for this handle.");
-      } else {
-        // Load wallet balance after finding wallet
-        await loadWalletOverview(wallet);
-      }
+      // 1) Twitter → Wallet
+      const j = await fetchJson(`/api/twitter-wallet?handle=${encodeURIComponent(clean)}`);
+      if (!j.ok) throw new Error(j.error || "Request failed");
+      const addr = j.wallet || null;
+      setWallet(addr);
+      if (!addr) { setError("No wallet mapping found for this handle."); return; }
+
+      // 2) Параллельно тянем баланс и список монет
+      await Promise.all([loadWalletOverview(addr), loadWalletCoins(addr)]);
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {
@@ -162,88 +149,98 @@ function TwitterToWalletCard() {
   };
 
   return (
-    <div className="rounded-xl border border-[#1a1a1a] bg-[#111111] hover:bg-[#151515] transition-all duration-200 p-6">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 shadow-[0_0_0_1px_rgba(16,185,129,0.02)]">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-white mb-2">Twitter → Wallet</h2>
-        <p className="text-[#888888] text-sm leading-relaxed">
-          Enter a Twitter handle to find the mapped wallet address
+        <h2 className="text-xl font-semibold text-green-300 mb-2">Twitter → Wallet</h2>
+        <p className="text-green-300/70 text-sm leading-relaxed">
+          Enter a Twitter handle to get the mapped wallet from Bags, plus wallet overview and created coins.
         </p>
       </div>
 
       <div className="space-y-4">
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <input
             value={handle}
             onChange={(e) => setHandle(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="@creator"
-            className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] text-white px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-[#00ff88] focus:border-[#00ff88] transition-all duration-200 placeholder-[#666666] font-medium"
+            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600"
           />
           <button
             onClick={findWallet}
             disabled={loading || !handle.trim()}
-            className="rounded-lg bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-w-[80px] text-sm"
+            className="rounded-xl bg-green-600 text-black px-5 py-3 font-medium hover:bg-green-500 active:bg-green-600 disabled:opacity-50"
           >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                ...
-              </span>
-            ) : "Find"}
+            {loading ? "Finding..." : "Find"}
           </button>
         </div>
 
         {error && (
-          <div className="bg-[#ff4444]/10 border border-[#ff4444]/20 rounded-lg p-3">
-            <p className="text-[#ff6666] text-sm font-medium">{error}</p>
-          </div>
+          <div className="text-red-400 mt-3">{error}</div>
         )}
 
         {wallet && (
-          <div className="bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-lg p-3">
-            <div className="text-xs font-semibold text-[#00ff88] mb-2 uppercase tracking-wide">Wallet Address</div>
-            <div className="font-mono text-sm break-all bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-3 text-white">
-              {wallet}
+          <div className="mt-4 space-y-4">
+            {/* Адрес */}
+            <div>
+              <div className="text-sm text-green-300/70">Mapped wallet</div>
+              <div className="mt-1 font-mono break-all bg-black/50 border border-neutral-800 rounded-xl p-3">
+                {wallet}
+              </div>
             </div>
-            
-            {/* Balance Section */}
-            <div className="mt-4 pt-4 border-t border-[#2a2a2a]">
-              <div className="text-xs font-semibold text-[#888888] mb-2 uppercase tracking-wide">Balance</div>
-              {balanceLoading ? (
-                <div className="flex items-center gap-2 text-sm text-[#666666]">
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Loading balance...
-                </div>
-              ) : balanceData ? (
-                <div className="space-y-3">
-                  <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-3">
-                    <div className="font-mono text-sm text-white">
-                      {balanceData.solBalance} SOL
-                    </div>
-                  </div>
-                  
-                  {balanceData.topTokens.length > 0 && (
-                    <div>
-                      <div className="text-xs font-semibold text-[#888888] mb-2 uppercase tracking-wide">Top Tokens</div>
-                      <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-3 space-y-2">
-                        {balanceData.topTokens.map((token, i) => (
-                          <div key={i} className="font-mono text-xs text-[#cccccc]">
-                            {token.symbol || "(token)"} — {token.displayBalance?.toFixed?.(4) ?? token.displayBalance}
-                          </div>
-                        ))}
+
+            {/* Баланс */}
+            <div>
+              <div className="text-sm text-green-300/70">Balance</div>
+              <div className="mt-1 font-mono bg-black/50 border border-neutral-800 rounded-xl p-3 inline-block">
+                {sol != null ? `${sol} SOL` : "—"}
+              </div>
+
+              <div className="text-sm text-green-300/70 mt-3">Top tokens</div>
+              <div className="mt-1 bg-black/50 border border-neutral-800 rounded-xl p-3">
+                {topTokens?.length
+                  ? topTokens.map((t, i) => (
+                      <div key={i} className="font-mono">
+                        {(t.symbol || "(token)")} — {typeof t.displayBalance === "number" ? t.displayBalance.toFixed(4) : "—"}
+                      </div>
+                    ))
+                  : <div className="text-green-300/60">—</div>}
+              </div>
+            </div>
+
+            {/* Монеты, которые делал этот кошелёк */}
+            <div>
+              <div className="text-sm text-green-300/70">Coins by this wallet</div>
+              {coins.length ? (
+                <div className="mt-2 space-y-2">
+                  {coins.map((c, i) => (
+                    <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs rounded-full border border-neutral-700 px-2 py-0.5 bg-neutral-900 text-green-300/80">
+                          {c.role === "creator" ? "Creator" : "Fee Share"}
+                        </span>
+                        {c.royaltyPct != null && (
+                          <span className="text-xs text-green-300/70">Royalty: {c.royaltyPct}%</span>
+                        )}
+                        <span className="ml-auto text-green-300/70 text-xs">
+                          {c.twitter ? `@${c.twitter}` : (c.username || "")}
+                        </span>
+                      </div>
+                      <div className="mt-2 font-mono break-all text-green-100">
+                        {c.mint}
                       </div>
                     </div>
-                  )}
+                  ))}
                 </div>
-              ) : null}
+              ) : (
+                <div className="mt-1 text-green-300/60">No coins found for this wallet.</div>
+              )}
             </div>
           </div>
+        )}
+
+        {!error && !wallet && !loading && (
+          <div className="text-green-300/60 mt-4">Enter a handle and press Find.</div>
         )}
       </div>
     </div>
