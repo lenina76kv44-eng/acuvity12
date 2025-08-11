@@ -7,8 +7,6 @@ import { usePathname } from 'next/navigation';
 const mainNavigation = [
   { name: 'X Search', href: '/twitter-search', icon: Search, description: 'Find wallets by X handle' },
   { name: 'CA Finder', href: '/token-creators', icon: Users, description: 'Find token creators' },
-  { name: 'Portfolio', href: '/portfolio', icon: Coins, description: 'Track your tokens' },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'View statistics' },
 ];
 
 const secondaryNavigation = [

@@ -8,8 +8,6 @@ const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'X Search', href: '/twitter-search', icon: Search },
   { name: 'CA Finder', href: '/token-creators', icon: Users },
-  { name: 'Portfolio', href: '/portfolio', icon: Coins },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
 export default function Header() {
