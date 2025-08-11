@@ -4,7 +4,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
+// Принудительно читаем переменную окружения
+const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "c8a64c85-a6ce-4c64-a1a3-ae2932d190fe";
 const HELIUS_URL = `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY || ''}`;
 
 async function heliusRpc(method: string, params: any) {
