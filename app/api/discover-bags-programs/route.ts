@@ -4,10 +4,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// Принудительно читаем переменную окружения
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "c8a64c85-a6ce-4c64-a1a3-ae2932d190fe";
+const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "";
 const addrTx = (a: string, limit = 100, before?: string) =>
-  `https://api.helius.xyz/v0/addresses/${a}/transactions?api-key=${HELIUS_API_KEY || ''}&limit=${limit}` +
+  `https://api.helius.xyz/v0/addresses/${a}/transactions?api-key=${HELIUS_API_KEY}&limit=${limit}` +
   (before ? `&before=${before}` : "");
 
 type ProgRow = { programId: string; count: number; labels: string[] };

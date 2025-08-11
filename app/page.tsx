@@ -215,7 +215,7 @@ function TwitterToWalletCard() {
                     <div className="text-xs text-green-300/60 mb-2">
                       Found {hCoins.length} BAGS tokens (fee-claim/launch)
                     </div>
-                    {hCoins.map((c, i) => (
+                    {hCoins.slice(0, 15).map((c, i) => (
                       <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
                         <div className="flex items-center gap-2 text-xs mb-2">
                           <span className={
@@ -250,6 +250,11 @@ function TwitterToWalletCard() {
                         </div>
                       </div>
                     ))}
+                    {hCoins.length > 15 && (
+                      <div className="text-xs text-green-300/60 text-center py-2">
+                        Showing first 15 of {hCoins.length} tokens
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-green-300/60 text-xs">No BAGS tokens detected.</div>

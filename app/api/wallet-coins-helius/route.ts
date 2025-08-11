@@ -4,10 +4,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// Принудительно читаем переменную окружения
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "c8a64c85-a6ce-4c64-a1a3-ae2932d190fe";
+const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "";
 const addrTx = (a: string, limit = 100, before?: string) =>
-  `https://api.helius.xyz/v0/addresses/${a}/transactions?api-key=${HELIUS_API_KEY || ''}&limit=${limit}` +
+  `https://api.helius.xyz/v0/addresses/${a}/transactions?api-key=${HELIUS_API_KEY}&limit=${limit}` +
   (before ? `&before=${before}` : "");
 
 type Row = { mint: string; role: "launch" | "fee-claim" | "program-match"; tx: string; time?: number|null; programId?: string|null };
@@ -26,18 +25,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok:false, error:"Provide ?programIds=a,b or set BAGS_PROGRAM_IDS" }, { status:400 });
     }
     const PROG = new Set(programIds);
-    
-    const actorsCSV = (url.searchParams.get("actorIds") || process.env.BAGS_ACTOR_IDS || "").trim();
-    const actorIds = actorsCSV.split(",").map(s => s.trim()).filter(Boolean);
-    const ACTORS = actorIds.length ? new Set(actorIds) : null;
 
     const PAGES = Number(url.searchParams.get("pages") || 5);
     const LIMIT = Number(url.searchParams.get("limit") || 100);
     const MAX = Number(url.searchParams.get("max") || 200);
-    const suffix = (url.searchParams.get("suffix") || process.env.BAGS_MINT_SUFFIX || "").trim();
+    const suffix = (url.searchParams.get("suffix") || "").trim();
 
     const out = new Map<string, Row>();
-    const walletLower = wallet.toLowerCase();
     let before: string | undefined;
 
     for (let p = 0; p < PAGES; p++) {
@@ -57,33 +51,14 @@ export async function GET(req: Request) {
           ...((Array.isArray(tx?.innerInstructions) ? tx.innerInstructions : [])
              .flatMap((ii: any) => Array.isArray(ii?.instructions) ? ii.instructions : [])),
         ];
-        
-        // матч по программам/акторам
-        const matchedIns = flatIns.filter((ins: any) => {
-          const pid = String(ins?.programId || "");
-          if (pid && PROG.has(pid)) return true;
-          const accs: string[] = Array.isArray(ins?.accounts) ? ins.accounts.map((a:any)=>String(a)) : [];
-          return ACTORS && ACTORS.size ? accs.some(a => ACTORS.has(a)) : false;
+        const matched = flatIns.filter((ins: any) => PROG.has(String(ins?.programId || "")));
+        if (!matched.length) continue;
+
+        const looksLaunch = matched.some((ins: any) => {
+          const t = (ins?.instructionName || ins?.type || ins?.parsed?.type || "").toString().toLowerCase();
+          return t.includes("launch") || t.includes("initialize") || t.includes("init");
         });
-        if (!matchedIns.length) continue;
 
-        // эвристики
-        const insNames = matchedIns
-          .map((ins:any) => (ins?.instructionName || ins?.type || ins?.parsed?.type || "").toString().toLowerCase())
-          .join(" ");
-
-        const hasClaimOp =
-          /claim|fee/.test(insNames) ||
-          (Array.isArray(tx?.logMessages) && tx.logMessages.some((m:any)=>/claim|fee/i.test(String(m))));
-
-        const hasBagActor = ACTORS && ACTORS.size
-          ? matchedIns.some((ins:any) => (Array.isArray(ins?.accounts) ? ins.accounts.map((a:any)=>String(a)) : []).some((a:string)=>ACTORS.has(a)))
-          : false;
-
-        const isSwapByMe =
-          !!(tx?.events?.swap && typeof tx.events.swap?.user === "string" && tx.events.swap.user.toLowerCase() === walletLower);
-
-        // обрабатываем только входящие токены И (claim/fee или signer), и без swap
         const tokenTransfers: any[] = Array.isArray(tx?.tokenTransfers) ? tx.tokenTransfers : [];
         let minted = 0;
 
@@ -92,30 +67,20 @@ export async function GET(req: Request) {
           if (!mint) continue;
 
           const toMe =
-            String(tt?.toUserAccountOwner || "").toLowerCase() === walletLower ||
-            String(tt?.toUserAccount || "").toLowerCase() === walletLower;
+            String(tt?.toUserAccountOwner || "").toLowerCase() === wallet.toLowerCase() ||
+            String(tt?.toUserAccount || "").toLowerCase() === wallet.toLowerCase();
 
-          // строгий фильтр: уходят покупки/свопы
-          if (!toMe) continue;
-          if (!hasClaimOp && !hasBagActor) continue;
-          if (isSwapByMe) continue;
-
-          const role: Row["role"] = matchedIns.some((ins:any)=>/launch|initialize|init/.test(
-            String(ins?.instructionName || ins?.type || ins?.parsed?.type || "").toLowerCase()
-          )) ? "launch" : "fee-claim";
-
-          const firstProg = matchedIns.map((i:any)=>String(i?.programId||"")).find((pid)=>pid && PROG.has(pid)) || null;
-          upsert(out, mint, { mint, role, tx: sig, time: ts, programId: firstProg });
+          const role: Row["role"] = looksLaunch ? "launch" : (toMe ? "fee-claim" : "program-match");
+          upsert(out, mint, { mint, role, tx: sig, time: ts, programId: matched[0]?.programId || null });
           minted++;
         }
 
-        // fallback: допускаем launch без transfers (редко)
-        if (!minted && /launch|initialize|init/.test(insNames)) {
-          for (const ins of matchedIns) {
-            const accounts: string[] = (Array.isArray(ins?.accounts) ? ins.accounts : []).map((a:any)=>String(a));
-            for (const acc of accounts) {
-              if (acc.length >= 32 && acc.length <= 44) {
-                upsert(out, acc, { mint: acc, role: "launch", tx: sig, time: ts, programId: String(ins?.programId || "") || null });
+        if (!minted && looksLaunch) {
+          for (const ins of matched) {
+            for (const acc of (ins?.accounts || [])) {
+              const a = String(acc || "");
+              if (a.length >= 32 && a.length <= 44) {
+                upsert(out, a, { mint: a, role: "launch", tx: sig, time: ts, programId: ins?.programId || null });
               }
             }
           }
@@ -132,10 +97,10 @@ export async function GET(req: Request) {
     
     // Фильтр по суффиксу mint (например, "BAGS")
     if (suffix) {
-      data = data.filter(r => typeof r.mint === "string" && r.mint.toUpperCase().endsWith(suffix.toUpperCase()));
+      data = data.filter(r => typeof r.mint === "string" && r.mint.endsWith(suffix));
     }
     
-    return NextResponse.json({ ok:true, wallet, programIds, actorIds, found: data.length, data });
+    return NextResponse.json({ ok:true, wallet, programIds, found: data.length, data });
   } catch (e: any) {
     return NextResponse.json({ ok:false, error: e?.message || String(e) }, { status:500 });
   }
