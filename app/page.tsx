@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 
 function parseJsonSafe(raw: string) {
   try { return { ok: true, data: JSON.parse(raw) }; }
@@ -8,19 +9,14 @@ function parseJsonSafe(raw: string) {
 
 export default function Page() {
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white">
+    <main className="min-h-screen bg-[#0a0a0a] text-white pt-4">
       <div className="max-w-7xl mx-auto px-4 py-8">
+        <Breadcrumbs />
+        
         <header className="mb-16 text-center">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <img 
-              src="https://i.imgur.com/KQRAG1D.png" 
-              alt="Bags Finder Logo" 
-              className="w-12 h-12 rounded-lg"
-            />
-            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-[#00ff88] to-[#00cc6a] bg-clip-text text-transparent">
-              Bags Finder
-            </h1>
-          </div>
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-[#00ff88] to-[#00cc6a] bg-clip-text text-transparent mb-4">
+            Welcome to Bags Finder
+          </h1>
           <p className="text-[#888888] mt-2 text-base max-w-2xl mx-auto font-medium">
             Find wallet mappings by Twitter handle or discover creators by token contract address
           </p>
