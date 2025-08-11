@@ -71,8 +71,6 @@ function TwitterToWalletCard() {
   const [handle, setHandle] = useState("");
   const [wallet, setWallet] = useState<string | null>(null);
   const [sol, setSol] = useState<number | null>(null);
-  const [topTokens, setTopTokens] = useState<Array<{symbol:string|null; displayBalance:number|null}>>([]);
-  const [coins, setCoins] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -88,18 +86,11 @@ function TwitterToWalletCard() {
     const j = await fetchJson(`/api/wallet-overview?address=${encodeURIComponent(addr)}`);
     if (!j.ok) throw new Error(j.error || "Overview failed");
     setSol(typeof j.solBalance === "number" ? j.solBalance : null);
-    setTopTokens(Array.isArray(j.topTokens) ? j.topTokens : []);
-  }
-
-  async function loadWalletCoins(addr: string) {
-    const j = await fetchJson(`/api/wallet-coins?wallet=${encodeURIComponent(addr)}`);
-    if (!j.ok) throw new Error(j.error || "Coins failed");
-    setCoins(Array.isArray(j.data) ? j.data : []);
   }
 
   async function findWallet() {
     setLoading(true); setError("");
-    setWallet(null); setSol(null); setTopTokens([]); setCoins([]);
+    setWallet(null); setSol(null);
 
     const clean = handle.trim().replace(/^@/, "").toLowerCase();
     try {
@@ -110,8 +101,8 @@ function TwitterToWalletCard() {
       setWallet(addr);
       if (!addr) { setError("No wallet mapping found for this handle."); return; }
 
-      // 2) Параллельно тянем баланс и список монет
-      await Promise.all([loadWalletOverview(addr), loadWalletCoins(addr)]);
+      // 2) Тянем только баланс
+      await loadWalletOverview(addr);
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {
@@ -130,7 +121,7 @@ function TwitterToWalletCard() {
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-green-300 mb-2">Twitter → Wallet</h2>
         <p className="text-green-300/70 text-sm leading-relaxed">
-          Enter a Twitter handle to get the mapped wallet from Bags, plus wallet overview and created coins.
+          Enter a Twitter handle to get the mapped wallet from Bags and SOL balance.
         </p>
       </div>
 
@@ -172,46 +163,6 @@ function TwitterToWalletCard() {
               <div className="mt-1 font-mono bg-black/50 border border-neutral-800 rounded-xl p-3 inline-block">
                 {sol != null ? `${sol} SOL` : "—"}
               </div>
-
-              <div className="text-sm text-green-300/70 mt-3">Top tokens</div>
-              <div className="mt-1 bg-black/50 border border-neutral-800 rounded-xl p-3">
-                {topTokens?.length
-                  ? topTokens.map((t, i) => (
-                      <div key={i} className="font-mono">
-                        {(t.symbol || "(token)")} — {typeof t.displayBalance === "number" ? t.displayBalance.toFixed(4) : "—"}
-                      </div>
-                    ))
-                  : <div className="text-green-300/60">—</div>}
-              </div>
-            </div>
-
-            {/* Монеты, которые делал этот кошелёк */}
-            <div>
-              <div className="text-sm text-green-300/70">Coins by this wallet</div>
-              {coins.length ? (
-                <div className="mt-2 space-y-2">
-                  {coins.map((c, i) => (
-                    <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs rounded-full border border-neutral-700 px-2 py-0.5 bg-neutral-900 text-green-300/80">
-                          {c.role === "creator" ? "Creator" : "Fee Share"}
-                        </span>
-                        {c.royaltyPct != null && (
-                          <span className="text-xs text-green-300/70">Royalty: {c.royaltyPct}%</span>
-                        )}
-                        <span className="ml-auto text-green-300/70 text-xs">
-                          {c.twitter ? `@${c.twitter}` : (c.username || "")}
-                        </span>
-                      </div>
-                      <div className="mt-2 font-mono break-all text-green-100">
-                        {c.mint}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-1 text-green-300/60">No coins found for this wallet.</div>
-              )}
             </div>
           </div>
         )}
