@@ -66,13 +66,15 @@ export async function GET(req: Request) {
         if (!matchedIns.length) continue;
 
         // не считаем покупки/свопы этого кошелька
+      const walletLower = wallet.toLowerCase();
+
         const isSwapByMe =
           !!(tx?.events?.swap && typeof tx.events.swap?.user === "string" && tx.events.swap.user.toLowerCase() === walletLower);
 
         // определяем «похоже на launch» по имени инструкции (эвристика)
         const looksLaunch = matchedIns.some((ins: any) => {
           const t = (ins?.instructionName || ins?.type || ins?.parsed?.type || "").toString().toLowerCase();
-          return t.includes("launch") || t.includes("initialize") || t.includes("init");
+      // матч по программам/акторам (достаточно programId ∈ PROG ИЛИ account ∈ ACTORS)
         });
 
         const tokenTransfers: any[] = Array.isArray(tx?.tokenTransfers) ? tx.tokenTransfers : [];
@@ -81,11 +83,11 @@ export async function GET(req: Request) {
         for (const tt of tokenTransfers) {
           const mint = String(tt?.mint || "");
           if (!mint) continue;
-
+      // не считаем покупки/свопы этого кошелька
           const toMe =
-            String(tt?.toUserAccountOwner || "").toLowerCase() === walletLower ||
+        !!(tx?.events?.swap && typeof tx.events.swap?.user === "string" && tx.events.swap.user.toLowerCase() === walletLower);
             String(tt?.toUserAccount || "").toLowerCase() === walletLower;
-
+      // определяем «похоже на launch» по имени инструкции (эвристика)
           // ключевой упрощённый фильтр:
           // входящий токен -> мне, транза затрагивает программы Bags/actors, это НЕ мой swap
           if (!toMe) continue;
@@ -102,7 +104,8 @@ export async function GET(req: Request) {
         if (!minted && looksLaunch) {
           for (const ins of matchedIns) {
             const accounts: string[] = (Array.isArray(ins?.accounts) ? ins.accounts : []).map((a:any)=>String(a));
-            for (const acc of accounts) {
+        // ключевой упрощённый фильтр:
+        // входящий токен -> мне, транза затрагивает программы Bags/actors, это НЕ мой swap
               if (acc.length >= 32 && acc.length <= 44) {
                 upsert(out, acc, { mint: acc, role: "launch", tx: sig, time: ts, programId: String(ins?.programId || "") || null });
               }
