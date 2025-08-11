@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 
 const pathNames: Record<string, string> = {
   '/': 'Home',
-  '/twitter-search': 'Twitter Search',
-  '/token-creators': 'Token Creators',
+  '/twitter-search': 'X Search',
+  '/token-creators': 'CA Finder',
   '/portfolio': 'Portfolio',
   '/analytics': 'Analytics',
 };

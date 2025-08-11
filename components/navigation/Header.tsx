@@ -6,8 +6,8 @@ import { usePathname } from 'next/navigation';
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
-  { name: 'Twitter Search', href: '/twitter-search', icon: Search },
-  { name: 'Token Creators', href: '/token-creators', icon: Users },
+  { name: 'X Search', href: '/twitter-search', icon: Search },
+  { name: 'CA Finder', href: '/token-creators', icon: Users },
   { name: 'Portfolio', href: '/portfolio', icon: Coins },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];

@@ -14,9 +14,9 @@ export default function TokenCreatorsPage() {
         <Breadcrumbs />
         
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Token Creators Search</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">CA Finder Search</h1>
           <p className="text-[#888888] text-base">
-            Enter a token contract address to discover creators and fee shares
+            Find creators and fee splits by contract address
           </p>
         </header>
 

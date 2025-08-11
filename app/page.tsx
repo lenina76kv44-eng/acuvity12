@@ -15,15 +15,19 @@ export default function Page() {
         
         <header className="mb-16 text-center">
           <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-[#00ff88] to-[#00cc6a] bg-clip-text text-transparent mb-4">
-            Welcome to Bags Finder
+            Bags Finder
           </h1>
+          <p className="text-xl font-semibold text-white mb-6 tracking-tight">
+            Find wallets. Find creators. Find truth.
+          </p>
+          <div className="find-underline mx-auto max-w-md mb-8"></div>
           <p className="text-[#888888] mt-2 text-base max-w-2xl mx-auto font-medium">
-            Find wallet mappings by Twitter handle or discover creators by token contract address
+            Find wallet mappings by X handle, and find creators by contract address
           </p>
         </header>
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-16">
-          <TwitterToWalletCard />
+          <XToWalletCard />
           <CaToCreatorsCard />
         </section>
 
@@ -31,10 +35,10 @@ export default function Page() {
           <div className="flex flex-col items-center gap-4">
             <div className="flex items-center gap-6">
               <a 
-                href="https://x.com/BagsDox" 
+                href="https://x.com/BagsDox"
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="transform hover:scale-110 hover:rotate-3 transition-all duration-300 ease-out"
+                className="transform hover:scale-110 hover:rotate-3 transition-all duration-300 ease-out grayscale hover:grayscale-0"
               >
                 <img 
                   src="https://i.imgur.com/cZDrW7C.png" 
@@ -46,7 +50,7 @@ export default function Page() {
                 href="https://bags.fm" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="hover:opacity-80 transition-opacity duration-200"
+                className="hover:opacity-80 transition-opacity duration-200 grayscale hover:grayscale-0"
               >
                 <img 
                   src="https://i.imgur.com/gzT11Ng.png" 
@@ -62,7 +66,7 @@ export default function Page() {
   );
 }
 
-function TwitterToWalletCard() {
+function XToWalletCard() {
   const [handle, setHandle] = useState("");
   const [wallet, setWallet] = useState<string | null>(null);
   const [sol, setSol] = useState<number | null>(null);
@@ -139,7 +143,7 @@ function TwitterToWalletCard() {
       if (!j.ok) throw new Error(j.error || "Request failed");
       const addr = j.wallet || null;
       setWallet(addr);
-      if (!addr) { setError("No wallet mapping found for this handle."); return; }
+      if (!addr) { setError("Couldn't find it this time."); return; }
 
       // 2) Load balance and Helius coins
       await Promise.all([
@@ -160,11 +164,12 @@ function TwitterToWalletCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 shadow-[0_0_0_1px_rgba(16,185,129,0.02)]">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-green-300 mb-2">Twitter → Wallet</h2>
-        <p className="text-green-300/70 text-sm leading-relaxed">
-          Enter a Twitter handle to get the mapped wallet from Bags and SOL balance.
+        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">X Handle</div>
+        <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">XFinder — Handle → Wallet</h2>
+        <p className="text-[#8A8A8A] text-sm leading-relaxed">
+          Find a wallet by X handle and see wallet stats.
         </p>
       </div>
 
@@ -174,15 +179,15 @@ function TwitterToWalletCard() {
             value={handle}
             onChange={(e) => setHandle(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="@creator"
-            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600"
+            placeholder="@handle_on_x"
+            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
           />
           <button
             onClick={findWallet}
             disabled={loading || !handle.trim()}
-            className="rounded-xl bg-green-600 text-black px-5 py-3 font-medium hover:bg-green-500 active:bg-green-600 disabled:opacity-50"
+            className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
           >
-            {loading ? "Finding..." : "Find"}
+            {loading ? "Finding…" : "Find"}
           </button>
         </div>
 
@@ -194,7 +199,7 @@ function TwitterToWalletCard() {
           <div className="mt-4 space-y-4">
             {/* Адрес */}
             <div>
-              <div className="text-sm text-green-300/70">Mapped wallet</div>
+              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold">Mapped Wallet</div>
               <div className="mt-1 font-mono break-all bg-black/50 border border-neutral-800 rounded-xl p-3">
                 {wallet}
               </div>
@@ -202,7 +207,7 @@ function TwitterToWalletCard() {
 
             {/* Баланс */}
             <div>
-              <div className="text-sm text-green-300/70 flex items-center gap-2">
+              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold flex items-center gap-2">
                 Balance
                 <img 
                   src="https://i.imgur.com/X5Fsrnb.png" 
@@ -210,25 +215,25 @@ function TwitterToWalletCard() {
                   className="w-4 h-4"
                 />
               </div>
-              <div className="mt-1 font-mono bg-black/50 border border-neutral-800 rounded-xl p-3 inline-block">
+              <div className="mt-1 font-mono bg-black/50 border border-neutral-800 rounded-xl p-3 inline-block text-sm">
                 {sol != null ? `${sol} SOL` : "—"}
               </div>
             </div>
 
             {/* Coins (Helius) */}
             <div>
-              <div className="text-sm text-green-300/70 mb-2">
-                BAGS Tokens (mint ending with "BAGS")
+              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold mb-2">
+                Coins — Found by Helius
               </div>
 
-              {hLoading && <div className="text-green-300/60 text-xs">Scanning transactions...</div>}
-              {hError && <div className="text-red-400 text-xs">{hError}</div>}
+              {hLoading && <div className="text-green-300/60 text-xs">Finding…</div>}
+              {hError && <div className="text-red-400 text-xs">Find failed. Try again.</div>}
 
               {!hLoading && !hError && (
                 hCoins.length ? (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     <div className="text-xs text-green-300/60 mb-2">
-                      Found {hCoins.length} BAGS tokens (fee-claim/launch)
+                      Found {hCoins.length} BAGS tokens
                     </div>
                     {hCoins.slice(0, 15).map((c, i) => (
                       <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
@@ -258,7 +263,7 @@ function TwitterToWalletCard() {
                               ? "bg-green-500/10 border-green-500/30 text-green-400"
                               : "bg-amber-500/10 border-amber-500/30 text-amber-300")
                           }>
-                            {c.role === "launch" ? "Launch" : "Fee-claim"}
+                            {c.role === "launch" ? "Find: Launch" : "Find: Fee-claim"}
                           </span>
                         </div>
                         
@@ -292,7 +297,7 @@ function TwitterToWalletCard() {
                     )}
                   </div>
                 ) : (
-                  <div className="text-green-300/60 text-xs">No BAGS tokens detected.</div>
+                  <div className="text-green-300/60 text-xs">Nothing to find yet.</div>
                 )
               )}
             </div>
@@ -300,7 +305,7 @@ function TwitterToWalletCard() {
         )}
 
         {!error && !wallet && !loading && (
-          <div className="text-green-300/60 mt-4 text-xs">Enter a handle and press Find.</div>
+          <div className="text-green-300/60 mt-4 text-xs">Type an X handle and press Find.</div>
         )}
       </div>
     </div>
@@ -319,7 +324,7 @@ function CaToCreatorsCard() {
     
     // Light base58 sanity check
     if (clean.length < 32 || clean.length > 44) {
-      setError("Invalid CA format");
+      setError("Find failed. Try again.");
       setLoading(false);
       return;
     }
@@ -342,9 +347,9 @@ function CaToCreatorsCard() {
       }));
       
       setRows(creators);
-      if (!creators.length) setError("No creators found for this CA.");
+      if (!creators.length) setError("Nothing to find here (yet).");
     } catch (e: any) {
-      setError(e.message || String(e));
+      setError("Find failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -357,11 +362,12 @@ function CaToCreatorsCard() {
   };
 
   return (
-    <div className="rounded-xl border border-[#1a1a1a] bg-[#111111] hover:bg-[#151515] transition-all duration-200 p-6">
+    <div className="rounded-xl border border-[#1a1a1a] bg-[#111111] p-6 find-glow find-hover">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-white mb-2">Token CA → Creators</h2>
-        <p className="text-[#888888] text-sm leading-relaxed">
-          Enter a token contract address to discover creators and fee shares
+        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Contract Address</div>
+        <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">CA Finder — Find Creators</h2>
+        <p className="text-[#8A8A8A] text-sm leading-relaxed">
+          Find creators and fee splits by contract address.
         </p>
       </div>
 
@@ -371,13 +377,13 @@ function CaToCreatorsCard() {
             value={ca}
             onChange={(e) => setCa(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Contract address"
-            className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] text-white px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-[#00ff88] focus:border-[#00ff88] transition-all duration-200 placeholder-[#666666] font-medium"
+            placeholder="Token contract address"
+            className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] text-white px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-[#00ff88] focus:border-[#00ff88] transition-all duration-200 placeholder-[#666666]"
           />
           <button
             onClick={fetchCreators}
             disabled={loading || !ca.trim()}
-            className="rounded-lg bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-w-[80px] text-sm"
+            className="rounded-lg bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-w-[80px] text-sm shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)]"
           >
             {loading ? (
               <span className="flex items-center justify-center">
@@ -392,18 +398,17 @@ function CaToCreatorsCard() {
         </div>
 
         {error && (
-          <div className="bg-[#ff4444]/10 border border-[#ff4444]/20 rounded-lg p-3">
-            <p className="text-[#ff6666] text-sm font-medium">{error}</p>
+          <div className="text-red-400 mt-3 text-sm">{error}</div>
           </div>
         )}
 
         {rows.length > 0 && (
           <div className="space-y-3">
-            <div className="text-xs font-semibold text-[#888888] mb-3 uppercase tracking-wide">
-              Found {rows.length} creator{rows.length !== 1 ? 's' : ''}
+            <div className="text-xs font-semibold text-[#7AEFB8] mb-3 uppercase tracking-wide">
+              Found {rows.length} Creator{rows.length !== 1 ? 's' : ''}
             </div>
             {rows.map((c, i) => (
-              <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] hover:bg-[#1f1f1f] transition-colors duration-200 p-4">
+              <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] hover:bg-[#1f1f1f] transition-colors duration-200 p-4 find-hover">
                 <div className="flex items-center gap-4 mb-4">
                   {c.pfp ? (
                     <img 
@@ -433,14 +438,14 @@ function CaToCreatorsCard() {
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
-                    <div className="text-[#666666] font-semibold mb-1 uppercase tracking-wide">Wallet</div>
+                    <div className="text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide text-xs">Wallet</div>
                     <div className="font-mono text-xs break-all bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-2 text-[#cccccc]">
                       {c.wallet || "—"}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[#666666] font-semibold mb-1 uppercase tracking-wide">Royalty</div>
-                    <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-2 text-[#cccccc] font-medium">
+                    <div className="text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide text-xs">Royalty</div>
+                    <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-2 text-[#cccccc] font-mono text-sm">
                       {c.royaltyPct != null ? `${c.royaltyPct}%` : "—"}
                     </div>
                   </div>
@@ -452,7 +457,7 @@ function CaToCreatorsCard() {
 
         {!error && !rows.length && !loading && (
           <div className="text-center py-8">
-            <div className="text-[#666666] text-sm">Enter a contract address and press Find to get started</div>
+            <div className="text-[#666666] text-sm">Paste a CA and press Find.</div>
           </div>
         )}
       </div>

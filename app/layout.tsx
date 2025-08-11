@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import Header from '@/components/navigation/Header';
 
 export const metadata: Metadata = {
-  title: 'Bags Finder - Twitter to Wallet & Token CA to Creators',
-  description: 'Clean, simple tool to search Bags.fm data. Find wallet mappings by Twitter handle or discover creators and fee shares by token contract address.',
-  keywords: ['Bags', 'Bags.fm', 'Twitter', 'Wallet', 'Token', 'Creators', 'Solana'],
+  title: 'Bags Finder — XFinder & CA Finder',
+  description: 'Find wallets by X handles, and find creators by token CA. Clean Solana discovery.',
+  keywords: ['Bags', 'Bags.fm', 'X', 'Twitter', 'Wallet', 'Token', 'Creators', 'Solana', 'Find'],
   authors: [{ name: 'Bags Finder' }],
   viewport: 'width=device-width, initial-scale=1',
 };

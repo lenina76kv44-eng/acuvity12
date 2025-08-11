@@ -72,6 +72,50 @@
   }
 }
 
+/* Find-themed animations and effects */
+@keyframes glow { 
+  0%, 100% { opacity: 0.6; } 
+  50% { opacity: 1; } 
+}
+
+@keyframes shimmer { 
+  0% { transform: translateX(-100%); } 
+  100% { transform: translateX(100%); } 
+}
+
+.find-glow { 
+  box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.10), 0 12px 40px rgba(0, 255, 136, 0.06); 
+}
+
+.find-hover { 
+  transition: transform 0.25s ease, box-shadow 0.25s ease; 
+}
+
+.find-hover:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 8px 30px rgba(0, 255, 136, 0.08); 
+}
+
+.find-underline { 
+  background-image: linear-gradient(90deg, rgba(0, 255, 136, 0.4), rgba(0, 204, 106, 0.4));
+  height: 1px; 
+  width: 100%; 
+}
+
+.find-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.find-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  animation: shimmer 1.6s linear infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
 @layer base {
   * {
     @apply border-border;

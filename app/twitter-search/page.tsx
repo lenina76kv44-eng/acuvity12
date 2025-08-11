@@ -14,21 +14,21 @@ export default function TwitterSearchPage() {
         <Breadcrumbs />
         
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Twitter to Wallet Search</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">X to Wallet Search</h1>
           <p className="text-[#888888] text-base">
-            Enter a Twitter handle to find the mapped wallet address and discover BAGS tokens
+            Enter an X handle to find the wallet and discover BAGS tokens
           </p>
         </header>
 
         <div className="max-w-2xl">
-          <TwitterToWalletCard />
+          <XToWalletCard />
         </div>
       </div>
     </main>
   );
 }
 
-function TwitterToWalletCard() {
+function XToWalletCard() {
   const [handle, setHandle] = useState("");
   const [wallet, setWallet] = useState<string | null>(null);
   const [sol, setSol] = useState<number | null>(null);
@@ -103,7 +103,7 @@ function TwitterToWalletCard() {
       if (!j.ok) throw new Error(j.error || "Request failed");
       const addr = j.wallet || null;
       setWallet(addr);
-      if (!addr) { setError("No wallet mapping found for this handle."); return; }
+      if (!addr) { setError("Couldn't find it this time."); return; }
 
       await Promise.all([
         loadWalletOverview(addr),
@@ -123,22 +123,22 @@ function TwitterToWalletCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 shadow-[0_0_0_1px_rgba(16,185,129,0.02)]">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
       <div className="space-y-4">
         <div className="flex gap-3">
           <input
             value={handle}
             onChange={(e) => setHandle(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="@creator"
+            placeholder="@handle_on_x"
             className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600"
           />
           <button
             onClick={findWallet}
             disabled={loading || !handle.trim()}
-            className="rounded-xl bg-green-600 text-black px-5 py-3 font-medium hover:bg-green-500 active:bg-green-600 disabled:opacity-50"
+            className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
           >
-            {loading ? "Finding..." : "Find"}
+            {loading ? "Finding…" : "Find"}
           </button>
         </div>
 
@@ -149,14 +149,14 @@ function TwitterToWalletCard() {
         {wallet && (
           <div className="mt-4 space-y-4">
             <div>
-              <div className="text-sm text-green-300/70">Mapped wallet</div>
+              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold">Mapped Wallet</div>
               <div className="mt-1 font-mono break-all bg-black/50 border border-neutral-800 rounded-xl p-3">
                 {wallet}
               </div>
             </div>
 
             <div>
-              <div className="text-sm text-green-300/70 flex items-center gap-2">
+              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold flex items-center gap-2">
                 Balance
                 <img 
                   src="https://i.imgur.com/X5Fsrnb.png" 
@@ -164,24 +164,24 @@ function TwitterToWalletCard() {
                   className="w-4 h-4"
                 />
               </div>
-              <div className="mt-1 font-mono bg-black/50 border border-neutral-800 rounded-xl p-3 inline-block">
+              <div className="mt-1 font-mono bg-black/50 border border-neutral-800 rounded-xl p-3 inline-block text-sm">
                 {sol != null ? `${sol} SOL` : "—"}
               </div>
             </div>
 
             <div>
-              <div className="text-sm text-green-300/70 mb-2">
-                BAGS Tokens (mint ending with "BAGS")
+              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold mb-2">
+                Coins — Found by Helius
               </div>
 
-              {hLoading && <div className="text-green-300/60 text-xs">Scanning transactions...</div>}
-              {hError && <div className="text-red-400 text-xs">{hError}</div>}
+              {hLoading && <div className="text-green-300/60 text-xs">Finding…</div>}
+              {hError && <div className="text-red-400 text-xs">Find failed. Try again.</div>}
 
               {!hLoading && !hError && (
                 hCoins.length ? (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     <div className="text-xs text-green-300/60 mb-2">
-                      Found {hCoins.length} BAGS tokens (fee-claim/launch)
+                      Found {hCoins.length} BAGS tokens
                     </div>
                     {hCoins.slice(0, 15).map((c, i) => (
                       <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
@@ -211,7 +211,7 @@ function TwitterToWalletCard() {
                               ? "bg-green-500/10 border-green-500/30 text-green-400"
                               : "bg-amber-500/10 border-amber-500/30 text-amber-300")
                           }>
-                            {c.role === "launch" ? "Launch" : "Fee-claim"}
+                            {c.role === "launch" ? "Find: Launch" : "Find: Fee-claim"}
                           </span>
                         </div>
                         
@@ -245,7 +245,7 @@ function TwitterToWalletCard() {
                     )}
                   </div>
                 ) : (
-                  <div className="text-green-300/60 text-xs">No BAGS tokens detected.</div>
+                  <div className="text-green-300/60 text-xs">Nothing to find yet.</div>
                 )
               )}
             </div>
@@ -253,7 +253,7 @@ function TwitterToWalletCard() {
         )}
 
         {!error && !wallet && !loading && (
-          <div className="text-green-300/60 mt-4 text-xs">Enter a handle and press Find.</div>
+          <div className="text-green-300/60 mt-4 text-xs">Type an X handle and press Find.</div>
         )}
       </div>
     </div>
