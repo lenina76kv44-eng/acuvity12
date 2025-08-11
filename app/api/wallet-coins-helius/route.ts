@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "";
+const BAGS_ACTOR_IDS = process.env.BAGS_ACTOR_IDS || "BAGSB9TpGrZxQbEsrEznv5jXXdwyP6AXerN8aVRiAmcv";
 const addrTx = (a: string, limit = 100, before?: string) =>
   `https://api.helius.xyz/v0/addresses/${a}/transactions?api-key=${HELIUS_API_KEY}&limit=${limit}` +
   (before ? `&before=${before}` : "");
@@ -26,12 +27,16 @@ export async function GET(req: Request) {
     }
     const PROG = new Set(programIds);
 
+    const actorIds = BAGS_ACTOR_IDS.split(",").map(s => s.trim()).filter(Boolean);
+    const ACTORS = new Set(actorIds);
+
     const PAGES = Number(url.searchParams.get("pages") || 5);
     const LIMIT = Number(url.searchParams.get("limit") || 100);
     const MAX = Number(url.searchParams.get("max") || 200);
-    const suffix = (url.searchParams.get("suffix") || "").trim();
+    const suffix = (url.searchParams.get("suffix") || process.env.BAGS_MINT_SUFFIX || "").trim();
 
     const out = new Map<string, Row>();
+    const walletLower = wallet.toLowerCase();
     let before: string | undefined;
 
     for (let p = 0; p < PAGES; p++) {
@@ -51,14 +56,33 @@ export async function GET(req: Request) {
           ...((Array.isArray(tx?.innerInstructions) ? tx.innerInstructions : [])
              .flatMap((ii: any) => Array.isArray(ii?.instructions) ? ii.instructions : [])),
         ];
-        const matched = flatIns.filter((ins: any) => PROG.has(String(ins?.programId || "")));
-        if (!matched.length) continue;
 
-        const looksLaunch = matched.some((ins: any) => {
-          const t = (ins?.instructionName || ins?.type || ins?.parsed?.type || "").toString().toLowerCase();
-          return t.includes("launch") || t.includes("initialize") || t.includes("init");
+        // матч по программам/акторам
+        const matchedIns = flatIns.filter((ins: any) => {
+          const pid = String(ins?.programId || "");
+          if (pid && PROG.has(pid)) return true;
+          const accs: string[] = Array.isArray(ins?.accounts) ? ins.accounts.map((a:any)=>String(a)) : [];
+          return ACTORS && ACTORS.size ? accs.some(a => ACTORS.has(a)) : false;
         });
+        if (!matchedIns.length) continue;
 
+        // эвристики
+        const insNames = matchedIns
+          .map((ins:any) => (ins?.instructionName || ins?.type || ins?.parsed?.type || "").toString().toLowerCase())
+          .join(" ");
+
+        const hasClaimOp =
+          /claim|fee/.test(insNames) ||
+          (Array.isArray(tx?.logMessages) && tx.logMessages.some((m:any)=>/claim|fee/i.test(String(m))));
+
+        const hasBagActor = ACTORS && ACTORS.size
+          ? matchedIns.some((ins:any) => (Array.isArray(ins?.accounts) ? ins.accounts.map((a:any)=>String(a)) : []).some((a:string)=>ACTORS.has(a)))
+          : false;
+
+        const isSwapByMe =
+          !!(tx?.events?.swap && typeof tx.events.swap?.user === "string" && tx.events.swap.user.toLowerCase() === walletLower);
+
+        // обрабатываем только входящие токены И (claim/fee или signer), и без swap
         const tokenTransfers: any[] = Array.isArray(tx?.tokenTransfers) ? tx.tokenTransfers : [];
         let minted = 0;
 
@@ -67,20 +91,30 @@ export async function GET(req: Request) {
           if (!mint) continue;
 
           const toMe =
-            String(tt?.toUserAccountOwner || "").toLowerCase() === wallet.toLowerCase() ||
-            String(tt?.toUserAccount || "").toLowerCase() === wallet.toLowerCase();
+            String(tt?.toUserAccountOwner || "").toLowerCase() === walletLower ||
+            String(tt?.toUserAccount || "").toLowerCase() === walletLower;
 
-          const role: Row["role"] = looksLaunch ? "launch" : (toMe ? "fee-claim" : "program-match");
-          upsert(out, mint, { mint, role, tx: sig, time: ts, programId: matched[0]?.programId || null });
+          // строгий фильтр: уходят покупки/свопы
+          if (!toMe) continue;
+          if (!hasClaimOp && !hasBagActor) continue;
+          if (isSwapByMe) continue;
+
+          const role: Row["role"] = matchedIns.some((ins:any)=>/launch|initialize|init/.test(
+            String(ins?.instructionName || ins?.type || ins?.parsed?.type || "").toLowerCase()
+          )) ? "launch" : "fee-claim";
+
+          const firstProg = matchedIns.map((i:any)=>String(i?.programId||"")).find((pid)=>pid && PROG.has(pid)) || null;
+          upsert(out, mint, { mint, role, tx: sig, time: ts, programId: firstProg });
           minted++;
         }
 
-        if (!minted && looksLaunch) {
-          for (const ins of matched) {
+        // fallback: допускаем launch без transfers (редко)
+        if (!minted && /launch|initialize|init/.test(insNames)) {
+          for (const ins of matchedIns) {
             for (const acc of (ins?.accounts || [])) {
               const a = String(acc || "");
               if (a.length >= 32 && a.length <= 44) {
-                upsert(out, a, { mint: a, role: "launch", tx: sig, time: ts, programId: ins?.programId || null });
+                upsert(out, a, { mint: a, role: "launch", tx: sig, time: ts, programId: String(ins?.programId || "") || null });
               }
             }
           }
@@ -95,9 +129,9 @@ export async function GET(req: Request) {
 
     let data = Array.from(out.values()).sort((a, b) => rank(a.role) - rank(b.role) || (b.time || 0) - (a.time || 0));
     
-    // Фильтр по суффиксу mint (например, "BAGS")
+    // Фильтр по суффиксу mint
     if (suffix) {
-      data = data.filter(r => typeof r.mint === "string" && r.mint.endsWith(suffix));
+      data = data.filter(r => typeof r.mint === "string" && r.mint.toUpperCase().endsWith(suffix.toUpperCase()));
     }
     
     return NextResponse.json({ ok:true, wallet, programIds, found: data.length, data });
