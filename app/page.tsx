@@ -17,12 +17,12 @@ export default function Page() {
           <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-[#00ff88] to-[#00cc6a] bg-clip-text text-transparent mb-4">
             Bags Finder
           </h1>
-          <p className="text-xl font-semibold text-white mb-6 tracking-tight">
-            Find wallets. Find creators. Find truth.
+          <p className="text-xl font-semibold text-white mb-4 tracking-tight">
+            Find wallets. Find launches. Dox devs.
           </p>
           <div className="find-underline mx-auto max-w-md mb-8"></div>
-          <p className="text-[#888888] mt-2 text-base max-w-2xl mx-auto font-medium">
-            Find wallet mappings by X handle, and find creators by contract address
+          <p className="text-[#888888] text-base max-w-2xl mx-auto font-medium">
+            Find wallets by X dev tag and find creators by CA. No hopium, just data.
           </p>
         </header>
 
@@ -33,6 +33,8 @@ export default function Page() {
 
         <footer className="text-center text-sm text-[#666666] border-t border-[#1a1a1a] pt-6">
           <div className="flex flex-col items-center gap-4">
+            <div className="text-[#7AEFB8] font-medium">Powered by Bags.fm</div>
+            <div className="text-[#666666] text-xs">Built for on-chain hunters. Find it before it trends.</div>
             <div className="flex items-center gap-6">
               <a 
                 href="https://x.com/BagsDox"
@@ -67,7 +69,7 @@ export default function Page() {
 }
 
 function XToWalletCard() {
-  const [handle, setHandle] = useState("");
+  const [devTag, setDevTag] = useState("");
   const [wallet, setWallet] = useState<string | null>(null);
   const [sol, setSol] = useState<number | null>(null);
   const [hCoins, setHCoins] = useState<any[]>([]);
@@ -136,7 +138,7 @@ function XToWalletCard() {
     setWallet(null); setSol(null); setHCoins([]);
     setHError("");
 
-    const clean = handle.trim().replace(/^@/, "").toLowerCase();
+    const clean = devTag.trim().replace(/^@/, "").toLowerCase();
     try {
       // 1) Twitter → Wallet
       const j = await fetchJson(`/api/twitter-wallet?handle=${encodeURIComponent(clean)}`);
@@ -158,7 +160,7 @@ function XToWalletCard() {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && handle.trim() && !loading) {
+    if (e.key === 'Enter' && devTag.trim() && !loading) {
       findWallet();
     }
   };
@@ -166,25 +168,25 @@ function XToWalletCard() {
   return (
     <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
       <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">X Handle</div>
-        <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">XFinder — Handle → Wallet</h2>
+        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">X dev tag</div>
+        <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">XFinder — Dev Tag → Wallet</h2>
         <p className="text-[#8A8A8A] text-sm leading-relaxed">
-          Find a wallet by X handle and see wallet stats.
+          Find a wallet by X dev tag. Peek balances. Trace their bags.
         </p>
       </div>
 
       <div className="space-y-4">
         <div className="flex gap-3">
           <input
-            value={handle}
-            onChange={(e) => setHandle(e.target.value)}
+            value={devTag}
+            onChange={(e) => setDevTag(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="@handle_on_x"
+            placeholder="@dev_on_x"
             className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
           />
           <button
             onClick={findWallet}
-            disabled={loading || !handle.trim()}
+            disabled={loading || !devTag.trim()}
             className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
           >
             {loading ? "Finding…" : "Find"}
@@ -192,7 +194,7 @@ function XToWalletCard() {
         </div>
 
         {error && (
-          <div className="text-red-400 mt-3">{error}</div>
+          <div className="text-red-400 mt-3">Find failed. Try again.</div>
         )}
 
         {wallet && (
@@ -223,7 +225,7 @@ function XToWalletCard() {
             {/* Coins (Helius) */}
             <div>
               <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold mb-2">
-                Coins — Found by Helius
+                Coins — Found on-chain
               </div>
 
               {hLoading && <div className="text-green-300/60 text-xs">Finding…</div>}
@@ -233,7 +235,7 @@ function XToWalletCard() {
                 hCoins.length ? (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     <div className="text-xs text-green-300/60 mb-2">
-                      Found {hCoins.length} BAGS tokens
+                      Find results: {hCoins.length} BAGS tokens
                     </div>
                     {hCoins.slice(0, 15).map((c, i) => (
                       <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
@@ -305,7 +307,7 @@ function XToWalletCard() {
         )}
 
         {!error && !wallet && !loading && (
-          <div className="text-green-300/60 mt-4 text-xs">Type an X handle and press Find.</div>
+          <div className="text-green-300/60 mt-4 text-xs">Type an X dev tag and press Find.</div>
         )}
       </div>
     </div>
@@ -347,7 +349,7 @@ function CaToCreatorsCard() {
       }));
       
       setRows(creators);
-      if (!creators.length) setError("Nothing to find here (yet).");
+      if (!creators.length) setError("No creators found for this CA.");
     } catch (e: any) {
       setError("Find failed. Try again.");
     } finally {
@@ -404,7 +406,7 @@ function CaToCreatorsCard() {
         {rows.length > 0 && (
           <div className="space-y-3">
             <div className="text-xs font-semibold text-[#7AEFB8] mb-3 uppercase tracking-wide">
-              Found {rows.length} Creator{rows.length !== 1 ? 's' : ''}
+              Creators Found: {rows.length}
             </div>
             {rows.map((c, i) => (
               <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] hover:bg-[#1f1f1f] transition-colors duration-200 p-4 find-hover">
@@ -456,7 +458,7 @@ function CaToCreatorsCard() {
 
         {!error && !rows.length && !loading && (
           <div className="text-center py-8">
-            <div className="text-[#666666] text-sm">Paste a CA and press Find.</div>
+           <div className="text-[#666666] text-sm">Paste a CA and press Find.</div>
           </div>
         )}
       </div>

@@ -64,7 +64,7 @@ function CaToCreatorsCard() {
       setRows(creators);
       if (!creators.length) setError("No creators found for this CA.");
     } catch (e: any) {
-      setError(e.message || String(e));
+      setError("Find failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ function CaToCreatorsCard() {
         {rows.length > 0 && (
           <div className="space-y-3">
             <div className="text-xs font-semibold text-[#888888] mb-3 uppercase tracking-wide">
-              Found {rows.length} creator{rows.length !== 1 ? 's' : ''}
+              Creators Found: {rows.length}
             </div>
             {rows.map((c, i) => (
               <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] hover:bg-[#1f1f1f] transition-colors duration-200 p-4">

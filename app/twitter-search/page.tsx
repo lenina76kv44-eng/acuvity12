@@ -14,9 +14,9 @@ export default function TwitterSearchPage() {
         <Breadcrumbs />
         
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">X to Wallet Search</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">X Dev Tag Search</h1>
           <p className="text-[#888888] text-base">
-            Enter an X handle to find the wallet and discover BAGS tokens
+            Enter an X dev tag to find the wallet and discover BAGS tokens
           </p>
         </header>
 
@@ -29,7 +29,7 @@ export default function TwitterSearchPage() {
 }
 
 function XToWalletCard() {
-  const [handle, setHandle] = useState("");
+  const [devTag, setDevTag] = useState("");
   const [wallet, setWallet] = useState<string | null>(null);
   const [sol, setSol] = useState<number | null>(null);
   const [hCoins, setHCoins] = useState<any[]>([]);
@@ -97,13 +97,13 @@ function XToWalletCard() {
     setWallet(null); setSol(null); setHCoins([]);
     setHError("");
 
-    const clean = handle.trim().replace(/^@/, "").toLowerCase();
+    const clean = devTag.trim().replace(/^@/, "").toLowerCase();
     try {
       const j = await fetchJson(`/api/twitter-wallet?handle=${encodeURIComponent(clean)}`);
       if (!j.ok) throw new Error(j.error || "Request failed");
       const addr = j.wallet || null;
       setWallet(addr);
-      if (!addr) { setError("Couldn't find it this time."); return; }
+      if (!addr) { setError("Nothing to find for this dev tag."); return; }
 
       await Promise.all([
         loadWalletOverview(addr),
@@ -117,7 +117,7 @@ function XToWalletCard() {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && handle.trim() && !loading) {
+    if (e.key === 'Enter' && devTag.trim() && !loading) {
       findWallet();
     }
   };
@@ -127,15 +127,15 @@ function XToWalletCard() {
       <div className="space-y-4">
         <div className="flex gap-3">
           <input
-            value={handle}
-            onChange={(e) => setHandle(e.target.value)}
+            value={devTag}
+            onChange={(e) => setDevTag(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="@handle_on_x"
+            placeholder="@dev_on_x"
             className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600"
           />
           <button
             onClick={findWallet}
-            disabled={loading || !handle.trim()}
+            disabled={loading || !devTag.trim()}
             className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
           >
             {loading ? "Finding…" : "Find"}
@@ -171,7 +171,7 @@ function XToWalletCard() {
 
             <div>
               <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold mb-2">
-                Coins — Found by Helius
+                Coins — Found on-chain
               </div>
 
               {hLoading && <div className="text-green-300/60 text-xs">Finding…</div>}
@@ -181,7 +181,7 @@ function XToWalletCard() {
                 hCoins.length ? (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     <div className="text-xs text-green-300/60 mb-2">
-                      Found {hCoins.length} BAGS tokens
+                      Find results: {hCoins.length} BAGS tokens
                     </div>
                     {hCoins.slice(0, 15).map((c, i) => (
                       <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
@@ -253,7 +253,7 @@ function XToWalletCard() {
         )}
 
         {!error && !wallet && !loading && (
-          <div className="text-green-300/60 mt-4 text-xs">Type an X handle and press Find.</div>
+         <div className="text-green-300/60 mt-4 text-xs">Type an X dev tag and press Find.</div>
         )}
       </div>
     </div>
