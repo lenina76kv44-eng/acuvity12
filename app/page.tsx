@@ -94,7 +94,7 @@ function TwitterToWalletCard() {
   async function loadHeliusCoins(addr: string) {
     try {
       setHLoading(true); setHError(""); setHCoins([]);
-      const res = await fetch(`/api/wallet-coins-helius?wallet=${encodeURIComponent(addr)}`);
+      const res = await fetch(`/api/wallet-coins-helius?wallet=${encodeURIComponent(addr)}&suffix=BAGS`);
       const j = await res.json();
       if (!j?.ok) throw new Error(j?.error || "Helius scan failed");
       
@@ -201,7 +201,7 @@ function TwitterToWalletCard() {
             {/* Coins (Helius) */}
             <div>
               <div className="text-sm text-green-300/70 mb-2">
-                Coins (on-chain via Helius)
+                BAGS Tokens (mint ending with "BAGS")
               </div>
 
               {hLoading && <div className="text-green-300/60 text-xs">Scanning transactions...</div>}
@@ -211,7 +211,7 @@ function TwitterToWalletCard() {
                 hCoins.length ? (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     <div className="text-xs text-green-300/60 mb-2">
-                      Found {hCoins.length} tokens (fee-claim/launch)
+                      Found {hCoins.length} BAGS tokens (fee-claim/launch)
                     </div>
                     {hCoins.slice(0, 15).map((c, i) => (
                       <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
@@ -255,7 +255,7 @@ function TwitterToWalletCard() {
                     )}
                   </div>
                 ) : (
-                  <div className="text-green-300/60 text-xs">No tokens detected by Helius.</div>
+                  <div className="text-green-300/60 text-xs">No BAGS tokens detected.</div>
                 )
               )}
             </div>

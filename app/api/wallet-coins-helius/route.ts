@@ -29,6 +29,7 @@ export async function GET(req: Request) {
     const PAGES = Number(url.searchParams.get("pages") || 5);
     const LIMIT = Number(url.searchParams.get("limit") || 100);
     const MAX = Number(url.searchParams.get("max") || 200);
+    const suffix = (url.searchParams.get("suffix") || "").trim();
 
     const out = new Map<string, Row>();
     let before: string | undefined;
@@ -92,7 +93,13 @@ export async function GET(req: Request) {
       if (!before || out.size >= MAX) break;
     }
 
-    const data = Array.from(out.values()).sort((a, b) => rank(a.role) - rank(b.role) || (b.time || 0) - (a.time || 0));
+    let data = Array.from(out.values()).sort((a, b) => rank(a.role) - rank(b.role) || (b.time || 0) - (a.time || 0));
+    
+    // Фильтр по суффиксу mint (например, "BAGS")
+    if (suffix) {
+      data = data.filter(r => typeof r.mint === "string" && r.mint.endsWith(suffix));
+    }
+    
     return NextResponse.json({ ok:true, wallet, programIds, found: data.length, data });
   } catch (e: any) {
     return NextResponse.json({ ok:false, error: e?.message || String(e) }, { status:500 });
