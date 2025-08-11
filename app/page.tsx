@@ -1,29 +1,6 @@
 "use client";
 import { useState } from "react";
 
-const API_BASE = "https://public-api-v2.bags.fm/api/v1";
-const API_KEY = "bags_prod_WLmpt-ZMCdFmN3WsFBON5aJnhYMzkwAUsyIJLZ3tORY";
-
-async function bagsApi(path: string) {
-  try {
-    const res = await fetch(`${API_BASE}${path}`, {
-      headers: { 
-        "x-api-key": API_KEY, 
-        "accept": "application/json" 
-      },
-    });
-    const raw = await res.text();
-    if (!res.ok) return { ok: false, error: `${res.status}: ${raw.slice(0,200)}` };
-    try { 
-      return { ok: true, json: JSON.parse(raw) }; 
-    } catch { 
-      return { ok: false, error: `Invalid JSON: ${raw.slice(0,200)}` }; 
-    }
-  } catch (e: any) {
-    return { ok: false, error: `Fetch failed: ${String(e?.message || e)}` };
-  }
-}
-
 function parseJsonSafe(raw: string) {
   try { return { ok: true, data: JSON.parse(raw) }; }
   catch { return { ok: false, error: raw || "Empty response" }; }
@@ -265,10 +242,14 @@ function CaToCreatorsCard() {
     }
     
     try {
-      const r = await bagsApi(`/token-launch/creator/v2?tokenMint=${encodeURIComponent(clean)}`);
-      if (!r.ok) throw new Error(r.error);
+      const res = await fetch(`/api/token-creators?ca=${encodeURIComponent(clean)}`);
+      const raw = await res.text();
+      const p = parseJsonSafe(raw);
+      if (!p.ok) throw new Error(p.error);
+      const j = p.data;
+      if (!j.ok) throw new Error(j.error || "Request failed");
       
-      const creators = (Array.isArray(r.json?.response) ? r.json.response : []).map((c: any) => ({
+      const creators = (Array.isArray(j.data) ? j.data : []).map((c: any) => ({
         username: c?.username ?? null,
         twitter: c?.twitterUsername ?? null,
         wallet: c?.wallet ?? null,
