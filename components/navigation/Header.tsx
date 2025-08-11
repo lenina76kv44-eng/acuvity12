@@ -23,7 +23,7 @@ export default function Header() {
             <img 
               src="https://i.imgur.com/KQRAG1D.png" 
               alt="Bags Finder" 
-             className="w-16 h-16 rounded-lg"
+             className="w-16 h-16 rounded-lg hover:scale-110 hover:rotate-3 transition-all duration-300 ease-out"
             />
           </Link>
 
