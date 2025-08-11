@@ -6,6 +6,21 @@ function parseJsonSafe(raw: string) {
   catch { return { ok: false, error: raw || "Empty response" }; }
 }
 
+async function fetchJson(url: string) {
+  console.log("[FETCH DEBUG]", url);
+  const res = await fetch(url);
+  const raw = await res.text();
+  const ct = res.headers.get("content-type") || "";
+  
+  if (!res.ok || !ct.includes("application/json")) {
+    console.error("HTTP", res.status, "Content-Type:", ct, "Body:", raw.slice(0, 180));
+  }
+  
+  const p = parseJsonSafe(raw);
+  if (!p.ok) throw new Error(p.error);
+  return p.data;
+}
+
 export default function Page() {
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white">
@@ -76,14 +91,6 @@ function TwitterToWalletCard() {
   const [heliusCoins, setHeliusCoins] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  async function fetchJson(url: string) {
-    const res = await fetch(url);
-    const raw = await res.text();
-    const p = parseJsonSafe(raw);
-    if (!p.ok) throw new Error(p.error);
-    return p.data;
-  }
 
   async function loadWalletOverview(addr: string) {
     const j = await fetchJson(`/api/wallet-overview?address=${encodeURIComponent(addr)}`);
