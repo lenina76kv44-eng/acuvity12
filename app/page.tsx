@@ -119,7 +119,7 @@ function TwitterToWalletCard() {
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && handle.trim() && !loading) {
       findWallet();
     }
@@ -139,7 +139,7 @@ function TwitterToWalletCard() {
           <input
             value={handle}
             onChange={(e) => setHandle(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="@creator"
             className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600"
           />
@@ -235,7 +235,7 @@ function CaToCreatorsCard() {
     const clean = ca.trim();
     
     // Light base58 sanity check
-    if (clean.length < 32 || clean.length > 48) {
+    if (clean.length < 32 || clean.length > 44) {
       setError("Invalid CA format");
       setLoading(false);
       return;
@@ -267,7 +267,7 @@ function CaToCreatorsCard() {
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && ca.trim() && !loading) {
       fetchCreators();
     }
@@ -287,7 +287,7 @@ function CaToCreatorsCard() {
           <input
             value={ca}
             onChange={(e) => setCa(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Contract address"
             className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] text-white px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-[#00ff88] focus:border-[#00ff88] transition-all duration-200 placeholder-[#666666] font-medium"
           />
