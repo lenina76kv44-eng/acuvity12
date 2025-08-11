@@ -33,7 +33,6 @@ export default function Page() {
 
         <footer className="text-center text-sm text-[#666666] border-t border-[#1a1a1a] pt-6">
           <div className="flex flex-col items-center gap-4">
-            <div className="text-[#7AEFB8] font-medium">Powered by Bags.fm</div>
             <div className="text-[#666666] text-xs">Built for on-chain hunters. Find it before it trends.</div>
             <div className="flex items-center gap-6">
               <a 
