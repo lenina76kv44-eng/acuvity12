@@ -21,7 +21,9 @@ export default function TokenCreatorsPage() {
         </header>
 
         <div className="max-w-2xl">
-          <CaToCreatorsCard />
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
+            <CaToCreatorsCard />
+          </div>
         </div>
       </div>
     </main>
@@ -77,83 +79,86 @@ function CaToCreatorsCard() {
   };
 
   return (
-    <div className="rounded-xl border border-[#1a1a1a] bg-[#111111] hover:bg-[#151515] transition-all duration-200 p-6">
+    <div>
+      <div className="mb-6">
+        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Contract Address</div>
+        <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">CA Finder — Find Creators</h2>
+        <p className="text-[#8A8A8A] text-sm leading-relaxed">
+          Find creators and fee splits by contract address.
+        </p>
+      </div>
+
       <div className="space-y-4">
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <input
             value={ca}
             onChange={(e) => setCa(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Contract address"
-            className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] text-white px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-[#00ff88] focus:border-[#00ff88] transition-all duration-200 placeholder-[#666666] font-medium"
+            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
           />
           <button
             onClick={fetchCreators}
             disabled={loading || !ca.trim()}
-            className="rounded-lg bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-w-[80px] text-sm"
+            className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
           >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                ...
-              </span>
-            ) : "Find"}
+            {loading ? "Finding…" : "Find"}
           </button>
         </div>
 
         {error && (
-          <div className="bg-[#ff4444]/10 border border-[#ff4444]/20 rounded-lg p-3">
-            <p className="text-[#ff6666] text-sm font-medium">{error}</p>
-          </div>
+          <div className="text-red-400 mt-3">{error}</div>
         )}
 
         {rows.length > 0 && (
           <div className="space-y-3">
-            <div className="text-xs font-semibold text-[#888888] mb-3 uppercase tracking-wide">
+            <div className="text-xs font-semibold text-[#7AEFB8] mb-3 uppercase tracking-wide">
               Creators Found: {rows.length}
             </div>
             {rows.map((c, i) => (
-              <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] hover:bg-[#1f1f1f] transition-colors duration-200 p-4">
+              <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-4">
                 <div className="flex items-center gap-4 mb-4">
                   {c.pfp ? (
                     <img 
                       src={c.pfp} 
                       alt={c.username || "User"} 
-                      className="w-10 h-10 rounded-lg object-cover border border-[#2a2a2a]" 
+                      className="w-10 h-10 rounded-lg object-cover border border-neutral-700" 
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-[#2a2a2a] flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center">
                       <svg className="w-5 h-5 text-[#666666]" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                       </svg>
                     </div>
                   )}
                   <div className="flex-1">
-                    <div className="font-semibold text-white text-sm">
+                    <div className="font-medium text-sm text-green-100">
                       {c.username || "Unknown User"}
                     </div>
                     {c.twitter && (
-                      <div className="text-xs text-[#888888]">@{c.twitter}</div>
+                      <div className="text-xs text-neutral-400">@{c.twitter}</div>
                     )}
                   </div>
-                  <div className={`text-xs rounded-full px-2 py-1 font-semibold border ${c.isCreator ? "bg-[#00ff88]/10 border-[#00ff88]/20 text-[#00ff88]" : "bg-[#4488ff]/10 border-[#4488ff]/20 text-[#4488ff]"}`}>
-                      {c.isCreator ? "Creator" : "Fee Share"}
-                  </div>
+                  <span className={
+                    "px-2 py-1 rounded-full border font-medium text-xs flex-shrink-0 " +
+                    (c.isCreator
+                      ? "bg-green-500/10 border-green-500/30 text-green-400"
+                      : "bg-amber-500/10 border-amber-500/30 text-amber-300")
+                  }>
+                    {c.isCreator ? "Creator" : "Fee Share"}
+                  </span>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="space-y-1">
                   <div>
-                    <div className="text-[#666666] font-semibold mb-1 uppercase tracking-wide">Wallet</div>
-                    <div className="font-mono text-xs break-all bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-2 text-[#cccccc]">
+                    <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Wallet</div>
+                    <div className="font-mono text-xs break-all bg-black/50 border border-neutral-800 rounded-xl p-3 text-green-200">
                       {c.wallet || "—"}
                     </div>
                   </div>
-                  <div>
-                    <div className="text-[#666666] font-semibold mb-1 uppercase tracking-wide">Royalty</div>
-                    <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-2 text-[#cccccc] font-medium">
+                  <div className="mt-2">
+                    <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Royalty</div>
+                    <div className="bg-black/50 border border-neutral-800 rounded-xl p-3 text-green-200 font-mono text-sm">
                       {c.royaltyPct != null ? `${c.royaltyPct}%` : "—"}
                     </div>
                   </div>
@@ -164,11 +169,10 @@ function CaToCreatorsCard() {
         )}
 
         {!error && !rows.length && !loading && (
-          <div className="text-center py-8">
-            <div className="text-[#666666] text-sm">Enter a contract address and press Find to get started</div>
-          </div>
+          <div className="text-green-300/60 mt-4 text-xs">Paste a CA and press Find.</div>
         )}
       </div>
+    </div>
     </div>
   );
 }
