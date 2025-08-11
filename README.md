@@ -38,12 +38,27 @@ cd bags-finder
 npm install
 ```
 
-3. Run the development server:
+3. Set up environment variables:
+```bash
+cp .env.example .env.local
+# Edit .env.local and add your Helius API key
+```
+
+4. Run the development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+### Environment Variables
+
+You need to set up these environment variables in `.env.local`:
+
+- `HELIUS_API_KEY`: Get from [helius.xyz](https://helius.xyz)
+- `BAGS_API_KEY`: Already provided in .env.example
+- `BAGS_ACTOR_IDS`: Already provided in .env.example  
+- `BAGS_MINT_SUFFIX`: Already provided in .env.example
 
 ## Deployment
 

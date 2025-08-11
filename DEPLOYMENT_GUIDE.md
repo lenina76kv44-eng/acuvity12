@@ -2,6 +2,18 @@
 
 This guide will walk you through deploying your Bags Finder application to Vercel step by step.
 
+## Important: Environment Variables Setup
+
+Before deploying, you need to set up your environment variables:
+
+1. **Copy the example file**: `cp .env.example .env.local`
+2. **Get your Helius API key**: 
+   - Go to [helius.xyz](https://helius.xyz)
+   - Sign up for a free account
+   - Get your API key from the dashboard
+   - Replace `your_helius_api_key_here` in `.env.local`
+3. **The `.env.local` file is ignored by git** - it won't be deleted when you reload
+
 ## Prerequisites
 
 - A GitHub account
@@ -140,7 +152,11 @@ vercel --prod
 
 1. Go to **"Settings"** → **"Environment Variables"**
 2. Add any required environment variables
-3. Redeploy if needed
+3. Add these environment variables:
+   - `HELIUS_API_KEY`: Your Helius API key
+   - `BAGS_API_KEY`: bags_prod_WLmpt-ZMCdFmN3WsFBON5aJnhYMzkwAUsyIJLZ3tORY
+   - `BAGS_ACTOR_IDS`: BAGSB9TpGrZxQbEsrEznv5jXXdwyP6AXerN8aVRiAmcv
+   - `BAGS_MINT_SUFFIX`: BAGS
 
 ### Automatic Deployments
 
