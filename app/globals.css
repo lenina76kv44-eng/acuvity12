@@ -103,6 +103,31 @@
   animation: glow 2s ease-in-out infinite;
 }
 
+.find-title-shine {
+  background: linear-gradient(
+    90deg,
+    #00ff88 0%,
+    #00cc6a 25%,
+    #ffffff 50%,
+    #00cc6a 75%,
+    #00ff88 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s ease-in-out infinite;
+}
+
+@keyframes shine {
+  0%, 100% {
+    background-position: 200% 0;
+  }
+  50% {
+    background-position: -200% 0;
+  }
+}
+
 .find-shimmer {
   position: relative;
   overflow: hidden;
