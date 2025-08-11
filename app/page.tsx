@@ -72,6 +72,20 @@ function TwitterToWalletCard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  async function enrichWithMeta(rows: any[]) {
+    const mints = Array.from(new Set(rows.map(r => r.mint).filter(Boolean)));
+    if (!mints.length) return rows;
+
+    const res = await fetch("/api/token-meta", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mints }),
+    });
+    const j = await res.json();
+    const map = j?.data || {};
+    return rows.map(r => ({ ...r, meta: map[r.mint] || null }));
+  }
+
   async function fetchJson(url: string) {
     const res = await fetch(url);
     const raw = await res.text();
@@ -104,7 +118,8 @@ function TwitterToWalletCard() {
         .filter((r: any) => r.role !== "program-match")
         .filter((r: any) => !EXCLUDE.has(r.mint));
       
-      setHCoins(cleaned);
+      const enriched = await enrichWithMeta(cleaned);
+      setHCoins(enriched);
     } catch (e: any) {
       setHError(e.message || String(e));
     } finally {
@@ -217,24 +232,44 @@ function TwitterToWalletCard() {
                     </div>
                     {hCoins.slice(0, 15).map((c, i) => (
                       <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
-                        <div className="flex items-center gap-2 text-xs mb-2">
+                        <div className="flex items-center gap-3 mb-3">
+                          {c?.meta?.image ? (
+                            <img
+                              src={c.meta.image}
+                              alt={c.meta.name || c.mint}
+                              className="w-8 h-8 rounded-lg border border-neutral-700 object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-lg border border-neutral-700 bg-neutral-800 flex-shrink-0" />
+                          )}
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm text-green-100">
+                              {c?.meta?.name || `${c.mint.slice(0,4)}…${c.mint.slice(-4)}`}
+                            </div>
+                            <div className="text-xs text-neutral-400">
+                              {c?.meta?.symbol || "—"}
+                            </div>
+                          </div>
+                          
                           <span className={
-                            "px-2 py-0.5 rounded-full border font-medium " +
+                            "px-2 py-1 rounded-full border font-medium text-xs flex-shrink-0 " +
                             (c.role === "launch"
                               ? "bg-green-500/10 border-green-500/30 text-green-400"
                               : "bg-amber-500/10 border-amber-500/30 text-amber-300")
                           }>
                             {c.role === "launch" ? "Launch" : "Fee-claim"}
                           </span>
-                          <span className="ml-auto text-neutral-400">
-                            {c.time ? new Date(c.time * 1000).toLocaleDateString() : ""}
-                          </span>
                         </div>
+                        
                         <div className="space-y-1">
+                          <div className="text-xs text-neutral-400 mb-1">
+                            {c.time ? new Date(c.time * 1000).toLocaleDateString() : ""}
+                          </div>
                           <a
                             href={`https://bags.fm/${c.mint}`}
                             target="_blank" rel="noopener noreferrer"
-                            className="block font-mono text-xs underline decoration-green-600/40 hover:decoration-green-400 break-all text-green-100"
+                            className="block font-mono text-xs underline decoration-green-600/40 hover:decoration-green-400 break-all text-green-200"
                           >
                             {c.mint}
                           </a>
