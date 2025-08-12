@@ -249,7 +249,7 @@ function SharedTokensCard() {
             ) : (
               <div className="text-center py-8">
                 <div className="text-neutral-400 text-sm">
-                  No shared tokens found. Try lowering pages or re-run later — the RPC may be rate-limited.
+                  No shared tokens found. Try increasing pages to 8–10 or re-run later — the RPC may be rate-limited.
                 </div>
               </div>
             )}
