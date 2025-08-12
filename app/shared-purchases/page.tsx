@@ -35,6 +35,7 @@ function SharedTokensCard() {
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [retryNotice, setRetryNotice] = useState("");
   const [progress, setProgress] = useState("");
 
   async function analyzeSharedTokens() {
@@ -42,6 +43,7 @@ function SharedTokensCard() {
     setError(""); 
     setResults(null);
     setProgress("");
+    setRetryNotice("");
 
     const clean = addresses.trim();
     if (!clean) {
@@ -60,18 +62,35 @@ function SharedTokensCard() {
     try {
       setProgress(`Analyzing ${addrs.length} wallets...`);
       
-      const params = new URLSearchParams({
-        addresses: addrs.join(','),
-        pages: pages.toString(),
-        meta: '1'
-      });
-      
-      const res = await fetch(`/api/analyze/shared-purchases?${params}`);
-      const raw = await res.text();
-      const p = parseJsonSafe(raw);
-      if (!p.ok) throw new Error(p.error);
-      const j = p.data;
-      if (!j.ok) throw new Error(j.error || "Analysis failed");
+      const runAnalysis = async (pageCount: number) => {
+        const params = new URLSearchParams({
+          addresses: addrs.join(','),
+          pages: pageCount.toString(),
+          meta: '1'
+        });
+        
+        const res = await fetch(`/api/analyze/shared-purchases?${params}`, { cache: "no-store" });
+        const raw = await res.text();
+        if (!res.ok) throw new Error(`Analysis failed: ${raw.slice(0,200)}`);
+        return JSON.parse(raw);
+      };
+
+      let j;
+      try {
+        j = await runAnalysis(pages);
+      } catch (e: any) {
+        const msg = String(e?.message || e);
+        if (/504|429|timeout/i.test(msg)) {
+          // shallow retry
+          const reducedPages = Math.max(2, pages - 2);
+          setRetryNotice(`Timed out — re-running with a lighter scan (${reducedPages} pages)...`);
+          setProgress(`Retrying with ${reducedPages} pages...`);
+          j = await runAnalysis(reducedPages);
+          setRetryNotice("");
+        } else {
+          throw e;
+        }
+      }
       
       setResults(j);
       setProgress("");
@@ -154,6 +173,12 @@ function SharedTokensCard() {
         {error && (
           <div className="text-red-400 mt-3">{error}</div>
         )}
+        
+        {retryNotice && (
+          <div className="text-yellow-400 mt-3 text-sm bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+            {retryNotice}
+          </div>
+        )}
 
         {results && (
           <div className="mt-6 space-y-4">
@@ -223,7 +248,9 @@ function SharedTokensCard() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <div className="text-neutral-400 text-sm">No shared tokens found between these wallets.</div>
+                <div className="text-neutral-400 text-sm">
+                  No shared tokens found. Try lowering pages or re-run later — the RPC may be rate-limited.
+                </div>
               </div>
             )}
           </div>
