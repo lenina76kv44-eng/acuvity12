@@ -200,5 +200,116 @@
   }
   body {
     @apply bg-background text-foreground;
+    background: #0a0a0a;
   }
+}
+
+/* Acuvity-style button classes */
+.btn-primary {
+  background: linear-gradient(135deg, #0E983B, #22C55E);
+  color: white;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  box-shadow: rgba(14, 152, 59, 0.35) 0px 10px 24px;
+}
+
+.btn-primary:hover {
+  transform: scale(1.05);
+  box-shadow: rgba(14, 152, 59, 0.5) 0px 15px 35px;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: white;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 2px solid #374151;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  border-color: #0E983B;
+  transform: scale(1.05);
+}
+
+/* Icon animations */
+.icon3d {
+  filter: drop-shadow(rgba(14, 152, 59, 0.3) 0px 8px 16px);
+  transition: all 0.3s ease;
+}
+
+.icon3d:hover {
+  transform: translateY(-2px) scale(1.1);
+  filter: drop-shadow(rgba(14, 152, 59, 0.5) 0px 12px 24px);
+}
+
+.floating-element {
+  animation: float 6s ease-in-out infinite;
+}
+
+.feature-card {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(14, 152, 59, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.feature-card:hover::before {
+  left: 100%;
+}
+
+.scanner-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanner-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(from 0deg, transparent, rgba(14, 152, 59, 0.1), transparent);
+  animation: rotate 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Typography */
+.font-display {
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+}
+
+/* Background */
+.bg-background {
+  background: #0a0a0a;
+}
+
+.hero-bg {
+  background: radial-gradient(ellipse at center, rgba(14, 152, 59, 0.1) 0%, rgba(10, 10, 10, 0.8) 70%);
+}
+
+.section-bg {
+  background: linear-gradient(135deg, rgba(14, 152, 59, 0.05) 0%, rgba(34, 197, 94, 0.02) 50%, rgba(14, 152, 59, 0.05) 100%);
 }

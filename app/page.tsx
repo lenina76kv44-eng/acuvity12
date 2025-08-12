@@ -5,106 +5,182 @@ import { Search, Users, BarChart3, Coins, ArrowRight, CheckCircle, Zap, Shield, 
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#0f1419] to-[#0a0a0a]" />
-        <AnimatedBackground />
-      </div>
+    <main className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated Background Canvas */}
+      <canvas className="fixed inset-0 pointer-events-none z-0" style={{
+        background: 'linear-gradient(135deg, rgba(14, 152, 59, 0.1) 0%, rgba(34, 197, 94, 0.05) 50%, rgba(14, 152, 59, 0.1) 100%)',
+        opacity: 0.6
+      }} />
+      
+      <AnimatedBackground />
 
-      {/* Content */}
-      <div className="relative z-10">
-        {/* Hero Section */}
-        <section className="min-h-screen flex items-center justify-center px-4">
-          <div className="max-w-6xl mx-auto text-center">
-            <div className="mb-8">
-              <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
+      {/* Hero Section */}
+      <div className="pt-0">
+        <div id="home" className="relative min-h-screen overflow-hidden flex items-center hero-bg">
+          <div className="relative z-40 flex flex-col lg:flex-row items-center justify-between w-full px-4 py-20 container mx-auto hero-content">
+            {/* Left Content */}
+            <div className="flex-1 max-w-2xl lg:mr-8 text-center lg:text-left">
+              <h1 className="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight font-display">
                 SHAPING THE<br />
                 FUTURE OF<br />
-                <span className="bg-gradient-to-r from-[#00ff88] to-[#00cc6a] bg-clip-text text-transparent">
-                  WEB3 ANALYTICS
-                </span>
+                <span style={{ color: '#0E983B' }}>WEB3 ANALYTICS</span>
               </h1>
-              <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
-                Advanced Solana wallet scanner — detect links, track<br />
-                memecoin activity, avoid rugs.
+              <p className="text-xl md:text-2xl max-w-2xl text-gray-400 leading-relaxed mb-12 font-normal">
+                Advanced Solana wallet scanner — detect links, track memecoin activity, avoid rugs.
               </p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-              <Link
-                href="/twitter-search"
-                className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[#00ff88]/25"
-              >
-                GET STARTED
-              </Link>
-              <Link
-                href="/faq"
-                className="border border-gray-600 hover:border-[#00ff88] text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105"
-              >
-                DOCUMENTATION
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
+                <Link
+                  href="/twitter-search"
+                  className="btn-primary px-10 py-4 text-lg font-bold inline-flex items-center gap-2"
+                >
+                  <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
+                  GET STARTED
+                </Link>
+                <Link
+                  href="/faq"
+                  className="btn-secondary px-10 py-4 text-lg font-bold"
+                >
+                  DOCUMENTATION
+                </Link>
+              </div>
             </div>
 
-            {/* Feature Preview Card */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-[#00ff88] rounded-xl flex items-center justify-center">
-                  <Search className="w-6 h-6 text-black" />
-                </div>
-                <div className="text-left">
-                  <h3 className="text-2xl font-bold text-[#00ff88]">ACUVITY SCANNER</h3>
-                  <p className="text-gray-400">Fast, comprehensive wallet analysis with AI-powered security insights. Detect links, track memecoin activity, avoid rugs with AI assistance.</p>
-                </div>
-              </div>
-              
-              <Link
-                href="/twitter-search"
-                className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center gap-2"
+            {/* Right Scanner Card */}
+            <div className="flex-shrink-0 w-full lg:w-96 mt-12 lg:mt-0">
+              <section 
+                aria-label="Acuvity Scanner banner"
+                className="scanner-card relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(rgb(243, 251, 255) 0%, rgb(255, 255, 255) 100%)',
+                  borderRadius: '24px',
+                  padding: '28px',
+                  boxShadow: 'rgba(14, 152, 59, 0.06) 0px 8px 30px'
+                }}
               >
-                Start Scanning
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+                {/* Animated SVG Background */}
+                <svg 
+                  viewBox="0 0 1200 420" 
+                  width="100%" 
+                  height="auto" 
+                  className="absolute inset-0 pointer-events-none"
+                >
+                  <defs>
+                    <radialGradient id="rg" cx="50%" cy="40%" r="60%">
+                      <stop offset="0%" stopColor="#0E983B" stopOpacity="0.55" />
+                      <stop offset="60%" stopColor="#22C55E" stopOpacity="0.18" />
+                      <stop offset="100%" stopColor="transparent" stopOpacity="0" />
+                    </radialGradient>
+                    <filter id="blur10" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="10" />
+                    </filter>
+                    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feDropShadow dx="0" dy="6" stdDeviation="10" floodOpacity="0.2" />
+                    </filter>
+                  </defs>
+                  <circle 
+                    cx="320" 
+                    cy="140" 
+                    r="380" 
+                    fill="url(#rg)" 
+                    opacity="0.6"
+                    className="animate-pulse"
+                  />
+                  <g filter="url(#softShadow)" className="animate-float">
+                    <rect x="70" y="250" width="84" height="84" rx="18" fill="#0E983B" opacity="0.16" />
+                    <rect x="165" y="280" width="56" height="56" rx="14" fill="#0E983B" opacity="0.20" />
+                  </g>
+                  <g filter="url(#softShadow)" className="animate-float-delayed">
+                    <rect x="1010" y="84" width="70" height="70" rx="16" fill="#0E983B" opacity="0.18" />
+                    <rect x="1100" y="130" width="44" height="44" rx="12" fill="#0E983B" opacity="0.22" />
+                  </g>
+                  <rect 
+                    x="24" 
+                    y="24" 
+                    width="700" 
+                    height="110" 
+                    rx="22" 
+                    fill="#ffffff" 
+                    opacity="0.45" 
+                    filter="url(#blur10)" 
+                  />
+                </svg>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 text-left">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-[#00ff88]" />
-                  <span className="text-gray-300">Deep Transaction analysis</span>
+                <div className="relative z-10 flex flex-col gap-6">
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <img 
+                        src="https://i.imgur.com/CO5qw6E.png" 
+                        width="40" 
+                        height="40" 
+                        alt="Acuvity logo" 
+                        className="rounded-full object-cover floating-element"
+                        style={{ filter: 'drop-shadow(rgba(0, 0, 0, 0.12) 0px 4px 10px)' }}
+                      />
+                      <h2 className="text-2xl font-black text-gray-900 tracking-wide">
+                        ACUVITY SCANNER
+                      </h2>
+                    </div>
+                    <p className="text-gray-700 text-base leading-relaxed mb-6 max-w-lg">
+                      Fast, comprehensive wallet analysis with AI-powered security insights. Detect links, track memecoin activity, avoid rugs with AI assistance.
+                    </p>
+                    <Link
+                      href="/twitter-search"
+                      className="inline-flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105"
+                      style={{
+                        background: 'linear-gradient(135deg, #0E983B, #22C55E)',
+                        boxShadow: 'rgba(14, 152, 59, 0.35) 0px 10px 24px'
+                      }}
+                    >
+                      Start scanning
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="flex items-center gap-3">
+                      <img src="https://i.imgur.com/X0mWOKf.png" width="24" height="24" alt="" loading="lazy" />
+                      <span className="text-gray-900 font-semibold text-sm">Deep Transaction analysis</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <img src="https://i.imgur.com/iyzRIyn.png" width="24" height="24" alt="" loading="lazy" />
+                      <span className="text-gray-900 font-semibold text-sm">Risk pattern detection</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <img src="https://i.imgur.com/ESs7DAD.png" width="24" height="24" alt="" loading="lazy" />
+                      <span className="text-gray-900 font-semibold text-sm">AI-powered insights</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-[#00ff88]" />
-                  <span className="text-gray-300">Risk pattern detection</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-[#00ff88]" />
-                  <span className="text-gray-300">AI-powered insights</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-[#00ff88]" />
-                  <span className="text-gray-300">Real-time monitoring</span>
-                </div>
-              </div>
+              </section>
             </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* What is Acuvity Section */}
-        <section className="py-24 px-4">
-          <div className="max-w-6xl mx-auto text-center">
-            <h2 className="text-5xl md:text-6xl font-bold mb-8">WHAT IS ACUVITY</h2>
-            <p className="text-xl text-gray-400 max-w-4xl mx-auto mb-16 leading-relaxed">
+      {/* What is Acuvity Section */}
+      <section id="features" className="py-24 text-center relative z-40">
+        <div className="container mx-auto px-4">
+          <div className="mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
+              WHAT IS ACUVITY
+            </h2>
+            <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed font-normal">
               Build your Web3 analytics workflows in minutes. Analyze any blockchain address 
               with real-time risk scores. Deploy custom AI agents directly from your dashboard.
             </p>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Discover */}
-              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#00ff88]/50 transition-all duration-300">
-                <div className="w-16 h-16 bg-[#00ff88] rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Search className="w-8 h-8 text-black" />
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Discover */}
+            <div className="group relative feature-card hover:transform hover:scale-105 cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300">
+              <div className="relative z-10">
+                <div className="mb-6 flex justify-center">
+                  <img src="https://i.imgur.com/iyzRIyn.png" alt="DISCOVER." className="w-16 h-16 icon3d floating-element" />
                 </div>
-                <h3 className="text-2xl font-bold text-[#00ff88] mb-4">DISCOVER.</h3>
-                <ul className="text-left space-y-2 text-gray-300">
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  DISCOVER.
+                </h3>
+                <ul className="text-left space-y-2 text-gray-300 mb-8">
                   <li>• Uncover hidden connections</li>
                   <li>• Analyze wallet behavior</li>
                   <li>• Detect Solana token launches</li>
@@ -113,15 +189,26 @@ export default function HomePage() {
                   <li>• Cross-reference transactions</li>
                   <li>• Pattern recognition</li>
                 </ul>
+                <Link
+                  href="/twitter-search"
+                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all duration-300 text-black"
+                  style={{ background: '#0E983B' }}
+                >
+                  SCAN NOW
+                </Link>
               </div>
+            </div>
 
-              {/* Analyze */}
-              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#00ff88]/50 transition-all duration-300">
-                <div className="w-16 h-16 bg-[#00ff88] rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <BarChart3 className="w-8 h-8 text-black" />
+            {/* Analyze */}
+            <div className="group relative feature-card hover:transform hover:scale-105 cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300">
+              <div className="relative z-10">
+                <div className="mb-6 flex justify-center">
+                  <img src="https://i.imgur.com/X0mWOKf.png" alt="ANALYZE." className="w-16 h-16 icon3d floating-element" />
                 </div>
-                <h3 className="text-2xl font-bold text-[#00ff88] mb-4">ANALYZE.</h3>
-                <ul className="text-left space-y-2 text-gray-300">
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  ANALYZE.
+                </h3>
+                <ul className="text-left space-y-2 text-gray-300 mb-8">
                   <li>• Risk assessment and scoring</li>
                   <li>• Behavioral analysis with AI</li>
                   <li>• Advanced wallet metrics</li>
@@ -130,15 +217,26 @@ export default function HomePage() {
                   <li>• Fee structure analysis</li>
                   <li>• Reliability scoring</li>
                 </ul>
+                <Link
+                  href="/wallet-check"
+                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all duration-300 text-black"
+                  style={{ background: '#0E983B' }}
+                >
+                  CHECK NOW
+                </Link>
               </div>
+            </div>
 
-              {/* Deploy */}
-              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#00ff88]/50 transition-all duration-300">
-                <div className="w-16 h-16 bg-[#00ff88] rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Shield className="w-8 h-8 text-black" />
+            {/* Deploy */}
+            <div className="group relative feature-card bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 opacity-50 cursor-not-allowed">
+              <div className="relative z-10">
+                <div className="mb-6 flex justify-center">
+                  <img src="https://i.imgur.com/CHFZ6ZX.png" alt="DEPLOY." className="w-16 h-16 icon3d floating-element" />
                 </div>
-                <h3 className="text-2xl font-bold text-[#00ff88] mb-4">DEPLOY.</h3>
-                <ul className="text-left space-y-2 text-gray-300">
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  DEPLOY.
+                </h3>
+                <ul className="text-left space-y-2 text-gray-300 mb-8">
                   <li>• Advanced blockchain intelligence</li>
                   <li>• Automated risk monitoring</li>
                   <li>• Custom alert systems</li>
@@ -147,173 +245,173 @@ export default function HomePage() {
                   <li>• Scalable infrastructure</li>
                   <li>• Enterprise reporting</li>
                 </ul>
-              </div>
-            </div>
-
-            <div className="mt-12">
-              <Link
-                href="/twitter-search"
-                className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[#00ff88]/25 inline-flex items-center gap-2"
-              >
-                EXPLORE
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* Live Analysis Tools Section */}
-        <section className="py-24 px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-5xl md:text-6xl font-bold mb-8">LIVE ANALYSIS TOOLS</h2>
-              <p className="text-xl text-gray-400 max-w-4xl mx-auto leading-relaxed">
-                Experience the power of professional blockchain analysis. Test our tools instantly - 
-                no registration required. Sign up only for advanced analysis history and access 
-                advanced features.
-              </p>
-            </div>
-
-            <div className="space-y-12">
-              {/* X Search Tool */}
-              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-[#00ff88] rounded-xl flex items-center justify-center">
-                    <Search className="w-6 h-6 text-black" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-[#00ff88]">X SEARCH SCANNER</h3>
+                <div className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide bg-gray-200 text-gray-400 cursor-not-allowed border-2 border-gray-200">
+                  COMING SOON
                 </div>
-                <p className="text-gray-400 mb-6">
-                  Analyze habits and trace history through Solana transactions
-                </p>
-                <Link
-                  href="/twitter-search"
-                  className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center gap-2"
-                >
-                  START SCANNING
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              {/* CA Finder Tool */}
-              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-[#00ff88] rounded-xl flex items-center justify-center">
-                    <Users className="w-6 h-6 text-black" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-[#00ff88]">CA FINDER</h3>
-                </div>
-                <p className="text-gray-400 mb-6">
-                  Discover token creators and fee structures through contract analysis
-                </p>
-                <Link
-                  href="/token-creators"
-                  className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center gap-2"
-                >
-                  EXPLORE CREATORS
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              {/* Wallet Reliability Check */}
-              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-[#00ff88] rounded-xl flex items-center justify-center">
-                    <Coins className="w-6 h-6 text-black" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-[#00ff88]">WALLET RELIABILITY CHECK</h3>
-                </div>
-                <p className="text-gray-400 mb-6">
-                  AI-powered wallet analysis with behavioral risk assessment
-                </p>
-                <Link
-                  href="/wallet-check"
-                  className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center gap-2"
-                >
-                  CHECK WALLET
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              {/* Wallet to X Tool */}
-              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-[#00ff88] rounded-xl flex items-center justify-center">
-                    <BarChart3 className="w-6 h-6 text-black" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-[#00ff88]">WALLET → X TAGS</h3>
-                </div>
-                <p className="text-gray-400 mb-6">
-                  Reverse lookup to find X (Twitter) handles associated with wallet addresses
-                </p>
-                <Link
-                  href="/wallet-to-x"
-                  className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center gap-2"
-                >
-                  FIND X TAGS
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Ecosystem Section */}
-        <section className="py-24 px-4">
-          <div className="max-w-6xl mx-auto text-center">
-            <h2 className="text-5xl md:text-6xl font-bold mb-8">OUR ECOSYSTEM</h2>
-            <p className="text-xl text-gray-400 max-w-4xl mx-auto mb-16 leading-relaxed">
-              Everything on Web3, powered by our AI. Acuvity is one of the first 
-              platforms that unifies analytics, risk, deployment and on-chain 
-              governance in one place.
+      {/* Live Analysis Tools Section */}
+      <section id="tools" className="py-24 relative z-10" style={{
+        background: 'linear-gradient(135deg, rgba(14, 152, 59, 0.05) 0%, rgba(34, 197, 94, 0.02) 50%, rgba(14, 152, 59, 0.05) 100%)'
+      }}>
+        <div className="container mx-auto px-4 relative z-40">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
+              LIVE ANALYSIS TOOLS
+            </h2>
+            <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed font-normal">
+              Experience the power of professional blockchain analysis. Test our tools instantly - 
+              no registration required. Sign up only for advanced analysis history and access 
+              advanced features.
             </p>
+          </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+          <div className="space-y-12">
+            {/* X Search Tool */}
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <img src="https://i.imgur.com/iyzRIyn.png" className="w-12 h-12 icon3d" alt="X Search" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  X SEARCH SCANNER
+                </h3>
+              </div>
+              <p className="text-gray-400 mb-6">
+                Analyze habits and trace history through Solana transactions
+              </p>
               <Link
                 href="/twitter-search"
-                className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[#00ff88]/25"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                style={{ background: '#0E983B' }}
               >
-                EXPLORE
-              </Link>
-              <Link
-                href="/faq"
-                className="border border-gray-600 hover:border-[#00ff88] text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105"
-              >
-                DOCUMENTATION
+                START SCANNING
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
-            {/* Ecosystem Visual */}
-            <div className="relative">
-              <div className="w-64 h-64 mx-auto bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-3xl flex items-center justify-center mb-8 hover:scale-105 transition-all duration-300">
-                <Target className="w-32 h-32 text-black" />
+            {/* CA Finder Tool */}
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <img src="https://i.imgur.com/X0mWOKf.png" className="w-12 h-12 icon3d" alt="CA Finder" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  CA FINDER
+                </h3>
               </div>
-              
-              {/* Floating Icons */}
-              <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float">
-                  <Search className="w-6 h-6 text-[#00ff88]" />
+              <p className="text-gray-400 mb-6">
+                Discover token creators and fee structures through contract analysis
+              </p>
+              <Link
+                href="/token-creators"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                style={{ background: '#0E983B' }}
+              >
+                EXPLORE CREATORS
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Wallet Reliability Check */}
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <img src="https://i.imgur.com/ESs7DAD.png" className="w-12 h-12 icon3d" alt="Wallet Check" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  WALLET RELIABILITY CHECK
+                </h3>
+              </div>
+              <p className="text-gray-400 mb-6">
+                AI-powered wallet analysis with behavioral risk assessment
+              </p>
+              <Link
+                href="/wallet-check"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                style={{ background: '#0E983B' }}
+              >
+                CHECK WALLET
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Wallet to X Tool */}
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <img src="https://i.imgur.com/i4E5ZuP.png" className="w-12 h-12 icon3d" alt="Wallet to X" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  WALLET → X TAGS
+                </h3>
+              </div>
+              <p className="text-gray-400 mb-6">
+                Reverse lookup to find X (Twitter) handles associated with wallet addresses
+              </p>
+              <Link
+                href="/wallet-to-x"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                style={{ background: '#0E983B' }}
+              >
+                FIND X TAGS
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Ecosystem Section */}
+      <section className="py-24 relative z-30 overflow-hidden">
+        <div className="container mx-auto px-4 relative z-40">
+          <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
+                  OUR ECOSYSTEM
+                </h2>
+                <p className="text-gray-400 text-xl mb-8 leading-relaxed font-normal">
+                  Everything on Web3, powered by our AI. Acuvity is one of the first 
+                  platforms that unifies analytics, risk, deployment and on-chain 
+                  governance in one place.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link
+                    href="/twitter-search"
+                    className="inline-flex items-center gap-2 px-10 py-4 text-lg font-bold rounded-xl text-black transition-all duration-300 hover:scale-105"
+                    style={{ background: '#0E983B' }}
+                  >
+                    <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
+                    EXPLORE
+                  </Link>
+                  <Link
+                    href="/faq"
+                    className="px-10 py-4 text-lg font-bold rounded-xl border border-gray-600 hover:border-[#0E983B] text-white transition-all duration-300 hover:scale-105"
+                  >
+                    DOCUMENTATION
+                  </Link>
                 </div>
-                <div className="absolute top-1/3 right-1/4 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float-delayed">
-                  <Users className="w-6 h-6 text-[#00ff88]" />
-                </div>
-                <div className="absolute bottom-1/4 left-1/3 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float">
-                  <BarChart3 className="w-6 h-6 text-[#00ff88]" />
-                </div>
-                <div className="absolute bottom-1/3 right-1/3 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float-delayed">
-                  <Coins className="w-6 h-6 text-[#00ff88]" />
-                </div>
-                <div className="absolute top-1/2 left-1/6 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float">
-                  <Shield className="w-6 h-6 text-[#00ff88]" />
-                </div>
-                <div className="absolute top-1/2 right-1/6 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float-delayed">
-                  <Zap className="w-6 h-6 text-[#00ff88]" />
+              </div>
+
+              <div className="text-center">
+                <div className="relative">
+                  <img 
+                    src="https://i.imgur.com/iyzRIyn.png" 
+                    alt="Analytics" 
+                    className="w-64 h-64 mx-auto floating-element"
+                    style={{ filter: 'drop-shadow(rgba(14, 152, 59, 0.3) 0px 20px 40px)' }}
+                  />
+                  
+                  {/* Floating Icons */}
+                  <img src="https://i.imgur.com/X0mWOKf.png" alt="Security" className="absolute top-4 right-4 w-12 h-12 animate-float" />
+                  <img src="https://i.imgur.com/i4E5ZuP.png" alt="Reports" className="absolute top-12 left-12 w-10 h-10 animate-float-delayed" />
+                  <img src="https://i.imgur.com/eBYdwGI.png" alt="DEX Swaps" className="absolute bottom-16 right-12 w-11 h-11 animate-float" />
+                  <img src="https://i.imgur.com/CHFZ6ZX.png" alt="AI Automation" className="absolute top-32 left-4 w-9 h-9 animate-float-delayed" />
+                  <img src="https://i.imgur.com/lTr0Z7H.png" alt="Risk Detection" className="absolute bottom-4 left-16 w-8 h-8 animate-float" />
+                  <img src="https://i.imgur.com/8NMpdwt.png" alt="Bridge Analysis" className="absolute top-8 right-32 w-9 h-9 animate-float-delayed" />
                 </div>
               </div>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </main>
   );
 }
@@ -358,13 +456,14 @@ function AnimatedBackground() {
       {particles.map(particle => (
         <div
           key={particle.id}
-          className="absolute rounded-full bg-[#00ff88]"
+          className="absolute rounded-full"
           style={{
             left: particle.x,
             top: particle.y,
             width: particle.size,
             height: particle.size,
             opacity: particle.opacity,
+            backgroundColor: '#0E983B'
           }}
         />
       ))}
@@ -373,8 +472,8 @@ function AnimatedBackground() {
       <div className="absolute inset-0 opacity-10">
         <div className="h-full w-full" style={{
           backgroundImage: `
-            linear-gradient(rgba(0, 255, 136, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 136, 0.1) 1px, transparent 1px)
+            linear-gradient(rgba(14, 152, 59, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(14, 152, 59, 0.1) 1px, transparent 1px)
           `,
           backgroundSize: '50px 50px'
         }} />
