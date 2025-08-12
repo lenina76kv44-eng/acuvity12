@@ -7,7 +7,6 @@ const pathNames: Record<string, string> = {
   '/': 'Home',
   '/twitter-search': 'X Search',
   '/token-creators': 'CA Finder',
-  '/bubblemap': 'Bubblemap',
   '/wallet-check': 'Wallet Check',
 };
 
