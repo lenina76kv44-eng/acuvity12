@@ -149,10 +149,19 @@ function SharedTokensCard() {
         }
 
         setProgress("Finding shared tokens…");
-        const sets = per.map(x => x.bought);
-        const sharedMints = intersectMany(sets);
+        // count by mint across wallets
+        const bag: Record<string, string[]> = {};
+        per.forEach(({ address, bought }) => {
+          bought.forEach(m => {
+            (bag[m] ??= []).push(address);
+          });
+        });
+        const shared = Object.entries(bag)
+          .filter(([, owners]) => owners.length >= 2) // ключевая правка
+          .map(([mint, owners]) => ({ mint, wallets: owners, count: owners.length }))
+          .sort((a,b) => b.count - a.count || a.mint.localeCompare(b.mint));
 
-        if (!sharedMints.length) {
+        if (!shared.length) {
           return {
             ok: true,
             input: { addresses: addrs, pages: pageCount },
@@ -162,22 +171,21 @@ function SharedTokensCard() {
         }
 
         setProgress("Loading token metadata…");
-        const metas = await batchResolveMetas(sharedMints);
+        const metas = await batchResolveMetas(shared.map(x => x.mint));
 
-        const list = sharedMints.map(m => {
-          const meta = metas[m] || null;
-          const owners = per.filter(x => x.bought.has(m)).map(x => x.address);
+        const list = shared.map(row => {
+          const meta = metas[row.mint] || null;
           return {
-            mint: m,
-            count: owners.length,
-            wallets: owners,
+            mint: row.mint,
+            count: row.count,
+            wallets: row.wallets,
             meta: meta ? {
               name: meta.name,
               symbol: meta.symbol,
               image: meta.logoURI
             } : null
           };
-        }).sort((a, b) => b.count - a.count || a.mint.localeCompare(b.mint));
+        });
 
         return {
           ok: true,
