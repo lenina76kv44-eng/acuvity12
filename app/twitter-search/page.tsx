@@ -9,28 +9,12 @@ function parseJsonSafe(raw: string) {
 
 export default function TwitterSearchPage() {
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white pt-4 relative overflow-hidden">
-      {/* X Search specific background elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-cyan-500/5 rounded-full blur-2xl animate-pulse delay-1000"></div>
-        <div className="absolute bottom-32 left-1/3 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
-      </div>
-      
+    <main className="min-h-screen bg-[#0a0a0a] text-white pt-4">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Breadcrumbs />
         
-        <header className="mb-8 text-center">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center border border-blue-500/30">
-              <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-              </svg>
-            </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-indigo-400 bg-clip-text text-transparent">
-              X Search Tools
-            </h1>
-          </div>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">X Search Tools</h1>
           <p className="text-[#888888] text-base">
             Search by X handle to find wallets, or search by wallet to find X tags
           </p>
@@ -140,12 +124,9 @@ function XToWalletCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-950/20 to-cyan-950/20 backdrop-blur-sm p-6 hover:border-blue-400/30 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
       <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-blue-400 mb-1 font-semibold flex items-center gap-2">
-          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-          X → Wallet
-        </div>
+        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">X → Wallet</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">X Dev Tag Search</h2>
         <p className="text-[#8A8A8A] text-sm leading-relaxed">
           Enter an X dev tag to find the wallet and discover BAGS tokens
@@ -159,12 +140,12 @@ function XToWalletCard() {
             onChange={(e) => setDevTag(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="@dev_on_x"
-            className="flex-1 rounded-xl bg-blue-950/30 border border-blue-500/30 px-4 py-3 text-blue-100 placeholder:text-blue-300/50 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all duration-200"
+            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600"
           />
           <button
             onClick={findWallet}
             disabled={loading || !devTag.trim()}
-            className="rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-5 py-3 font-semibold hover:from-blue-500 hover:to-cyan-500 disabled:opacity-50 shadow-lg hover:shadow-blue-500/25 transition-all duration-200"
+            className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
           >
             {loading ? "Finding…" : "Find"}
           </button>
@@ -177,14 +158,14 @@ function XToWalletCard() {
         {wallet && (
           <div className="mt-4 space-y-4">
             <div>
-              <div className="text-xs uppercase tracking-wide text-blue-400 font-semibold">Mapped Wallet</div>
+              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold">Mapped Wallet</div>
               <div className="mt-1 font-mono break-all bg-black/50 border border-neutral-800 rounded-xl p-3">
                 {wallet}
               </div>
             </div>
 
             <div>
-              <div className="text-xs uppercase tracking-wide text-blue-400 font-semibold flex items-center gap-2">
+              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold flex items-center gap-2">
                 Balance
                 <img 
                   src="https://i.imgur.com/X5Fsrnb.png" 
@@ -198,7 +179,7 @@ function XToWalletCard() {
             </div>
 
             <div>
-              <div className="text-xs uppercase tracking-wide text-blue-400 font-semibold mb-2">
+              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold mb-2">
                 Coins — Found on-chain
               </div>
 
@@ -341,12 +322,9 @@ function WalletToXCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-950/20 to-indigo-950/20 backdrop-blur-sm p-6 hover:border-cyan-400/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
       <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-cyan-400 mb-1 font-semibold flex items-center gap-2">
-          <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse delay-500"></div>
-          Wallet → X
-        </div>
+        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Wallet → X</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">Wallet → X tags</h2>
         <p className="text-[#8A8A8A] text-sm leading-relaxed">
           Find X tags associated with a wallet through Bags creator data
@@ -360,12 +338,12 @@ function WalletToXCard() {
             onChange={(e) => setWallet(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Paste wallet address"
-            className="flex-1 rounded-xl bg-cyan-950/30 border border-cyan-500/30 px-4 py-3 text-cyan-100 placeholder:text-cyan-300/50 outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-400 transition-all duration-200"
+            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
           />
           <button
             onClick={findXTags}
             disabled={loading || !wallet.trim()}
-            className="rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 text-white px-5 py-3 font-semibold hover:from-cyan-500 hover:to-indigo-500 disabled:opacity-50 shadow-lg hover:shadow-cyan-500/25 transition-all duration-200"
+            className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
           >
             {loading ? "Finding…" : "Find"}
           </button>
@@ -387,14 +365,14 @@ function WalletToXCard() {
             {/* X Tags Pills */}
             {results.twitters && results.twitters.length > 0 ? (
               <div>
-                <div className="text-xs uppercase tracking-wide text-cyan-400 font-semibold mb-3">
+                <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold mb-3">
                   Found X Tags ({results.twitters.length})
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {results.twitters.map((tag: string, i: number) => (
                     <span
                       key={i}
-                      className="inline-flex items-center px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-sm font-medium"
+                      className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-medium"
                     >
                       @{tag}
                     </span>
@@ -412,7 +390,7 @@ function WalletToXCard() {
             {/* Creator Details */}
             {results.creators && results.creators.length > 0 && (
               <div>
-                <div className="text-xs uppercase tracking-wide text-cyan-400 font-semibold mb-3">
+                <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold mb-3">
                   Creator Details ({results.creators.length})
                 </div>
                 <div className="space-y-3">
@@ -441,13 +419,13 @@ function WalletToXCard() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                         <div>
-                          <div className="text-cyan-400 font-semibold mb-1 uppercase tracking-wide">Token</div>
+                          <div className="text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Token</div>
                           <div className="font-mono text-xs break-all bg-black/50 border border-neutral-800 rounded-md p-2 text-green-200">
                             {creator.mint}
                           </div>
                         </div>
                         <div>
-                          <div className="text-cyan-400 font-semibold mb-1 uppercase tracking-wide">Royalty</div>
+                          <div className="text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Royalty</div>
                           <div className="bg-black/50 border border-neutral-800 rounded-md p-2 text-green-200 font-mono text-sm">
                             {creator.royaltyPct != null ? `${creator.royaltyPct}%` : "—"}
                           </div>

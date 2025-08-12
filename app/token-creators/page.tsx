@@ -9,35 +9,19 @@ function parseJsonSafe(raw: string) {
 
 export default function TokenCreatorsPage() {
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white pt-4 relative overflow-hidden">
-      {/* CA Finder specific background elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-32 right-16 w-28 h-28 bg-purple-500/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-60 left-24 w-36 h-36 bg-pink-500/5 rounded-full blur-3xl animate-pulse delay-1500"></div>
-        <div className="absolute bottom-40 right-1/3 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl animate-pulse delay-3000"></div>
-      </div>
-      
+    <main className="min-h-screen bg-[#0a0a0a] text-white pt-4">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Breadcrumbs />
         
-        <header className="mb-8 text-center">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center border border-purple-500/30">
-              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-violet-400 bg-clip-text text-transparent">
-              CA Finder Search
-            </h1>
-          </div>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">CA Finder Search</h1>
           <p className="text-[#888888] text-base">
             Find creators and fee splits by contract address
           </p>
         </header>
 
         <div className="max-w-2xl">
-          <div className="rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-950/20 to-pink-950/20 backdrop-blur-sm p-6 hover:border-purple-400/30 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
             <CaToCreatorsCard />
           </div>
         </div>
@@ -104,10 +88,7 @@ function CaToCreatorsCard() {
   return (
     <div>
       <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-purple-400 mb-1 font-semibold flex items-center gap-2">
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-          Contract Address
-        </div>
+        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Contract Address</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">CA Finder — Find Creators</h2>
         <p className="text-[#8A8A8A] text-sm leading-relaxed">
           Find creators and fee splits by contract address.
@@ -121,12 +102,12 @@ function CaToCreatorsCard() {
             onChange={(e) => setCa(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Contract address"
-            className="flex-1 rounded-xl bg-purple-950/30 border border-purple-500/30 px-4 py-3 text-purple-100 placeholder:text-purple-300/50 outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400 transition-all duration-200"
+            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
           />
           <button
             onClick={fetchCreators}
             disabled={loading || !ca.trim()}
-            className="rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-3 font-semibold hover:from-purple-500 hover:to-pink-500 disabled:opacity-50 shadow-lg hover:shadow-purple-500/25 transition-all duration-200"
+            className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
           >
             {loading ? "Finding…" : "Find"}
           </button>
@@ -138,7 +119,7 @@ function CaToCreatorsCard() {
 
         {rows.length > 0 && (
           <div className="space-y-3">
-            <div className="text-xs font-semibold text-purple-400 mb-3 uppercase tracking-wide">
+            <div className="text-xs font-semibold text-[#7AEFB8] mb-3 uppercase tracking-wide">
               Creators Found: {rows.length}
             </div>
             {rows.map((c, i) => (
@@ -177,13 +158,13 @@ function CaToCreatorsCard() {
                 
                 <div className="space-y-1">
                   <div>
-                    <div className="text-xs text-purple-400 font-semibold mb-1 uppercase tracking-wide">Wallet</div>
+                    <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Wallet</div>
                     <div className="font-mono text-xs break-all bg-black/50 border border-neutral-800 rounded-xl p-3 text-green-200">
                       {c.wallet || "—"}
                     </div>
                   </div>
                   <div className="mt-2">
-                    <div className="text-xs text-purple-400 font-semibold mb-1 uppercase tracking-wide">Royalty</div>
+                    <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Royalty</div>
                     <div className="bg-black/50 border border-neutral-800 rounded-xl p-3 text-green-200 font-mono text-sm">
                       {c.royaltyPct != null ? `${c.royaltyPct}%` : "—"}
                     </div>
