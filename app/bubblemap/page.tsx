@@ -175,25 +175,6 @@ export default function BubbleMapPage() {
             <motion.div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 mb-8 find-glow find-hover" whileHover={{ y: -2 }} transition={{ duration: 0.3 }}>
               <h2 className="text-xl font-bold text-white mb-4 uppercase tracking-wide">Analysis settings</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div>
-                  <label className="block text-neutral-400 text-sm mb-2">Pages (max 10)</label>
-                  <input type="number" value={pages} onChange={(e)=>setPages(Math.min(10, Math.max(1, Number(e.target.value))))} className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-3 py-2 text-white" min={1} max={10}/>
-                  <p className="text-neutral-500 text-xs mt-1">~100 tx per page.</p>
-                </div>
-                <div>
-                  <label className="block text-neutral-400 text-sm mb-2">Limit per page</label>
-                  <input type="number" value={limit} onChange={(e)=>setLimit(Math.min(200, Math.max(40, Number(e.target.value))))} className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-3 py-2 text-white" min={40} max={200}/>
-                  <p className="text-neutral-500 text-xs mt-1">Lower if RPC throttles.</p>
-                </div>
-                <div>
-                  <label className="block text-neutral-400 text-sm mb-2">Status</label>
-                  <div className="rounded-xl bg-neutral-900 border border-neutral-800 px-3 py-2 text-neutral-400">
-                    Will scan up to <span className="text-white font-semibold">{pages * limit}</span> tx per wallet
-                  </div>
-                </div>
-              </div>
-
               <div className="mb-6">
                 <label className="block text-neutral-400 text-sm mb-2">Solana addresses (2–10)</label>
                 <motion.textarea
