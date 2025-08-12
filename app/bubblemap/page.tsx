@@ -49,8 +49,8 @@ export default function BubbleMapPage() {
   const [results, setResults] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [analysisStep, setAnalysisStep] = useState<string>("");
-  const [pages, setPages] = useState(8);
-  const [limit, setLimit] = useState(120);
+  const pages = 10; // Fixed at maximum for comprehensive scan
+  const limit = 100; // Fixed at optimal rate limit balance
 
   useEffect(()=>{ preloadJupiterList().catch(()=>{}); },[]);
 
