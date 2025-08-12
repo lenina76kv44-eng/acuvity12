@@ -30,7 +30,7 @@ export default function RootLayout({
         {/* Animated Background */}
         <div className="animated-bg">
           <div className="grid-pattern"></div>
-          {Array.from({ length: 20 }, (_, i) => (
+          {Array.from({ length: 25 }, (_, i) => (
             <div key={i} className="bubble"></div>
           ))}
         </div>
