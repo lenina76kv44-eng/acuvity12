@@ -43,10 +43,11 @@ export default function HomePage() {
                 aria-label="Acuvity Scanner banner"
                 className="scanner-card relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(rgb(243, 251, 255) 0%, rgb(255, 255, 255) 100%)',
+                  background: 'linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(20, 20, 20, 0.9) 100%)',
                   borderRadius: '24px',
                   padding: '28px',
-                  boxShadow: 'rgba(14, 152, 59, 0.06) 0px 8px 30px'
+                  boxShadow: 'rgba(14, 152, 59, 0.3) 0px 8px 30px',
+                  border: '1px solid rgba(14, 152, 59, 0.2)'
                 }}
               >
                 {/* Animated SVG Background */}
@@ -91,8 +92,8 @@ export default function HomePage() {
                     width="700" 
                     height="110" 
                     rx="22" 
-                    fill="#ffffff" 
-                    opacity="0.45" 
+                    fill="#000000" 
+                    opacity="0.25" 
                     filter="url(#blur10)" 
                   />
                 </svg>
@@ -108,11 +109,11 @@ export default function HomePage() {
                         className="rounded-full object-cover floating-element"
                         style={{ filter: 'drop-shadow(rgba(0, 0, 0, 0.12) 0px 4px 10px)' }}
                       />
-                      <h2 className="text-2xl font-black text-gray-900 tracking-wide">
+                      <h2 className="text-2xl font-black text-white tracking-wide">
                         ACUVITY SCANNER
                       </h2>
                     </div>
-                    <p className="text-gray-700 text-base leading-relaxed mb-6 max-w-lg">
+                    <p className="text-gray-300 text-base leading-relaxed mb-6 max-w-lg">
                       Fast, comprehensive wallet analysis with AI-powered security insights. Detect links, track memecoin activity, avoid rugs with AI assistance.
                     </p>
                     <Link
@@ -131,15 +132,15 @@ export default function HomePage() {
                   <div className="grid grid-cols-1 gap-4">
                     <div className="flex items-center gap-3">
                       <img src="https://i.imgur.com/X0mWOKf.png" width="24" height="24" alt="" loading="lazy" />
-                      <span className="text-gray-900 font-semibold text-sm">Deep Transaction analysis</span>
+                      <span className="text-white font-semibold text-sm">Deep Transaction analysis</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <img src="https://i.imgur.com/iyzRIyn.png" width="24" height="24" alt="" loading="lazy" />
-                      <span className="text-gray-900 font-semibold text-sm">Risk pattern detection</span>
+                      <span className="text-white font-semibold text-sm">Risk pattern detection</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <img src="https://i.imgur.com/ESs7DAD.png" width="24" height="24" alt="" loading="lazy" />
-                      <span className="text-gray-900 font-semibold text-sm">AI-powered insights</span>
+                      <span className="text-white font-semibold text-sm">AI-powered insights</span>
                     </div>
                   </div>
                 </div>
