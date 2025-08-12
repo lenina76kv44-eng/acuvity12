@@ -9,7 +9,6 @@ const navigation = [
   { name: 'X Search', href: '/twitter-search', icon: Search },
   { name: 'CA Finder', href: '/token-creators', icon: Users },
   { name: 'Bubblemap', href: '/bubblemap', icon: BarChart3 },
-  { name: 'Shared Tokens', href: '/shared-purchases', icon: BarChart3 },
   { name: 'Wallet Check', href: '/wallet-check', icon: Coins },
 ];
 

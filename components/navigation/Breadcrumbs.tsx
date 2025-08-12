@@ -8,7 +8,6 @@ const pathNames: Record<string, string> = {
   '/twitter-search': 'X Search',
   '/token-creators': 'CA Finder',
   '/bubblemap': 'Bubblemap',
-  '/shared-purchases': 'Shared Tokens',
   '/wallet-check': 'Wallet Check',
 };
 
