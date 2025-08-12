@@ -10,13 +10,11 @@ import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 type SharedToken = { mint: string; symbol?: string; name?: string; wallets: string[]; count: number; };
 type AnalysisResult = { sharedTokens: SharedToken[]; perWallet: Record<string, string[]>; totalAnalyzed: number; };
 
-const HELIUS_API_KEY = process.env.NEXT_PUBLIC_HELIUS_API_KEY || "";
-
 function sleep(ms:number){ return new Promise(r=>setTimeout(r,ms)); }
 
 async function fetchHeliusPage(address: string, before: string | undefined, limit: number) {
-  const u = new URL(`https://api.helius.xyz/v0/addresses/${address}/transactions`);
-  u.searchParams.set("api-key", HELIUS_API_KEY);
+  const u = new URL(`/api/helius-proxy`, window.location.origin);
+  u.searchParams.set("address", address);
   u.searchParams.set("limit", String(limit));
   if (before) u.searchParams.set("before", before);
 
@@ -66,8 +64,6 @@ export default function BubbleMapPage() {
     if (list.length > 10) { setError("Maximum 10 addresses at once"); return; }
     const invalid = list.filter(a => !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a) || /[OIl0]/.test(a));
     if (invalid.length) { setError(`Invalid Solana addresses: ${invalid.slice(0,3).join(", ")}`); return; }
-
-    if (!HELIUS_API_KEY) { setError("Helius key is missing. Set NEXT_PUBLIC_HELIUS_API_KEY and restart dev server."); return; }
 
     setIsAnalyzing(true); setError(null); setResults(null);
 
