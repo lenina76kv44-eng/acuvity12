@@ -326,27 +326,6 @@ export default function HomePage() {
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-
-            {/* Wallet to X Tool */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <img src="https://i.imgur.com/i4E5ZuP.png" className="w-12 h-12 icon3d" alt="Wallet to X" />
-                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
-                  WALLET → X TAGS
-                </h3>
-              </div>
-              <p className="text-gray-400 mb-6">
-                Reverse lookup to find X (Twitter) handles associated with wallet addresses
-              </p>
-              <Link
-                href="/wallet-to-x"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
-                style={{ background: '#0E983B' }}
-              >
-                FIND X TAGS
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
           </div>
         </div>
       </section>
