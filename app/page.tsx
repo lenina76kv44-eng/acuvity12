@@ -1,496 +1,383 @@
 "use client";
-import { useState } from "react";
-import Breadcrumbs from "@/components/navigation/Breadcrumbs";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Search, Users, BarChart3, Coins, ArrowRight, CheckCircle, Zap, Shield, Target } from "lucide-react";
 
-function parseJsonSafe(raw: string) {
-  try { return { ok: true, data: JSON.parse(raw) }; }
-  catch { return { ok: false, error: raw || "Empty response" }; }
-}
-
-export default function Page() {
+export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white pt-4">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <Breadcrumbs />
-        
-        <header className="mb-16 text-center">
-          <h1 className="text-4xl font-bold tracking-tight mb-4 find-green-gradient">
-            Bags Finder
-          </h1>
-          <p className="text-xl font-semibold text-white mb-4 tracking-tight">
-            Find wallets. Find launches. Dox devs.
-          </p>
-          <div className="find-underline mx-auto max-w-md mb-8"></div>
-          <p className="text-[#888888] text-base max-w-2xl mx-auto font-medium">
-            Find wallets by X dev tag and find creators by CA. No hopium, just data.
-          </p>
-          
-          <div className="mt-6 max-w-md mx-auto">
-            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-2 font-semibold text-center">
-              $BAGSFINDER
+    <main className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#0f1419] to-[#0a0a0a]" />
+        <AnimatedBackground />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Hero Section */}
+        <section className="min-h-screen flex items-center justify-center px-4">
+          <div className="max-w-6xl mx-auto text-center">
+            <div className="mb-8">
+              <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
+                SHAPING THE<br />
+                FUTURE OF<br />
+                <span className="bg-gradient-to-r from-[#00ff88] to-[#00cc6a] bg-clip-text text-transparent">
+                  WEB3 ANALYTICS
+                </span>
+              </h1>
+              <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+                Advanced Solana wallet scanner — detect links, track<br />
+                memecoin activity, avoid rugs.
+              </p>
             </div>
-            <div className="flex items-center gap-2 bg-black/30 border border-neutral-800 rounded-xl p-3">
-              <code className="flex-1 font-mono text-xs text-green-200 break-all">
-                FAF6GNMFTgVumqyv9C9Ddqgd758yUKBFADuJ4AqFBAGS
-              </code>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText('FAF6GNMFTgVumqyv9C9Ddqgd758yUKBFADuJ4AqFBAGS');
-                }}
-                className="px-3 py-1 bg-green-600 hover:bg-green-500 text-black text-xs font-semibold rounded-lg transition-colors duration-200 flex-shrink-0"
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+              <Link
+                href="/twitter-search"
+                className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[#00ff88]/25"
               >
-                Copy
-              </button>
+                GET STARTED
+              </Link>
+              <Link
+                href="/faq"
+                className="border border-gray-600 hover:border-[#00ff88] text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105"
+              >
+                DOCUMENTATION
+              </Link>
+            </div>
+
+            {/* Feature Preview Card */}
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 max-w-4xl mx-auto">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-[#00ff88] rounded-xl flex items-center justify-center">
+                  <Search className="w-6 h-6 text-black" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-2xl font-bold text-[#00ff88]">ACUVITY SCANNER</h3>
+                  <p className="text-gray-400">Fast, comprehensive wallet analysis with AI-powered security insights. Detect links, track memecoin activity, avoid rugs with AI assistance.</p>
+                </div>
+              </div>
+              
+              <Link
+                href="/twitter-search"
+                className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center gap-2"
+              >
+                Start Scanning
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 text-left">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-[#00ff88]" />
+                  <span className="text-gray-300">Deep Transaction analysis</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-[#00ff88]" />
+                  <span className="text-gray-300">Risk pattern detection</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-[#00ff88]" />
+                  <span className="text-gray-300">AI-powered insights</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-[#00ff88]" />
+                  <span className="text-gray-300">Real-time monitoring</span>
+                </div>
+              </div>
             </div>
           </div>
-        </header>
-
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-16">
-          <XToWalletCard />
-          <CaToCreatorsCard />
         </section>
 
-        <footer className="text-center text-sm text-[#666666] border-t border-[#1a1a1a] pt-6">
-          <div className="flex flex-col items-center gap-4">
-            <div className="text-[#666666] text-xs">Built for on-chain hunters. Find it before it trends.</div>
-            <div className="flex items-center gap-6">
-              <a 
-                href="https://x.com/BagsDox"
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="transform hover:scale-110 hover:rotate-3 transition-all duration-300 ease-out grayscale hover:grayscale-0"
+        {/* What is Acuvity Section */}
+        <section className="py-24 px-4">
+          <div className="max-w-6xl mx-auto text-center">
+            <h2 className="text-5xl md:text-6xl font-bold mb-8">WHAT IS ACUVITY</h2>
+            <p className="text-xl text-gray-400 max-w-4xl mx-auto mb-16 leading-relaxed">
+              Build your Web3 analytics workflows in minutes. Analyze any blockchain address 
+              with real-time risk scores. Deploy custom AI agents directly from your dashboard.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Discover */}
+              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#00ff88]/50 transition-all duration-300">
+                <div className="w-16 h-16 bg-[#00ff88] rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Search className="w-8 h-8 text-black" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#00ff88] mb-4">DISCOVER.</h3>
+                <ul className="text-left space-y-2 text-gray-300">
+                  <li>• Uncover hidden connections</li>
+                  <li>• Analyze wallet behavior</li>
+                  <li>• Detect Solana token launches</li>
+                  <li>• Track memecoin activity</li>
+                  <li>• Identify shared investments</li>
+                  <li>• Cross-reference transactions</li>
+                  <li>• Pattern recognition</li>
+                </ul>
+              </div>
+
+              {/* Analyze */}
+              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#00ff88]/50 transition-all duration-300">
+                <div className="w-16 h-16 bg-[#00ff88] rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <BarChart3 className="w-8 h-8 text-black" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#00ff88] mb-4">ANALYZE.</h3>
+                <ul className="text-left space-y-2 text-gray-300">
+                  <li>• Risk assessment and scoring</li>
+                  <li>• Behavioral analysis with AI</li>
+                  <li>• Advanced wallet metrics</li>
+                  <li>• Transaction pattern analysis</li>
+                  <li>• Creator identification</li>
+                  <li>• Fee structure analysis</li>
+                  <li>• Reliability scoring</li>
+                </ul>
+              </div>
+
+              {/* Deploy */}
+              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#00ff88]/50 transition-all duration-300">
+                <div className="w-16 h-16 bg-[#00ff88] rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Shield className="w-8 h-8 text-black" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#00ff88] mb-4">DEPLOY.</h3>
+                <ul className="text-left space-y-2 text-gray-300">
+                  <li>• Advanced blockchain intelligence</li>
+                  <li>• Automated risk monitoring</li>
+                  <li>• Custom alert systems</li>
+                  <li>• Real-time notifications</li>
+                  <li>• API integration ready</li>
+                  <li>• Scalable infrastructure</li>
+                  <li>• Enterprise reporting</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-12">
+              <Link
+                href="/twitter-search"
+                className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[#00ff88]/25 inline-flex items-center gap-2"
               >
-                <img 
-                  src="https://i.imgur.com/cZDrW7C.png" 
-                  alt="X (Twitter)" 
-                  className="w-12 h-12 rounded object-contain"
-                />
-              </a>
-              <a 
-                href="https://bags.fm" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:opacity-80 transition-opacity duration-200 grayscale hover:grayscale-0"
-              >
-                <img 
-                  src="https://i.imgur.com/gzT11Ng.png" 
-                  alt="Bags.fm" 
-                  className="w-48 h-16 rounded object-contain"
-                />
-              </a>
+                EXPLORE
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </div>
           </div>
-        </footer>
+        </section>
+
+        {/* Live Analysis Tools Section */}
+        <section className="py-24 px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-5xl md:text-6xl font-bold mb-8">LIVE ANALYSIS TOOLS</h2>
+              <p className="text-xl text-gray-400 max-w-4xl mx-auto leading-relaxed">
+                Experience the power of professional blockchain analysis. Test our tools instantly - 
+                no registration required. Sign up only for advanced analysis history and access 
+                advanced features.
+              </p>
+            </div>
+
+            <div className="space-y-12">
+              {/* X Search Tool */}
+              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 bg-[#00ff88] rounded-xl flex items-center justify-center">
+                    <Search className="w-6 h-6 text-black" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-[#00ff88]">X SEARCH SCANNER</h3>
+                </div>
+                <p className="text-gray-400 mb-6">
+                  Analyze habits and trace history through Solana transactions
+                </p>
+                <Link
+                  href="/twitter-search"
+                  className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center gap-2"
+                >
+                  START SCANNING
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              {/* CA Finder Tool */}
+              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 bg-[#00ff88] rounded-xl flex items-center justify-center">
+                    <Users className="w-6 h-6 text-black" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-[#00ff88]">CA FINDER</h3>
+                </div>
+                <p className="text-gray-400 mb-6">
+                  Discover token creators and fee structures through contract analysis
+                </p>
+                <Link
+                  href="/token-creators"
+                  className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center gap-2"
+                >
+                  EXPLORE CREATORS
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              {/* Wallet Reliability Check */}
+              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 bg-[#00ff88] rounded-xl flex items-center justify-center">
+                    <Coins className="w-6 h-6 text-black" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-[#00ff88]">WALLET RELIABILITY CHECK</h3>
+                </div>
+                <p className="text-gray-400 mb-6">
+                  AI-powered wallet analysis with behavioral risk assessment
+                </p>
+                <Link
+                  href="/wallet-check"
+                  className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center gap-2"
+                >
+                  CHECK WALLET
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              {/* Wallet to X Tool */}
+              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 bg-[#00ff88] rounded-xl flex items-center justify-center">
+                    <BarChart3 className="w-6 h-6 text-black" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-[#00ff88]">WALLET → X TAGS</h3>
+                </div>
+                <p className="text-gray-400 mb-6">
+                  Reverse lookup to find X (Twitter) handles associated with wallet addresses
+                </p>
+                <Link
+                  href="/wallet-to-x"
+                  className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center gap-2"
+                >
+                  FIND X TAGS
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Ecosystem Section */}
+        <section className="py-24 px-4">
+          <div className="max-w-6xl mx-auto text-center">
+            <h2 className="text-5xl md:text-6xl font-bold mb-8">OUR ECOSYSTEM</h2>
+            <p className="text-xl text-gray-400 max-w-4xl mx-auto mb-16 leading-relaxed">
+              Everything on Web3, powered by our AI. Acuvity is one of the first 
+              platforms that unifies analytics, risk, deployment and on-chain 
+              governance in one place.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+              <Link
+                href="/twitter-search"
+                className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[#00ff88]/25"
+              >
+                EXPLORE
+              </Link>
+              <Link
+                href="/faq"
+                className="border border-gray-600 hover:border-[#00ff88] text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105"
+              >
+                DOCUMENTATION
+              </Link>
+            </div>
+
+            {/* Ecosystem Visual */}
+            <div className="relative">
+              <div className="w-64 h-64 mx-auto bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-3xl flex items-center justify-center mb-8 hover:scale-105 transition-all duration-300">
+                <Target className="w-32 h-32 text-black" />
+              </div>
+              
+              {/* Floating Icons */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-1/4 left-1/4 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float">
+                  <Search className="w-6 h-6 text-[#00ff88]" />
+                </div>
+                <div className="absolute top-1/3 right-1/4 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float-delayed">
+                  <Users className="w-6 h-6 text-[#00ff88]" />
+                </div>
+                <div className="absolute bottom-1/4 left-1/3 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float">
+                  <BarChart3 className="w-6 h-6 text-[#00ff88]" />
+                </div>
+                <div className="absolute bottom-1/3 right-1/3 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float-delayed">
+                  <Coins className="w-6 h-6 text-[#00ff88]" />
+                </div>
+                <div className="absolute top-1/2 left-1/6 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float">
+                  <Shield className="w-6 h-6 text-[#00ff88]" />
+                </div>
+                <div className="absolute top-1/2 right-1/6 w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center animate-float-delayed">
+                  <Zap className="w-6 h-6 text-[#00ff88]" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );
 }
 
-function XToWalletCard() {
-  const [devTag, setDevTag] = useState("");
-  const [wallet, setWallet] = useState<string | null>(null);
-  const [sol, setSol] = useState<number | null>(null);
-  const [hCoins, setHCoins] = useState<any[]>([]);
-  const [hLoading, setHLoading] = useState(false);
-  const [hError, setHError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+function AnimatedBackground() {
+  const [particles, setParticles] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    size: number;
+    speedX: number;
+    speedY: number;
+    opacity: number;
+  }>>([]);
 
-  async function enrichWithMeta(rows: any[]) {
-    const mints = Array.from(new Set(rows.map(r => r.mint).filter(Boolean)));
-    if (!mints.length) return rows;
+  useEffect(() => {
+    const particleCount = 50;
+    const newParticles = Array.from({ length: particleCount }, (_, i) => ({
+      id: i,
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      size: Math.random() * 3 + 1,
+      speedX: (Math.random() - 0.5) * 0.5,
+      speedY: (Math.random() - 0.5) * 0.5,
+      opacity: Math.random() * 0.5 + 0.1,
+    }));
+    setParticles(newParticles);
 
-    const res = await fetch("/api/token-meta", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ mints }),
-    });
-    const j = await res.json();
-    const map = j?.data || {};
-    return rows.map(r => ({ ...r, meta: map[r.mint] || null }));
-  }
+    const interval = setInterval(() => {
+      setParticles(prev => prev.map(particle => ({
+        ...particle,
+        x: (particle.x + particle.speedX + window.innerWidth) % window.innerWidth,
+        y: (particle.y + particle.speedY + window.innerHeight) % window.innerHeight,
+      })));
+    }, 50);
 
-  async function fetchJson(url: string) {
-    const res = await fetch(url);
-    const raw = await res.text();
-    const p = parseJsonSafe(raw);
-    if (!p.ok) throw new Error(p.error);
-    return p.data;
-  }
-
-  async function loadWalletOverview(addr: string) {
-    const j = await fetchJson(`/api/wallet-overview?address=${encodeURIComponent(addr)}`);
-    if (!j.ok) throw new Error(j.error || "Overview failed");
-    setSol(typeof j.solBalance === "number" ? j.solBalance : null);
-  }
-
-  async function loadHeliusCoins(addr: string) {
-    try {
-      setHLoading(true); setHError(""); setHCoins([]);
-      const res = await fetch(`/api/wallet-coins-helius?wallet=${encodeURIComponent(addr)}&suffix=BAGS`);
-      const j = await res.json();
-      if (!j?.ok) throw new Error(j?.error || "Helius scan failed");
-      
-      // Filter out noise
-      const EXCLUDE = new Set([
-        "So11111111111111111111111111111111111111112", // wSOL
-        "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
-        "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", // USDT
-      ]);
-      
-      const cleaned = (Array.isArray(j.data) ? j.data : [])
-        .filter((r: any) => r.role !== "program-match")
-        .filter((r: any) => !EXCLUDE.has(r.mint));
-      
-      const enriched = await enrichWithMeta(cleaned);
-      setHCoins(enriched);
-    } catch (e: any) {
-      setHError(e.message || String(e));
-    } finally {
-      setHLoading(false);
-    }
-  }
-
-  async function findWallet() {
-    setLoading(true); setError("");
-    setWallet(null); setSol(null); setHCoins([]);
-    setHError("");
-
-    const clean = devTag.trim().replace(/^@/, "").toLowerCase();
-    
-    if (!clean) {
-      setError("Please enter a dev tag");
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      // 1) Twitter → Wallet
-      const j = await fetchJson(`/api/twitter-wallet?handle=${encodeURIComponent(clean)}`);
-      if (!j.ok) throw new Error(j.error || "Request failed");
-      const addr = j.wallet || null;
-      setWallet(addr);
-      if (!addr) { 
-        setError("No wallet found for this dev tag"); 
-        setLoading(false);
-        return; 
-      }
-
-      // 2) Load balance and Helius coins
-      await Promise.all([
-        loadWalletOverview(addr),
-        loadHeliusCoins(addr),
-      ]);
-    } catch (e: any) {
-      console.error("Find wallet error:", e);
-      setError("Find failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && devTag.trim() && !loading) {
-      findWallet();
-    }
-  };
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
-      <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">X dev tag</div>
-        <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">XFinder — Dev Tag → Wallet</h2>
-        <p className="text-[#8A8A8A] text-sm leading-relaxed">
-          Find a wallet by X dev tag. Peek balances. Trace their bags.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex gap-3">
-          <input
-            value={devTag}
-            onChange={(e) => setDevTag(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="@dev_on_x"
-            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
-          />
-          <button
-            onClick={findWallet}
-            disabled={loading || !devTag.trim()}
-            className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
-          >
-            {loading ? "Finding…" : "Find"}
-          </button>
-        </div>
-
-        {error && (
-          <div className="text-red-400 mt-3">Find failed. Try again.</div>
-        )}
-
-        {wallet && (
-          <div className="mt-4 space-y-4">
-            {/* Адрес */}
-            <div>
-              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold">Mapped Wallet</div>
-              <div className="mt-1 font-mono break-all bg-black/50 border border-neutral-800 rounded-xl p-3">
-                {wallet}
-              </div>
-            </div>
-
-            {/* Баланс */}
-            <div>
-              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold flex items-center gap-2">
-                Balance
-                <img 
-                  src="https://i.imgur.com/X5Fsrnb.png" 
-                  alt="SOL" 
-                  className="w-4 h-4"
-                />
-              </div>
-              <div className="mt-1 font-mono bg-black/50 border border-neutral-800 rounded-xl p-3 inline-block text-sm">
-                {sol != null ? `${sol} SOL` : "—"}
-              </div>
-            </div>
-
-            {/* Coins (Helius) */}
-            <div>
-              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold mb-2">
-                Coins — Found on-chain
-              </div>
-
-              {hLoading && <div className="text-green-300/60 text-xs">Finding…</div>}
-              {hError && <div className="text-red-400 text-xs">Find failed. Try again.</div>}
-
-              {!hLoading && !hError && (
-                hCoins.length ? (
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    <div className="text-xs text-green-300/60 mb-2">
-                      Find results: {hCoins.length} BAGS tokens
-                    </div>
-                    {hCoins.slice(0, 15).map((c, i) => (
-                      <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
-                        <div className="flex items-center gap-3 mb-3">
-                          {c?.meta?.image ? (
-                            <img
-                              src={c.meta.image}
-                              alt={c.meta.name || c.mint}
-                              className="w-8 h-8 rounded-lg border border-neutral-700 object-cover flex-shrink-0"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-lg border border-neutral-700 bg-neutral-800 flex-shrink-0" />
-                          )}
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm text-green-100">
-                              {c?.meta?.name || `${c.mint.slice(0,4)}…${c.mint.slice(-4)}`}
-                            </div>
-                            <div className="text-xs text-neutral-400">
-                              {c?.meta?.symbol || "—"}
-                            </div>
-                          </div>
-                          
-                          <span className={
-                            "px-2 py-1 rounded-full border font-medium text-xs flex-shrink-0 " +
-                            (c.role === "launch"
-                              ? "bg-green-500/10 border-green-500/30 text-green-400"
-                              : "bg-amber-500/10 border-amber-500/30 text-amber-300")
-                          }>
-                            {c.role === "launch" ? "Find: Launch" : "Find: Fee-claim"}
-                          </span>
-                        </div>
-                        
-                        <div className="space-y-1">
-                          <div className="text-xs text-neutral-400 mb-1">
-                            {c.time ? new Date(c.time * 1000).toLocaleDateString() : ""}
-                          </div>
-                          <a
-                            href={`https://bags.fm/${c.mint}`}
-                            target="_blank" rel="noopener noreferrer"
-                            className="block font-mono text-xs underline decoration-green-600/40 hover:decoration-green-400 break-all text-green-200"
-                          >
-                            {c.mint}
-                          </a>
-                          <div className="text-xs text-neutral-500">
-                            tx: <a
-                              href={`https://solscan.io/tx/${c.tx}`}
-                              target="_blank" rel="noopener noreferrer"
-                              className="underline decoration-neutral-600 hover:decoration-neutral-400"
-                            >
-                              {c.tx.slice(0, 8)}…{c.tx.slice(-8)}
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {hCoins.length > 15 && (
-                      <div className="text-xs text-green-300/60 text-center py-2">
-                        Showing first 15 of {hCoins.length} tokens
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-green-300/60 text-xs">Nothing to find yet.</div>
-                )
-              )}
-            </div>
-          </div>
-        )}
-
-        {!error && !wallet && !loading && (
-          <div className="text-green-300/60 mt-4 text-xs">Type an X dev tag and press Find.</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CaToCreatorsCard() {
-  const [ca, setCa] = useState("");
-  const [rows, setRows] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  async function fetchCreators() {
-    setLoading(true); setError(""); setRows([]);
-    const clean = ca.trim();
-    
-    // Light base58 sanity check
-    if (clean.length < 32 || clean.length > 44) {
-      setError("Find failed. Try again.");
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      const res = await fetch(`/api/token-creators?ca=${encodeURIComponent(clean)}`);
-      const raw = await res.text();
-      const p = parseJsonSafe(raw);
-      if (!p.ok) throw new Error(p.error);
-      const j = p.data;
-      if (!j.ok) throw new Error(j.error || "Request failed");
+    <div className="absolute inset-0">
+      {particles.map(particle => (
+        <div
+          key={particle.id}
+          className="absolute rounded-full bg-[#00ff88]"
+          style={{
+            left: particle.x,
+            top: particle.y,
+            width: particle.size,
+            height: particle.size,
+            opacity: particle.opacity,
+          }}
+        />
+      ))}
       
-      const creators = (Array.isArray(j.data) ? j.data : []).map((c: any) => ({
-        username: c?.username ?? null,
-        twitter: c?.twitterUsername ?? null,
-        wallet: c?.wallet ?? null,
-        royaltyPct: typeof c?.royaltyBps === "number" ? c.royaltyBps / 100 : null,
-        isCreator: !!c?.isCreator,
-        pfp: c?.pfp ?? null,
-      }));
-      
-      setRows(creators);
-      if (!creators.length) setError("No creators found for this CA.");
-    } catch (e: any) {
-      setError("Find failed. Try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && ca.trim() && !loading) {
-      fetchCreators();
-    }
-  };
-
-  return (
-    <div className="rounded-xl border border-[#1a1a1a] bg-[#111111] p-6 find-glow find-hover">
-      <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Contract Address</div>
-        <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">CA Finder — Find Creators</h2>
-        <p className="text-[#8A8A8A] text-sm leading-relaxed">
-          Find creators and fee splits by contract address.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex gap-2">
-          <input
-            value={ca}
-            onChange={(e) => setCa(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Token contract address"
-            className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] text-white px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-[#00ff88] focus:border-[#00ff88] transition-all duration-200 placeholder-[#666666]"
-          />
-          <button
-            onClick={fetchCreators}
-            disabled={loading || !ca.trim()}
-            className="rounded-lg bg-[#00ff88] hover:bg-[#00cc6a] text-black px-6 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-w-[80px] text-sm shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)]"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                ...
-              </span>
-            ) : "Find"}
-          </button>
-        </div>
-
-        {error && (
-          <div className="text-red-400 mt-3 text-sm">{error}</div>
-        )}
-
-        {rows.length > 0 && (
-          <div className="space-y-3">
-            <div className="text-xs font-semibold text-[#7AEFB8] mb-3 uppercase tracking-wide">
-              Creators Found: {rows.length}
-            </div>
-            {rows.map((c, i) => (
-              <div key={i} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] hover:bg-[#1f1f1f] transition-colors duration-200 p-4 find-hover">
-                <div className="flex items-center gap-4 mb-4">
-                  {c.pfp ? (
-                    <img 
-                      src={c.pfp} 
-                      alt={c.username || "User"} 
-                      className="w-10 h-10 rounded-lg object-cover border border-[#2a2a2a]" 
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-[#2a2a2a] flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[#666666]" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <div className="font-semibold text-white text-sm">
-                      {c.username || "Unknown User"}
-                    </div>
-                    {c.twitter && (
-                      <div className="text-xs text-[#888888]">@{c.twitter}</div>
-                    )}
-                  </div>
-                  <div className={`text-xs rounded-full px-2 py-1 font-semibold border ${c.isCreator ? "bg-[#00ff88]/10 border-[#00ff88]/20 text-[#00ff88]" : "bg-[#4488ff]/10 border-[#4488ff]/20 text-[#4488ff]"}`}>
-                      {c.isCreator ? "Creator" : "Fee Share"}
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <div className="text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide text-xs">Wallet</div>
-                    <div className="font-mono text-xs break-all bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-2 text-[#cccccc]">
-                      {c.wallet || "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide text-xs">Royalty</div>
-                    <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-md p-2 text-[#cccccc] font-mono text-sm">
-                      {c.royaltyPct != null ? `${c.royaltyPct}%` : "—"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!error && !rows.length && !loading && (
-          <div className="text-center py-8">
-           <div className="text-[#666666] text-sm">Paste a CA and press Find.</div>
-          </div>
-        )}
+      {/* Grid Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="h-full w-full" style={{
+          backgroundImage: `
+            linear-gradient(rgba(0, 255, 136, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 136, 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '50px 50px'
+        }} />
       </div>
     </div>
   );

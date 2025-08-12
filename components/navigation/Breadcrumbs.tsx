@@ -9,6 +9,8 @@ const pathNames: Record<string, string> = {
   '/token-creators': 'CA Finder',
   '/wallet-to-x': 'Wallet → X',
   '/wallet-check': 'Wallet Check',
+  '/faq': 'FAQ',
+  '/contact': 'Contact',
 };
 
 export default function Breadcrumbs() {

@@ -10,6 +10,8 @@ const navigation = [
   { name: 'CA Finder', href: '/token-creators', icon: Users },
   { name: 'Wallet → X', href: '/wallet-to-x', icon: BarChart3 },
   { name: 'Wallet Check', href: '/wallet-check', icon: Coins },
+  { name: 'FAQ', href: '/faq', icon: Users },
+  { name: 'Contact', href: '/contact', icon: Users },
 ];
 
 export default function Header() {

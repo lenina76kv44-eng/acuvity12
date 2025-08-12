@@ -3,10 +3,10 @@ import type { Metadata } from 'next';
 import Header from '@/components/navigation/Header';
 
 export const metadata: Metadata = {
-  title: 'Bags Finder — XFinder & CA Finder',
-  description: 'Find wallets by X dev tag, find creators by CA, dox devs. Clean Solana discovery with on-chain data.',
-  keywords: ['Bags', 'Bags.fm', 'X', 'Twitter', 'Wallet', 'Token', 'Creators', 'Solana', 'Find'],
-  authors: [{ name: 'Bags Finder' }],
+  title: 'Acuvity — Advanced Solana Analytics',
+  description: 'Advanced Solana wallet scanner — detect links, track memecoin activity, avoid rugs. AI-powered blockchain analytics.',
+  keywords: ['Acuvity', 'Solana', 'Analytics', 'Blockchain', 'AI', 'Wallet', 'Scanner', 'DeFi', 'Web3'],
+  authors: [{ name: 'Acuvity' }],
   viewport: 'width=device-width, initial-scale=1',
 };
 
