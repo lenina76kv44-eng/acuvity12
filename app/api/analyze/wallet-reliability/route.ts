@@ -56,7 +56,8 @@ export async function GET(req: Request) {
       fetchTxPages(address, pages, 100),
       heliusRpc("getBalance", [address])
     ]);
-    const solBalance = typeof solLamports === "number" ? solLamports / 1e9 : null;
+    const solBalance = typeof solLamports?.value === "number" ? solLamports.value / 1e9 : 
+                       typeof solLamports === "number" ? solLamports / 1e9 : null;
 
     let firstSeen = Infinity, lastSeen = 0, swapCount = 0;
     const counterparties = new Set<string>();
