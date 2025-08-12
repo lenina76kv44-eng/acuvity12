@@ -135,6 +135,7 @@ function SharedTokensCard() {
               rows={3}
               className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 resize-none"
             />
+        </div>
 
         <div className="flex gap-3">
           <button
@@ -169,7 +170,7 @@ function SharedTokensCard() {
                 Shared Tokens Found: {results.found}
               </div>
               <div className="text-xs text-neutral-400">
-                Analyzed {results.input.addresses.length} wallets (deep scan)
+                Analyzed {results.input.addresses.length} wallets × {results.input.pages} pages
               </div>
             </div>
 
@@ -231,7 +232,7 @@ function SharedTokensCard() {
             ) : (
               <div className="text-center py-8">
                 <div className="text-neutral-400 text-sm">
-                  No shared tokens found. Re-run later — the RPC may be rate-limited.
+                  No shared tokens found. Try increasing pages to 8–10 or re-run later — the RPC may be rate-limited.
                 </div>
               </div>
             )}
@@ -240,7 +241,7 @@ function SharedTokensCard() {
 
         {!error && !results && !loading && (
           <div className="text-green-300/60 mt-4 text-xs">
-            Enter 2–10 Solana addresses and press Find to discover shared token purchases. Deep scan will analyze up to 1000 transactions per wallet.
+            Enter 2–10 Solana addresses and press Find to discover shared token purchases.
           </div>
         )}
       </div>
