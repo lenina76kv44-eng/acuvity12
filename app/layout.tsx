@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   keywords: ['Acuvity', 'Solana', 'Analytics', 'Blockchain', 'AI', 'Wallet', 'Scanner', 'DeFi', 'Web3'],
   authors: [{ name: 'Acuvity' }],
   viewport: 'width=device-width, initial-scale=1',
+  icons: {
+    icon: 'https://i.imgur.com/CO5qw6E.png',
+    apple: 'https://i.imgur.com/CO5qw6E.png',
+  },
 };
 
 export default function RootLayout({
