@@ -7,6 +7,8 @@ const pathNames: Record<string, string> = {
   '/': 'Home',
   '/twitter-search': 'X Search',
   '/token-creators': 'CA Finder',
+  '/shared-purchases': 'Shared Tokens',
+  '/wallet-check': 'Wallet Check',
 };
 
 export default function Breadcrumbs() {
