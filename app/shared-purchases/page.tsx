@@ -170,7 +170,7 @@ function SharedTokensCard() {
                 Shared Tokens Found: {results.found}
               </div>
               <div className="text-xs text-neutral-400">
-                Analyzed {results.input.addresses.length} wallets × {results.input.pages} pages
+                Analyzed {results.input.addresses.length} wallets (deep scan)
               </div>
             </div>
 
