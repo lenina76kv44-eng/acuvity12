@@ -31,7 +31,6 @@ export default function SharedPurchasesPage() {
 
 function SharedTokensCard() {
   const [addresses, setAddresses] = useState("");
-  const [pages, setPages] = useState(5);
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -62,7 +61,7 @@ function SharedTokensCard() {
     try {
       setProgress(`Analyzing ${addrs.length} wallets...`);
       
-      const runAnalysis = async (pageCount: number) => {
+      const runAnalysis = async (pageCount: number = 10) => {
         const params = new URLSearchParams({
           addresses: addrs.join(','),
           pages: pageCount.toString(),
@@ -77,12 +76,12 @@ function SharedTokensCard() {
 
       let j;
       try {
-        j = await runAnalysis(pages);
+        j = await runAnalysis(10);
       } catch (e: any) {
         const msg = String(e?.message || e);
         if (/504|429|timeout/i.test(msg)) {
           // shallow retry
-          const reducedPages = Math.max(2, pages - 2);
+          const reducedPages = 6;
           setRetryNotice(`Timed out — re-running with a lighter scan (${reducedPages} pages)...`);
           setProgress(`Retrying with ${reducedPages} pages...`);
           j = await runAnalysis(reducedPages);
@@ -124,8 +123,7 @@ function SharedTokensCard() {
       </div>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div className="md:col-span-3">
+        <div>
             <label className="block text-xs font-semibold text-[#7AEFB8] mb-2 uppercase tracking-wide">
               Solana Addresses (2–10)
             </label>
@@ -137,22 +135,6 @@ function SharedTokensCard() {
               rows={3}
               className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 resize-none"
             />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-[#7AEFB8] mb-2 uppercase tracking-wide">
-              Pages to Analyze
-            </label>
-            <select
-              value={pages}
-              onChange={(e) => setPages(Number(e.target.value))}
-              className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
-            >
-              {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                <option key={n} value={n}>{n} page{n > 1 ? 's' : ''}</option>
-              ))}
-            </select>
-          </div>
-        </div>
 
         <div className="flex gap-3">
           <button
@@ -187,7 +169,7 @@ function SharedTokensCard() {
                 Shared Tokens Found: {results.found}
               </div>
               <div className="text-xs text-neutral-400">
-                Analyzed {results.input.addresses.length} wallets × {results.input.pages} pages
+                Analyzed {results.input.addresses.length} wallets (deep scan)
               </div>
             </div>
 
@@ -249,7 +231,7 @@ function SharedTokensCard() {
             ) : (
               <div className="text-center py-8">
                 <div className="text-neutral-400 text-sm">
-                  No shared tokens found. Try increasing pages to 8–10 or re-run later — the RPC may be rate-limited.
+                  No shared tokens found. Re-run later — the RPC may be rate-limited.
                 </div>
               </div>
             )}
@@ -258,7 +240,7 @@ function SharedTokensCard() {
 
         {!error && !results && !loading && (
           <div className="text-green-300/60 mt-4 text-xs">
-            Enter 2–10 Solana addresses and press Find to discover shared token purchases.
+            Enter 2–10 Solana addresses and press Find to discover shared token purchases. Deep scan will analyze up to 1000 transactions per wallet.
           </div>
         )}
       </div>
