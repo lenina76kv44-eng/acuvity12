@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navigation = [
-  { name: 'Home', href: '/', icon: Home },
   { name: 'X Search', href: '/twitter-search', icon: Search },
   { name: 'CA Finder', href: '/token-creators', icon: Users },
   { name: 'Wallet → X', href: '/wallet-to-x', icon: BarChart3 },
