@@ -25,7 +25,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img 
-              src="https://i.imgur.com/CO5qw6E.png" 
+              src="https://i.imgur.com/jcLZvxY.png" 
               alt="Acuvity" 
              className="w-16 h-16 rounded-lg hover:scale-110 hover:rotate-3 transition-all duration-300 ease-out"
             />

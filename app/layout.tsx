@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'Acuvity' }],
   viewport: 'width=device-width, initial-scale=1',
   icons: {
-    icon: 'https://i.imgur.com/CO5qw6E.png',
-    apple: 'https://i.imgur.com/CO5qw6E.png',
+    icon: 'https://i.imgur.com/jcLZvxY.png',
+    apple: 'https://i.imgur.com/jcLZvxY.png',
   },
 };
 

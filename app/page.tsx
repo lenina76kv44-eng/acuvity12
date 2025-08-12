@@ -386,7 +386,7 @@ export default function HomePage() {
               <div className="text-center">
                 <div className="relative">
                   <img 
-                    src="https://i.imgur.com/iyzRIyn.png" 
+                    src="https://i.imgur.com/jcLZvxY.png" 
                     alt="Analytics" 
                     className="w-64 h-64 mx-auto floating-element"
                     style={{ filter: 'drop-shadow(rgba(14, 152, 59, 0.3) 0px 20px 40px)' }}
