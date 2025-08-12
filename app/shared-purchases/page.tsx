@@ -232,7 +232,7 @@ function SharedTokensCard() {
             ) : (
               <div className="text-center py-8">
                 <div className="text-neutral-400 text-sm">
-                  No shared tokens found. Try increasing pages to 8–10 or re-run later — the RPC may be rate-limited.
+                  No shared tokens found. Re-run later — the RPC may be rate-limited.
                 </div>
               </div>
             )}
@@ -241,7 +241,7 @@ function SharedTokensCard() {
 
         {!error && !results && !loading && (
           <div className="text-green-300/60 mt-4 text-xs">
-            Enter 2–10 Solana addresses and press Find to discover shared token purchases.
+            Enter 2–10 Solana addresses and press Find to discover shared token purchases. Deep scan will analyze up to 1000 transactions per wallet.
           </div>
         )}
       </div>
