@@ -264,7 +264,7 @@ export default function HomePage() {
 
           <div className="space-y-12">
             {/* X Search Tool */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/60 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-8">
               <div className="flex items-center gap-4 mb-6">
                 <img src="https://i.imgur.com/iyzRIyn.png" className="w-12 h-12 icon3d" alt="X Search" />
                 <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
@@ -276,7 +276,7 @@ export default function HomePage() {
               </p>
               <Link
                 href="/twitter-search"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-white"
                 style={{ background: '#0E983B' }}
               >
                 START SCANNING
@@ -285,7 +285,7 @@ export default function HomePage() {
             </div>
 
             {/* CA Finder Tool */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/60 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-8">
               <div className="flex items-center gap-4 mb-6">
                 <img src="https://i.imgur.com/X0mWOKf.png" className="w-12 h-12 icon3d" alt="CA Finder" />
                 <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
@@ -297,7 +297,7 @@ export default function HomePage() {
               </p>
               <Link
                 href="/token-creators"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-white"
                 style={{ background: '#0E983B' }}
               >
                 EXPLORE CREATORS
@@ -306,7 +306,7 @@ export default function HomePage() {
             </div>
 
             {/* Wallet Reliability Check */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/60 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-8">
               <div className="flex items-center gap-4 mb-6">
                 <img src="https://i.imgur.com/ESs7DAD.png" className="w-12 h-12 icon3d" alt="Wallet Check" />
                 <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
@@ -318,7 +318,7 @@ export default function HomePage() {
               </p>
               <Link
                 href="/wallet-check"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-white"
                 style={{ background: '#0E983B' }}
               >
                 CHECK WALLET
@@ -327,7 +327,7 @@ export default function HomePage() {
             </div>
 
             {/* Wallet to X Tool */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/60 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-8">
               <div className="flex items-center gap-4 mb-6">
                 <img src="https://i.imgur.com/i4E5ZuP.png" className="w-12 h-12 icon3d" alt="Wallet to X" />
                 <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
@@ -339,7 +339,7 @@ export default function HomePage() {
               </p>
               <Link
                 href="/wallet-to-x"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-white"
                 style={{ background: '#0E983B' }}
               >
                 FIND X TAGS
@@ -353,7 +353,7 @@ export default function HomePage() {
       {/* Ecosystem Section */}
       <section className="py-24 relative z-30 overflow-hidden">
         <div className="container mx-auto px-4 relative z-40">
-          <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto">
+          <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/60 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-12 max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
@@ -367,7 +367,7 @@ export default function HomePage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link
                     href="/twitter-search"
-                    className="inline-flex items-center gap-2 px-10 py-4 text-lg font-bold rounded-xl text-black transition-all duration-300 hover:scale-105"
+                    className="inline-flex items-center gap-2 px-10 py-4 text-lg font-bold rounded-xl text-white transition-all duration-300 hover:scale-105"
                     style={{ background: '#0E983B' }}
                   >
                     <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
@@ -375,7 +375,7 @@ export default function HomePage() {
                   </Link>
                   <Link
                     href="/faq"
-                    className="px-10 py-4 text-lg font-bold rounded-xl border border-gray-600 hover:border-[#0E983B] text-white transition-all duration-300 hover:scale-105"
+                    className="px-10 py-4 text-lg font-bold rounded-xl border border-gray-500 hover:border-[#0E983B] text-white transition-all duration-300 hover:scale-105"
                   >
                     DOCUMENTATION
                   </Link>
