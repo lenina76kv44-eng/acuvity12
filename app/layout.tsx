@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import Header from '@/components/navigation/Header';
+import Footer from '@/components/navigation/Footer';
 
 export const metadata: Metadata = {
   title: 'Acuvity — Advanced Solana Analytics',
@@ -37,6 +38,7 @@ export default function RootLayout({
         
         <Header />
         {children}
+        <Footer />
       </body>
     </html>
   );
