@@ -30,7 +30,7 @@ export default function WalletCheckPage() {
 
 function WalletReliabilityCard() {
   const [address, setAddress] = useState("");
-  const [pages, setPages] = useState(5);
+  const [pages] = useState(10);
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -104,8 +104,7 @@ function WalletReliabilityCard() {
       </div>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div className="md:col-span-3">
+        <div>
             <label className="block text-xs font-semibold text-[#7AEFB8] mb-2 uppercase tracking-wide">
               Solana Address
             </label>
@@ -116,21 +115,6 @@ function WalletReliabilityCard() {
               placeholder="Enter a Solana address"
               className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
             />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-[#7AEFB8] mb-2 uppercase tracking-wide">
-              Pages
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="10"
-              value={pages}
-              onChange={(e) => setPages(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
-              className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
-              placeholder="1-10"
-            />
-          </div>
         </div>
 
         <button
