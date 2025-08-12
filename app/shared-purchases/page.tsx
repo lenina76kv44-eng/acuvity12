@@ -124,17 +124,17 @@ function SharedTokensCard() {
 
       <div className="space-y-4">
         <div>
-            <label className="block text-xs font-semibold text-[#7AEFB8] mb-2 uppercase tracking-wide">
-              Solana Addresses (2–10)
-            </label>
-            <textarea
-              value={addresses}
-              onChange={(e) => setAddresses(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Da63jxs..., 94bGHZ5e...&#10;(comma or newline separated)"
-              rows={3}
-              className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 resize-none"
-            />
+          <label className="block text-xs font-semibold text-[#7AEFB8] mb-2 uppercase tracking-wide">
+            Solana Addresses (2–10)
+          </label>
+          <textarea
+            value={addresses}
+            onChange={(e) => setAddresses(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Da63jxs..., 94bGHZ5e...&#10;(comma or newline separated)"
+            rows={3}
+            className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 resize-none"
+          />
         </div>
 
         <div className="flex gap-3">
@@ -232,7 +232,7 @@ function SharedTokensCard() {
             ) : (
               <div className="text-center py-8">
                 <div className="text-neutral-400 text-sm">
-                  No shared tokens found. Re-run later — the RPC may be rate-limited.
+                  No shared tokens found. Try increasing pages to 8–10 or re-run later — the RPC may be rate-limited.
                 </div>
               </div>
             )}
