@@ -362,7 +362,7 @@ function SharedTokensCard() {
 
         {!error && !results && !loading && (
           <div className="text-green-300/60 mt-4 text-xs">
-            Enter 2–10 Solana addresses and press Find to discover shared token purchases. Deep scan will analyze up to 1000 transactions per wallet.
+            Enter 2–10 Solana addresses to discover tokens that were purchased by multiple wallets. Analyzes transaction history to find shared investments, even if tokens were later sold.
           </div>
         )}
       </div>
