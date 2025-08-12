@@ -127,22 +127,6 @@ export default function HomePage() {
                       Start scanning
                       <ArrowRight className="w-4 h-4" />
                     </Link>
-                    <button
-                      onClick={() => {
-                        const toolsSection = document.getElementById('tools');
-                        if (toolsSection) {
-                          toolsSection.scrollIntoView({ behavior: 'smooth' });
-                        }
-                      }}
-                      className="inline-flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105"
-                      style={{
-                        background: 'linear-gradient(135deg, #0E983B, #22C55E)',
-                        boxShadow: 'rgba(14, 152, 59, 0.35) 0px 10px 24px'
-                      }}
-                    >
-                      Start scanning
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4">
