@@ -6,14 +6,6 @@ import { Search, Users, BarChart3, Coins, ArrowRight, CheckCircle, Zap, Shield, 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated Background Canvas */}
-      <canvas className="fixed inset-0 pointer-events-none z-0" style={{
-        background: 'linear-gradient(135deg, rgba(14, 152, 59, 0.1) 0%, rgba(34, 197, 94, 0.05) 50%, rgba(14, 152, 59, 0.1) 100%)',
-        opacity: 0.6
-      }} />
-      
-      <AnimatedBackground />
-
       {/* Hero Section */}
       <div className="pt-0">
         <div id="home" className="relative min-h-screen overflow-hidden flex items-center hero-bg">
@@ -413,71 +405,5 @@ export default function HomePage() {
         </div>
       </section>
     </main>
-  );
-}
-
-function AnimatedBackground() {
-  const [particles, setParticles] = useState<Array<{
-    id: number;
-    x: number;
-    y: number;
-    size: number;
-    speedX: number;
-    speedY: number;
-    opacity: number;
-  }>>([]);
-
-  useEffect(() => {
-    const particleCount = 50;
-    const newParticles = Array.from({ length: particleCount }, (_, i) => ({
-      id: i,
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      size: Math.random() * 3 + 1,
-      speedX: (Math.random() - 0.5) * 0.5,
-      speedY: (Math.random() - 0.5) * 0.5,
-      opacity: Math.random() * 0.5 + 0.1,
-    }));
-    setParticles(newParticles);
-
-    const interval = setInterval(() => {
-      setParticles(prev => prev.map(particle => ({
-        ...particle,
-        x: (particle.x + particle.speedX + window.innerWidth) % window.innerWidth,
-        y: (particle.y + particle.speedY + window.innerHeight) % window.innerHeight,
-      })));
-    }, 50);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="absolute inset-0">
-      {particles.map(particle => (
-        <div
-          key={particle.id}
-          className="absolute rounded-full"
-          style={{
-            left: particle.x,
-            top: particle.y,
-            width: particle.size,
-            height: particle.size,
-            opacity: particle.opacity,
-            backgroundColor: '#0E983B'
-          }}
-        />
-      ))}
-      
-      {/* Grid Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="h-full w-full" style={{
-          backgroundImage: `
-            linear-gradient(rgba(14, 152, 59, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(14, 152, 59, 0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px'
-        }} />
-      </div>
-    </div>
   );
 }

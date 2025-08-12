@@ -27,6 +27,14 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-inter antialiased">
+        {/* Animated Background */}
+        <div className="animated-bg">
+          <div className="grid-pattern"></div>
+          {Array.from({ length: 20 }, (_, i) => (
+            <div key={i} className="bubble"></div>
+          ))}
+        </div>
+        
         <Header />
         {children}
       </body>
