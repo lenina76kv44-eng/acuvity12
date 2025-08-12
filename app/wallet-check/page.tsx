@@ -121,15 +121,15 @@ function WalletReliabilityCard() {
             <label className="block text-xs font-semibold text-[#7AEFB8] mb-2 uppercase tracking-wide">
               Pages
             </label>
-            <select
+            <input
+              type="number"
+              min="1"
+              max="10"
               value={pages}
-              onChange={(e) => setPages(Number(e.target.value))}
+              onChange={(e) => setPages(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
               className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
-            >
-              {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
+              placeholder="1-10"
+            />
           </div>
         </div>
 
