@@ -16,11 +16,13 @@ function nitterMirrors(): string[] {
   const raw = (process.env.NITTER_HOSTS || "").trim();
   if (raw) return raw.split(",").map(s => s.trim()).filter(Boolean);
   return [
+    "https://nitter.cz",
+    "https://nitter.nl",
+    "https://nitter.it",
+    "https://nitter.unixfox.eu",
+    "https://nitter.moomoo.me",
     "https://nitter.net",
     "https://nitter.poast.org",
-    "https://nitter.fdn.fr",
-    "https://nitter.privacydev.net",
-    "https://nitter.bus-hit.me",
   ];
 }
 
