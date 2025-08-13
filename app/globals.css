@@ -339,10 +339,28 @@
 
 .animate-scale-in {
   animation: scale-in 0.4s ease-out;
+  animation-fill-mode: forwards;
 }
 
 .animate-fade-in {
   animation: fade-in 0.5s ease-out;
+}
+
+/* Staggered token loading animation */
+@keyframes token-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-token-appear {
+  animation: token-appear 0.5s ease-out;
+  animation-fill-mode: forwards;
 }
 
 /* Enhanced button animations */
