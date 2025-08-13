@@ -81,18 +81,11 @@ export default function WhaleNotificationsPage() {
           </p>
           <div className="mt-4 flex gap-3 items-center">
             <button
-              onClick={() => refresh(false)}
-              disabled={loading}
-              className="rounded-xl bg-green-600 text-black px-5 py-2.5 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-60 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
-            >
-              {loading ? "Refreshing…" : "Find new"}
-            </button>
-            <button
               onClick={() => { localStorage.removeItem(LAST_SEEN_KEY); refresh(true); }}
               disabled={loading}
               className="rounded-xl bg-neutral-900 border border-neutral-800 text-green-200 px-5 py-2.5 font-semibold hover:bg-neutral-800"
             >
-              Reload full
+              {loading ? "Refreshing…" : "Refresh"}
             </button>
             {err && <span className="text-red-400 text-sm">{err}</span>}
           </div>
