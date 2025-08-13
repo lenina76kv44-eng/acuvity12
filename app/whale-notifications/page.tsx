@@ -103,9 +103,7 @@ export default function WhaleNotificationsPage() {
               <div className="flex items-start gap-4">
                 {it.image ? (
                   <img src={it.image} alt="" className="w-16 h-16 rounded-lg object-cover border border-neutral-800" />
-                ) : (
-                  <div className="w-16 h-16 rounded-lg border border-neutral-800 bg-neutral-900" />
-                )}
+                ) : null}
                 <div className="flex-1 min-w-0">
                   <div className="text-xs text-neutral-500 mb-2">
                     {new Date(it.createdAt).toLocaleString()} • ID {it.id}
