@@ -1,11 +1,6 @@
 "use client";
 import { useState } from "react";
 import Breadcrumbs from "@/components/navigation/Breadcrumbs";
-import ToolShell from "@/components/layout/ToolShell";
-import GlowCard from "@/components/decor/GlowCard";
-import StatPills from "@/components/decor/StatPills";
-import HowItWorks from "@/components/decor/HowItWorks";
-import TipsCallout from "@/components/decor/TipsCallout";
 
 function parseJsonSafe(raw: string) {
   try { return { ok: true, data: JSON.parse(raw) }; }
@@ -14,47 +9,21 @@ function parseJsonSafe(raw: string) {
 
 export default function TwitterSearchPage() {
   return (
-    <main className="min-h-screen text-white pt-4" style={{position:'relative', zIndex:1}}>
-      <div className="max-w-4xl mx-auto px-4 py-8" style={{position:'relative', zIndex:1}}>
+    <main className="min-h-screen bg-[#0a0a0a] text-white pt-4">
+      <div className="max-w-4xl mx-auto px-4 py-8">
         <Breadcrumbs />
         
-        <ToolShell
-          title="X Search Tools"
-          subtitle="Discover wallets by X handle or uncover X tags associated with a wallet. No registration required."
-          right={<div style={{width:120, height:120, borderRadius:60, background:'radial-gradient(circle at 30% 30%, rgba(0,243,110,.35), transparent 60%)'}}/>}
-        >
-          <StatPills items={[
-            {label:'Sources', value:'Bags, Helius'},
-            {label:'Rate limit safe', value:'Yes'},
-            {label:'Realtime', value:'✓'}
-          ]}/>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">X Search Tools</h1>
+          <p className="text-[#888888] text-base">
+            Search by X handle to find wallets, or search by wallet to find X tags
+          </p>
+        </header>
 
-          <div style={{display:'grid', gap:16, gridTemplateColumns:'1fr 1fr'}}>
-            <GlowCard><div style={{padding:18}}>
-              <XToWalletCard />
-            </div></GlowCard>
-
-            <GlowCard><div style={{padding:18}}>
-              <WalletToXCard />
-            </div></GlowCard>
-          </div>
-
-          <div style={{marginTop:18}}>
-            <HowItWorks steps={[
-              {n:1,title:'Pick a mode',desc:'Search by X dev handle or paste a wallet to discover tags.'},
-              {n:2,title:'Fetch & correlate',desc:'We pull public tags and cross-reference on-chain signals.'},
-              {n:3,title:'Validate',desc:'Use results to filter devs, link wallets or flag anomalies.'}
-            ]}/>
-          </div>
-
-          <div style={{marginTop:14}}>
-            <TipsCallout title="Tips" items={[
-              'Add multiple queries; results appear faster if shorter.',
-              'Too many requests? Wait a few seconds to avoid provider rate-limits.',
-              'Cross-check with Wallet Check to assess behavior risk.'
-            ]}/>
-          </div>
-        </ToolShell>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <XToWalletCard />
+          <WalletToXCard />
+        </div>
       </div>
     </main>
   );
@@ -155,7 +124,7 @@ function XToWalletCard() {
   };
 
   return (
-    <div>
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
       <div className="mb-6">
         <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">X → Wallet</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">X Dev Tag Search</h2>
@@ -353,7 +322,7 @@ function WalletToXCard() {
   };
 
   return (
-    <div>
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
       <div className="mb-6">
         <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Wallet → X</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">Wallet → X tags</h2>

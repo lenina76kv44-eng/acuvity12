@@ -1,9 +1,6 @@
 "use client";
 import { useState } from "react";
 import Breadcrumbs from "@/components/navigation/Breadcrumbs";
-import ToolShell from "@/components/layout/ToolShell";
-import GlowCard from "@/components/decor/GlowCard";
-import TipsCallout from "@/components/decor/TipsCallout";
 
 function parseJsonSafe(raw: string) {
   try { return { ok: true, data: JSON.parse(raw) }; }
@@ -12,27 +9,20 @@ function parseJsonSafe(raw: string) {
 
 export default function WalletCheckPage() {
   return (
-    <main className="min-h-screen text-white pt-4" style={{position:'relative', zIndex:1}}>
-      <div className="max-w-4xl mx-auto px-4 py-8" style={{position:'relative', zIndex:1}}>
+    <main className="min-h-screen bg-[#0a0a0a] text-white pt-4">
+      <div className="max-w-4xl mx-auto px-4 py-8">
         <Breadcrumbs />
         
-        <ToolShell
-          title="Wallet Reliability Check"
-          subtitle="AI-assisted score built from on-chain activity. Behavior only — private data is never used."
-          right={<div style={{width:120,height:120,borderRadius:60, background:'radial-gradient(closest-side, rgba(0,243,110,.35), transparent)'}}/>}
-        >
-          <GlowCard><div style={{padding:18}}>
-            <WalletReliabilityCard />
-          </div></GlowCard>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2 find-green-gradient">Wallet Reliability Check</h1>
+          <p className="text-[#888888] text-base">
+            AI-powered analysis of wallet activity and reliability metrics using on-chain data.
+          </p>
+        </header>
 
-          <div style={{marginTop:14}}>
-            <TipsCallout title="Scoring guide" items={[
-              '0–30: high risk — bot/mixer/abusive patterns likely.',
-              '30–70: medium risk — mixed signals; confirm manually.',
-              '70–100: low risk — healthy diversity and normal activity.'
-            ]}/>
-          </div>
-        </ToolShell>
+        <div className="max-w-2xl">
+          <WalletReliabilityCard />
+        </div>
       </div>
     </main>
   );
@@ -104,7 +94,7 @@ function WalletReliabilityCard() {
   };
 
   return (
-    <div>
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
       <div className="mb-6">
         <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">AI Analysis</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">Wallet Reliability Check</h2>

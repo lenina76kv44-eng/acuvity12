@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Users, BarChart3, Coins, ArrowRight, CheckCircle, Zap, Shield, Target } from "lucide-react";
-import GlowCard from "@/components/decor/GlowCard";
 
 export default function HomePage() {
   return (
@@ -13,10 +12,10 @@ export default function HomePage() {
           <div className="relative z-40 flex flex-col lg:flex-row items-center justify-between w-full px-4 py-20 container mx-auto hero-content">
             {/* Left Content */}
             <div className="flex-1 max-w-2xl lg:mr-8 text-center lg:text-left">
-              <h1 className="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight font-display text-white section-title">
+              <h1 className="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight font-display text-white">
                 SHAPING THE<br />
                 FUTURE OF<br />
-                <span className="accent">WEB3 ANALYTICS</span>
+                <span style={{ color: '#0E983B' }}>WEB3 ANALYTICS</span>
               </h1>
               <p className="text-xl md:text-2xl max-w-2xl text-gray-400 leading-relaxed mb-12 font-normal">
                 Advanced Solana wallet scanner — detect links, track memecoin activity, avoid rugs.
@@ -24,14 +23,14 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
                 <Link
                   href="/twitter-search"
-                  className="btn-primary ringed px-10 py-4 text-lg font-bold inline-flex items-center gap-2"
+                  className="btn-primary px-10 py-4 text-lg font-bold inline-flex items-center gap-2"
                 >
                   <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
                   GET STARTED
                 </Link>
                 <Link
                   href="/faq"
-                  className="btn-secondary ringed px-10 py-4 text-lg font-bold"
+                  className="btn-secondary px-10 py-4 text-lg font-bold"
                 >
                   DOCUMENTATION
                 </Link>
@@ -40,16 +39,17 @@ export default function HomePage() {
 
             {/* Right Scanner Card */}
             <div className="flex-shrink-0 w-full lg:w-96 mt-12 lg:mt-0">
-              <GlowCard className="hero-scanner">
-                <section 
-                  aria-label="Acuvity Scanner banner"
-                  className="scanner-card relative overflow-hidden"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(20, 20, 20, 0.9) 100%)',
-                    borderRadius: '24px',
-                    padding: '28px'
-                  }}
-                >
+              <section 
+                aria-label="Acuvity Scanner banner"
+                className="scanner-card relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(20, 20, 20, 0.9) 100%)',
+                  borderRadius: '24px',
+                  padding: '28px',
+                  boxShadow: 'rgba(14, 152, 59, 0.3) 0px 8px 30px',
+                  border: '1px solid rgba(14, 152, 59, 0.2)'
+                }}
+              >
                 {/* Animated SVG Background */}
                 <svg 
                   viewBox="0 0 1200 420" 
@@ -144,8 +144,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-                </section>
-              </GlowCard>
+              </section>
             </div>
           </div>
         </div>
