@@ -9,9 +9,9 @@ export default function HomePage() {
       {/* Hero Section */}
       <div className="pt-0">
         <div id="home" className="relative min-h-screen overflow-hidden flex items-center hero-bg">
-          <div className="relative z-40 flex flex-col lg:flex-row items-center justify-between w-full px-4 py-20 container mx-auto hero-content">
+          <div className="relative z-40 flex flex-col lg:flex-row items-center justify-between w-full px-4 py-20 container mx-auto hero-content animate-fade-in">
             {/* Left Content */}
-            <div className="flex-1 max-w-2xl lg:mr-8 text-center lg:text-left">
+            <div className="flex-1 max-w-2xl lg:mr-8 text-center lg:text-left animate-slide-in-left">
               <h1 className="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight font-display text-white">
                 SHAPING THE<br />
                 FUTURE OF<br />
@@ -23,14 +23,14 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
                 <Link
                   href="/twitter-search"
-                  className="btn-primary px-10 py-4 text-lg font-bold inline-flex items-center gap-2"
+                  className="btn-primary btn-animated px-10 py-4 text-lg font-bold inline-flex items-center gap-2"
                 >
                   <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
                   GET STARTED
                 </Link>
                 <Link
                   href="/faq"
-                  className="btn-secondary px-10 py-4 text-lg font-bold"
+                  className="btn-secondary btn-animated px-10 py-4 text-lg font-bold"
                 >
                   DOCUMENTATION
                 </Link>
@@ -38,10 +38,10 @@ export default function HomePage() {
             </div>
 
             {/* Right Scanner Card */}
-            <div className="flex-shrink-0 w-full lg:w-96 mt-12 lg:mt-0">
+            <div className="flex-shrink-0 w-full lg:w-96 mt-12 lg:mt-0 animate-slide-in-right">
               <section 
                 aria-label="Acuvity Scanner banner"
-                className="scanner-card relative overflow-hidden"
+                className="scanner-card relative overflow-hidden hover-glow"
                 style={{
                   background: 'linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(20, 20, 20, 0.9) 100%)',
                   borderRadius: '24px',
@@ -118,7 +118,7 @@ export default function HomePage() {
                     </p>
                     <Link
                       href="/twitter-search"
-                      className="inline-flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105"
+                      className="inline-flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-white btn-animated"
                       style={{
                         background: 'linear-gradient(135deg, #0E983B, #22C55E)',
                         boxShadow: 'rgba(14, 152, 59, 0.35) 0px 10px 24px'
@@ -165,7 +165,7 @@ export default function HomePage() {
 
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Discover */}
-            <div className="group relative feature-card hover:transform hover:scale-105 cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300">
+            <div className="group relative feature-card card-hover cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300 animate-slide-in-up stagger-1">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
                   <img src="https://i.imgur.com/iyzRIyn.png" alt="DISCOVER." className="w-16 h-16 icon3d floating-element" />
@@ -184,7 +184,7 @@ export default function HomePage() {
                 </ul>
                 <Link
                   href="/twitter-search"
-                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all duration-300 text-black"
+                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide btn-animated text-black"
                   style={{ background: '#0E983B' }}
                 >
                   SCAN NOW
@@ -193,7 +193,7 @@ export default function HomePage() {
             </div>
 
             {/* Analyze */}
-            <div className="group relative feature-card hover:transform hover:scale-105 cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300">
+            <div className="group relative feature-card card-hover cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300 animate-slide-in-up stagger-2">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
                   <img src="https://i.imgur.com/X0mWOKf.png" alt="ANALYZE." className="w-16 h-16 icon3d floating-element" />
@@ -212,7 +212,7 @@ export default function HomePage() {
                 </ul>
                 <Link
                   href="/wallet-check"
-                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all duration-300 text-black"
+                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide btn-animated text-black"
                   style={{ background: '#0E983B' }}
                 >
                   CHECK NOW
@@ -221,7 +221,7 @@ export default function HomePage() {
             </div>
 
             {/* Deploy */}
-            <div className="group relative feature-card bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 opacity-50 cursor-not-allowed">
+            <div className="group relative feature-card bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 opacity-50 cursor-not-allowed animate-slide-in-up stagger-3">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
                   <img src="https://i.imgur.com/CHFZ6ZX.png" alt="DEPLOY." className="w-16 h-16 icon3d floating-element" />
@@ -265,7 +265,7 @@ export default function HomePage() {
 
           <div className="space-y-12">
             {/* X Search Tool */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-1">
               <div className="flex items-center gap-4 mb-6">
                 <img src="https://i.imgur.com/iyzRIyn.png" className="w-12 h-12 icon3d" alt="X Search" />
                 <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
@@ -277,7 +277,7 @@ export default function HomePage() {
               </p>
               <Link
                 href="/twitter-search"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
                 style={{ background: '#0E983B' }}
               >
                 START SCANNING
@@ -286,7 +286,7 @@ export default function HomePage() {
             </div>
 
             {/* CA Finder Tool */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-2">
               <div className="flex items-center gap-4 mb-6">
                 <img src="https://i.imgur.com/X0mWOKf.png" className="w-12 h-12 icon3d" alt="CA Finder" />
                 <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
@@ -298,7 +298,7 @@ export default function HomePage() {
               </p>
               <Link
                 href="/token-creators"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
                 style={{ background: '#0E983B' }}
               >
                 EXPLORE CREATORS
@@ -307,7 +307,7 @@ export default function HomePage() {
             </div>
 
             {/* Wallet Reliability Check */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-3">
               <div className="flex items-center gap-4 mb-6">
                 <img src="https://i.imgur.com/ESs7DAD.png" className="w-12 h-12 icon3d" alt="Wallet Check" />
                 <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
@@ -319,7 +319,7 @@ export default function HomePage() {
               </p>
               <Link
                 href="/wallet-check"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
                 style={{ background: '#0E983B' }}
               >
                 CHECK WALLET
@@ -333,9 +333,9 @@ export default function HomePage() {
       {/* Ecosystem Section */}
       <section className="py-24 relative z-30 overflow-hidden">
         <div className="container mx-auto px-4 relative z-40">
-          <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto">
+          <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto card-hover animate-scale-in">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
+              <div className="animate-slide-in-left">
                 <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
                   OUR ECOSYSTEM
                 </h2>
@@ -347,7 +347,7 @@ export default function HomePage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link
                     href="/twitter-search"
-                    className="inline-flex items-center gap-2 px-10 py-4 text-lg font-bold rounded-xl text-black transition-all duration-300 hover:scale-105"
+                    className="inline-flex items-center gap-2 px-10 py-4 text-lg font-bold rounded-xl text-black btn-animated"
                     style={{ background: '#0E983B' }}
                   >
                     <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
@@ -355,14 +355,14 @@ export default function HomePage() {
                   </Link>
                   <Link
                     href="/faq"
-                    className="px-10 py-4 text-lg font-bold rounded-xl border border-gray-600 hover:border-[#0E983B] text-white transition-all duration-300 hover:scale-105"
+                    className="px-10 py-4 text-lg font-bold rounded-xl border border-gray-600 hover:border-[#0E983B] text-white btn-animated"
                   >
                     DOCUMENTATION
                   </Link>
                 </div>
               </div>
 
-              <div className="text-center">
+              <div className="text-center animate-slide-in-right">
                 <div className="relative">
                   <img 
                     src="https://i.imgur.com/jcLZvxY.png" 
