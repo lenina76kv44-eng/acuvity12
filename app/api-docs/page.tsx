@@ -33,12 +33,14 @@ function CodeBlock({ code }: { code: string }) {
   };
 
   return (
-    <div className="relative">
+    <div className="relative animate-slide-in-up">
       <button
         onClick={copy}
-        className="absolute right-3 top-3 text-xs px-2.5 py-1 rounded-md bg-[#121212] text-[#c7ffe7] hover:bg-[#171717] border border-[#1f1f1f]"
+        className="absolute right-3 top-3 text-xs px-2.5 py-1 rounded-md bg-[#121212] text-[#c7ffe7] hover:bg-[#171717] border border-[#1f1f1f] btn-animated"
       >
-        {copied ? 'Copied' : 'Copy'}
+        {copied ? (
+          <span className="animate-bounce-in">✓ Copied</span>
+        ) : 'Copy'}
       </button>
       <pre className="overflow-x-auto rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] p-4 text-[12.5px] leading-5 text-[#d7ffe9]">
         <code>{code}</code>
@@ -59,7 +61,7 @@ function Section({
   const code = useMemo(() => snippets[lang], [snippets, lang]);
 
   return (
-    <section className={CARD}>
+    <section className={`${CARD} animate-slide-in-up`}>
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
           <h2 className="text-xl font-semibold text-white tracking-tight">{title}</h2>
@@ -194,10 +196,10 @@ print(wallet_reliability('Da63jxs5D5G...Jffe9Y', 5))`,
   };
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white">
+    <main className="min-h-screen bg-[#0a0a0a] text-white animate-fade-in">
       <div className="max-w-6xl mx-auto px-4 py-10">
         {/* Header */}
-        <header className="mb-8">
+        <header className="mb-8 animate-slide-in-up">
           <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#0e2018] text-[#74f3bf] border border-[#143626]">
             No authentication required
           </div>
@@ -211,7 +213,7 @@ print(wallet_reliability('Da63jxs5D5G...Jffe9Y', 5))`,
         </header>
 
         {/* Sections */}
-        <div className="grid gap-6">
+        <div className="grid gap-6 animate-fade-in">
           <Section
             title="X Handle → Wallet"
             subtitle="Resolve an X (Twitter) developer tag to a mapped Solana wallet."

@@ -22,11 +22,11 @@ export default function Header() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-all duration-300 hover:scale-105">
             <img 
               src="https://i.imgur.com/jcLZvxY.png" 
               alt="Acuvity" 
-             className="w-16 h-16 rounded-lg hover:scale-110 hover:rotate-3 transition-all duration-300 ease-out"
+             className="w-16 h-16 rounded-lg hover:scale-110 hover:rotate-3 transition-all duration-300 ease-out animate-spin-slow"
             />
           </Link>
 
@@ -39,7 +39,7 @@ export default function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
                     isActive
                       ? 'bg-[#00ff88]/10 text-[#00ff88] border border-[#00ff88]/20'
                       : 'text-[#888888] hover:text-white hover:bg-[#1a1a1a]'
@@ -77,7 +77,7 @@ export default function Header() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
                       isActive
                         ? 'bg-[#00ff88]/10 text-[#00ff88] border border-[#00ff88]/20'
                         : 'text-[#888888] hover:text-white hover:bg-[#1a1a1a]'

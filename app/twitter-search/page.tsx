@@ -38,6 +38,7 @@ function XToWalletCard() {
   const [hError, setHError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isAnimating, setIsAnimating] = useState(false);
 
   async function enrichWithMeta(rows: any[]) {
     const mints = Array.from(new Set(rows.map(r => r.mint).filter(Boolean)));
@@ -94,6 +95,7 @@ function XToWalletCard() {
   }
 
   async function findWallet() {
+    setIsAnimating(true);
     setLoading(true); setError("");
     setWallet(null); setSol(null); setHCoins([]);
     setHError("");
@@ -114,6 +116,7 @@ function XToWalletCard() {
       setError(e.message || String(e));
     } finally {
       setLoading(false);
+      setTimeout(() => setIsAnimating(false), 300);
     }
   }
 
@@ -124,7 +127,7 @@ function XToWalletCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up">
       <div className="mb-6">
         <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">X → Wallet</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">X Dev Tag Search</h2>
@@ -140,23 +143,28 @@ function XToWalletCard() {
             onChange={(e) => setDevTag(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="@dev_on_x"
-            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600"
+            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 input-animated"
           />
           <button
             onClick={findWallet}
             disabled={loading || !devTag.trim()}
-            className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
+            className={`rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] btn-animated ${loading ? 'animate-pulse-glow' : ''}`}
           >
-            {loading ? "Finding…" : "Find"}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <div className="loading-spinner"></div>
+                Finding<span className="animate-loading-dots"></span>
+              </span>
+            ) : "Find"}
           </button>
         </div>
 
         {error && (
-          <div className="text-red-400 mt-3">{error}</div>
+          <div className="text-red-400 mt-3 animate-bounce-in">{error}</div>
         )}
 
         {wallet && (
-          <div className="mt-4 space-y-4">
+          <div className="mt-4 space-y-4 animate-slide-in-up">
             <div>
               <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold">Mapped Wallet</div>
               <div className="mt-1 font-mono break-all bg-black/50 border border-neutral-800 rounded-xl p-3">
@@ -183,7 +191,10 @@ function XToWalletCard() {
                 Coins — Found on-chain
               </div>
 
-              {hLoading && <div className="text-green-300/60 text-xs">Finding…</div>}
+              {hLoading && <div className="text-green-300/60 text-xs flex items-center gap-2">
+                <div className="loading-spinner"></div>
+                Finding<span className="animate-loading-dots"></span>
+              </div>}
               {hError && <div className="text-red-400 text-xs">Find failed. Try again.</div>}
 
               {!hLoading && !hError && (
@@ -193,7 +204,7 @@ function XToWalletCard() {
                       Find results: {hCoins.length} BAGS tokens
                     </div>
                     {hCoins.slice(0, 15).map((c, i) => (
-                      <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3">
+                      <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3 hover-glow animate-scale-in" style={{animationDelay: `${i * 0.1}s`}}>
                         <div className="flex items-center gap-3 mb-3">
                           {c?.meta?.image ? (
                             <img
@@ -274,6 +285,7 @@ function WalletToXCard() {
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isAnimating, setIsAnimating] = useState(false);
 
   function isValidBase58Wallet(address: string): boolean {
     if (!address || address.length < 32 || address.length > 48) return false;
@@ -281,6 +293,7 @@ function WalletToXCard() {
   }
 
   async function findXTags() {
+    setIsAnimating(true);
     setLoading(true); 
     setError(""); 
     setResults(null);
@@ -312,6 +325,7 @@ function WalletToXCard() {
       setError("Analysis failed. Please try again.");
     } finally {
       setLoading(false);
+      setTimeout(() => setIsAnimating(false), 300);
     }
   }
 
@@ -322,7 +336,7 @@ function WalletToXCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up stagger-2">
       <div className="mb-6">
         <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Wallet → X</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">Wallet → X tags</h2>
@@ -338,30 +352,35 @@ function WalletToXCard() {
             onChange={(e) => setWallet(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Paste wallet address"
-            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
+            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 input-animated"
           />
           <button
             onClick={findXTags}
             disabled={loading || !wallet.trim()}
-            className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
+            className={`rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] btn-animated ${loading ? 'animate-pulse-glow' : ''}`}
           >
-            {loading ? "Finding…" : "Find"}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <div className="loading-spinner"></div>
+                Finding<span className="animate-loading-dots"></span>
+              </span>
+            ) : "Find"}
           </button>
         </div>
 
         {/* Validation Error */}
         {wallet.trim() && !isValidBase58Wallet(wallet.trim()) && (
-          <div className="text-red-400/70 text-xs">
+          <div className="text-red-400/70 text-xs animate-bounce-in">
             Invalid wallet address format (must be 32-48 characters, base58)
           </div>
         )}
 
         {error && (
-          <div className="text-red-400 mt-3">{error}</div>
+          <div className="text-red-400 mt-3 animate-bounce-in">{error}</div>
         )}
 
         {results && (
-          <div className="mt-6 space-y-4">
+          <div className="mt-6 space-y-4 animate-slide-in-up">
             {/* X Tags Pills */}
             {results.twitters && results.twitters.length > 0 ? (
               <div>
@@ -372,7 +391,8 @@ function WalletToXCard() {
                   {results.twitters.map((tag: string, i: number) => (
                     <span
                       key={i}
-                      className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-medium"
+                      className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-medium animate-bounce-in hover-glow"
+                      style={{animationDelay: `${i * 0.1}s`}}
                     >
                       @{tag}
                     </span>
@@ -395,7 +415,7 @@ function WalletToXCard() {
                 </div>
                 <div className="space-y-3">
                   {results.creators.map((creator: any, i: number) => (
-                    <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-4">
+                    <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-4 hover-glow animate-scale-in" style={{animationDelay: `${i * 0.1}s`}}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <div>

@@ -35,8 +35,10 @@ function CaToCreatorsCard() {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isAnimating, setIsAnimating] = useState(false);
 
   async function fetchCreators() {
+    setIsAnimating(true);
     setLoading(true); setError(""); setRows([]);
     const clean = ca.trim();
     
@@ -76,6 +78,7 @@ function CaToCreatorsCard() {
       setError("Find failed. Please check the contract address and try again.");
     } finally {
       setLoading(false);
+      setTimeout(() => setIsAnimating(false), 300);
     }
   }
 
@@ -86,7 +89,7 @@ function CaToCreatorsCard() {
   };
 
   return (
-    <div>
+    <div className="animate-slide-in-up">
       <div className="mb-6">
         <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Contract Address</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">CA Finder — Find Creators</h2>
@@ -102,28 +105,33 @@ function CaToCreatorsCard() {
             onChange={(e) => setCa(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Contract address"
-            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
+            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 input-animated"
           />
           <button
             onClick={fetchCreators}
             disabled={loading || !ca.trim()}
-            className="rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
+            className={`rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] btn-animated ${loading ? 'animate-pulse-glow' : ''}`}
           >
-            {loading ? "Finding…" : "Find"}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <div className="loading-spinner"></div>
+                Finding<span className="animate-loading-dots"></span>
+              </span>
+            ) : "Find"}
           </button>
         </div>
 
         {error && (
-          <div className="text-red-400 mt-3">{error}</div>
+          <div className="text-red-400 mt-3 animate-bounce-in">{error}</div>
         )}
 
         {rows.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-3 animate-slide-in-up">
             <div className="text-xs font-semibold text-[#7AEFB8] mb-3 uppercase tracking-wide">
               Creators Found: {rows.length}
             </div>
             {rows.map((c, i) => (
-              <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-4">
+              <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-4 hover-glow animate-scale-in" style={{animationDelay: `${i * 0.1}s`}}>
                 <div className="flex items-center gap-4 mb-4">
                   {c.pfp ? (
                     <img 

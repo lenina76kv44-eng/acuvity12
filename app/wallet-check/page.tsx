@@ -34,8 +34,10 @@ function WalletReliabilityCard() {
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isAnimating, setIsAnimating] = useState(false);
 
   async function analyzeWallet() {
+    setIsAnimating(true);
     setLoading(true); 
     setError(""); 
     setResults(null);
@@ -72,6 +74,7 @@ function WalletReliabilityCard() {
       setError("Analysis failed. Try again.");
     } finally {
       setLoading(false);
+      setTimeout(() => setIsAnimating(false), 300);
     }
   }
 
@@ -94,7 +97,7 @@ function WalletReliabilityCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up">
       <div className="mb-6">
         <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">AI Analysis</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">Wallet Reliability Check</h2>
@@ -113,45 +116,50 @@ function WalletReliabilityCard() {
               onChange={(e) => setAddress(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Enter a Solana address"
-              className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
+              className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 input-animated"
             />
         </div>
 
         <button
           onClick={analyzeWallet}
           disabled={loading || !address.trim()}
-          className="rounded-xl bg-green-600 text-black px-6 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
+          className={`rounded-xl bg-green-600 text-black px-6 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] btn-animated ${loading ? 'animate-pulse-glow' : ''}`}
         >
-          {loading ? "Analyzing…" : "Analyze"}
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <div className="loading-spinner"></div>
+              Analyzing<span className="animate-loading-dots"></span>
+            </span>
+          ) : "Analyze"}
         </button>
 
         {error && (
-          <div className="text-red-400 mt-3">{error}</div>
+          <div className="text-red-400 mt-3 animate-bounce-in">{error}</div>
         )}
 
         {results && (
-          <div className="mt-6 space-y-6">
+          <div className="mt-6 space-y-6 animate-slide-in-up">
             {/* Metrics Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-black/50 border border-neutral-800 rounded-xl p-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
+              <div className="bg-black/50 border border-neutral-800 rounded-xl p-3 hover-glow animate-scale-in stagger-1">
                 <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Balance</div>
                 <div className="font-mono text-sm text-green-200">
                   {results.metrics.solBalance != null ? `${results.metrics.solBalance} SOL` : "—"}
                 </div>
               </div>
-              <div className="bg-black/50 border border-neutral-800 rounded-xl p-3">
+              <div className="bg-black/50 border border-neutral-800 rounded-xl p-3 hover-glow animate-scale-in stagger-2">
                 <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Transactions</div>
                 <div className="font-mono text-sm text-green-200">
                   {results.metrics.txCount}
                 </div>
               </div>
-              <div className="bg-black/50 border border-neutral-800 rounded-xl p-3">
+              <div className="bg-black/50 border border-neutral-800 rounded-xl p-3 hover-glow animate-scale-in stagger-3">
                 <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Age (Days)</div>
                 <div className="font-mono text-sm text-green-200">
                   {results.metrics.ageDays != null ? results.metrics.ageDays : "—"}
                 </div>
               </div>
-              <div className="bg-black/50 border border-neutral-800 rounded-xl p-3">
+              <div className="bg-black/50 border border-neutral-800 rounded-xl p-3 hover-glow animate-scale-in stagger-4">
                 <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Analyzed</div>
                 <div className="font-mono text-xs text-green-200">
                   {new Date().toLocaleDateString()}
@@ -160,7 +168,7 @@ function WalletReliabilityCard() {
             </div>
 
             {/* Reliability Score */}
-            <div className="bg-black/50 border border-neutral-800 rounded-xl p-6">
+            <div className="bg-black/50 border border-neutral-800 rounded-xl p-6 hover-glow animate-bounce-in">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Reliability Score</div>
@@ -175,7 +183,7 @@ function WalletReliabilityCard() {
             </div>
 
             {/* AI Analysis */}
-            <div className="bg-black/50 border border-neutral-800 rounded-xl p-6">
+            <div className="bg-black/50 border border-neutral-800 rounded-xl p-6 hover-glow animate-slide-in-up">
               <div className="text-xs text-[#7AEFB8] font-semibold mb-4 uppercase tracking-wide">AI Security Analysis</div>
               
               <div className="space-y-3 mb-4">
@@ -195,18 +203,18 @@ function WalletReliabilityCard() {
             </div>
 
             {/* Additional Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-black/50 border border-neutral-800 rounded-xl p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in">
+              <div className="bg-black/50 border border-neutral-800 rounded-xl p-4 hover-glow animate-scale-in stagger-1">
                 <div className="text-xs text-[#7AEFB8] font-semibold mb-2 uppercase tracking-wide">Swap Activity</div>
                 <div className="font-mono text-lg text-green-200">{results.metrics.swapCount}</div>
                 <div className="text-xs text-neutral-400">Total swaps</div>
               </div>
-              <div className="bg-black/50 border border-neutral-800 rounded-xl p-4">
+              <div className="bg-black/50 border border-neutral-800 rounded-xl p-4 hover-glow animate-scale-in stagger-2">
                 <div className="text-xs text-[#7AEFB8] font-semibold mb-2 uppercase tracking-wide">Counterparties</div>
                 <div className="font-mono text-lg text-green-200">{results.metrics.uniqueCounterparties}</div>
                 <div className="text-xs text-neutral-400">Unique addresses</div>
               </div>
-              <div className="bg-black/50 border border-neutral-800 rounded-xl p-4">
+              <div className="bg-black/50 border border-neutral-800 rounded-xl p-4 hover-glow animate-scale-in stagger-3">
                 <div className="text-xs text-[#7AEFB8] font-semibold mb-2 uppercase tracking-wide">BAGS Claims</div>
                 <div className="font-mono text-lg text-green-200">{results.metrics.bagsFeeClaims}</div>
                 <div className="text-xs text-neutral-400">Fee claims detected</div>
