@@ -8,7 +8,7 @@ const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "";
 
 const sleep = (ms:number)=> new Promise(r=>setTimeout(r,ms));
 
-async function fetchWithRetry(u: URL, tries = 3, timeoutMs = 20000) {
+async function fetchWithRetry(u: URL, tries = 5, timeoutMs = 20000) {
   for (let i=1;i<=tries;i++){
     const ctl = new AbortController();
     const t = setTimeout(()=>ctl.abort(), timeoutMs);
