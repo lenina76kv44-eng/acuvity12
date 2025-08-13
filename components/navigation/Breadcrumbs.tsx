@@ -9,6 +9,7 @@ const pathNames: Record<string, string> = {
   '/token-creators': 'CA Finder',
   '/wallet-to-x': 'Wallet → X',
   '/wallet-check': 'Wallet Check',
+  '/whale-notifications': 'Whale Notifications',
   '/faq': 'FAQ',
   '/contact': 'Contact',
 };
