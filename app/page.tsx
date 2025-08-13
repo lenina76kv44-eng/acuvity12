@@ -6,10 +6,10 @@ import GlowCard from "@/components/decor/GlowCard";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-background relative overflow-hidden" style={{position: 'relative', zIndex: 1}}>
+    <main className="min-h-screen relative overflow-hidden" style={{position: 'relative', zIndex: 1, background: 'transparent'}}>
       {/* Hero Section */}
       <div className="pt-0">
-        <div id="home" className="relative min-h-screen overflow-hidden flex items-center hero-bg" style={{position: 'relative', zIndex: 2}}>
+        <div id="home" className="relative min-h-screen overflow-hidden flex items-center" style={{position: 'relative', zIndex: 2, background: 'transparent'}}>
           <div className="relative z-40 flex flex-col lg:flex-row items-center justify-between w-full px-4 py-20 container mx-auto hero-content">
             {/* Left Content */}
             <div className="flex-1 max-w-2xl lg:mr-8 text-center lg:text-left">
@@ -152,7 +152,7 @@ export default function HomePage() {
       </div>
 
       {/* What is Acuvity Section */}
-      <section id="features" className="py-24 text-center relative z-40 section-animate" style={{position: 'relative', zIndex: 3}}>
+      <section id="features" className="py-24 text-center relative z-40 section-animate" style={{position: 'relative', zIndex: 3, background: 'transparent'}}>
         <div className="container mx-auto px-4">
           <div className="mb-16">
             <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight section-animate">
@@ -249,11 +249,7 @@ export default function HomePage() {
       </section>
 
       {/* Live Analysis Tools Section */}
-      <section id="tools" className="py-24 relative z-10 section-animate" style={{
-        position: 'relative', 
-        zIndex: 3,
-        background: 'linear-gradient(135deg, rgba(14, 152, 59, 0.05) 0%, rgba(34, 197, 94, 0.02) 50%, rgba(14, 152, 59, 0.05) 100%)'
-      }}>
+      <section id="tools" className="py-24 relative z-10 section-animate" style={{position: 'relative', zIndex: 3, background: 'transparent'}}>
         <div className="container mx-auto px-4 relative z-40">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight section-animate">
@@ -334,7 +330,7 @@ export default function HomePage() {
       </section>
 
       {/* Ecosystem Section */}
-      <section className="py-24 relative z-30 overflow-hidden section-animate" style={{position: 'relative', zIndex: 3}}>
+      <section className="py-24 relative z-30 overflow-hidden section-animate" style={{position: 'relative', zIndex: 3, background: 'transparent'}}>
         <div className="container mx-auto px-4 relative z-40">
           <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto card-hover">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
