@@ -18,7 +18,7 @@ export default function Footer() {
             <img 
               src="https://i.imgur.com/jcLZvxY.png" 
               alt="Acuvity" 
-              className="w-12 h-12 rounded-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ease-out animate-pulse"
+              className="w-12 h-12 rounded-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ease-out"
             />
             <span className="text-xl font-bold text-white">Acuvity</span>
           </button>
