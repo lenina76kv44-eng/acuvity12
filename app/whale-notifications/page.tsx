@@ -77,7 +77,7 @@ export default function WhaleNotificationsPage() {
           <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Signals — X</div>
           <h1 className="text-3xl font-extrabold tracking-tight mb-2 find-green-gradient">Whale Notifications</h1>
           <p className="text-[#8A8A8A] text-sm">
-            Live feed from <span className="text-[#7AEFB8]">@BagsWhaleBot</span> — trailing tracking links removed.
+            Live feed from <span className="text-[#7AEFB8]">@BagsWhaleBot</span>.
           </p>
           <div className="mt-4 flex gap-3 items-center">
             <button
