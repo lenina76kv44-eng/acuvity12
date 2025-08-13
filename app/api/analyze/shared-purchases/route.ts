@@ -154,7 +154,7 @@ export async function GET(req: Request) {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify(body)
-        }, { retries: 5, timeoutMs: 15000 });
+        }, { retries: 2, timeoutMs: 15000 });
         const j = JSON.parse(raw);
         const arr = asArray(j?.result);
         const metaById: Record<string, any> = {};

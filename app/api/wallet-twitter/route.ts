@@ -1,73 +1,203 @@
-import { env, okJson, badJson, asArray } from "@/lib/env";
-import { fetchJsonRetry, fetchTextRetry, sleep } from "@/lib/retry";
+import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const BAGS_API_KEY = () => env("BAGS_API_KEY");
-const HELIUS = () => env("HELIUS_API_KEY");
+const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "";
+const BAGS_API_KEY = process.env.BAGS_API_KEY || "";
 
-async function fetchBagsCreators(pages = 5, limit = 100) {
-  const out: any[] = [];
-  let page = 0;
+// Default program IDs if not set in env
+const DEFAULT_PROGRAM_IDS = [
+  "dbcij3LWUppWqq96dh6gJWwBifmcGfLSB5D4DuSMaqN",
+  "AxiomfHaWDemCFBLBayqnEnNwE6b7B2Qz3UmzMpgbMG6", 
+  "troY36YiPGqMyAYCNbEqYCdN2tb91Zf7bHcQt7KUi61",
+  "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
+  "cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG"
+];
 
-  for (let i = 0; i < pages; i++) {
-    const url = `https://api.bags.fm/api/v1/token-launch/creator/v2?page=${page}&limit=${limit}`;
-    const headers = { "x-api-key": BAGS_API_KEY() };
-    
+const asArray = (v: any) => Array.isArray(v) ? v : [];
+
+function isValidBase58Wallet(wallet: string): boolean {
+  if (!wallet || wallet.length < 32 || wallet.length > 48) return false;
+  return /^[1-9A-HJ-NP-Za-km-z]+$/.test(wallet);
+}
+
+async function fetchHeliusTransactions(wallet: string, pages: number, limit: number) {
+  const allTxs: any[] = [];
+  let before: string | undefined;
+
+  for (let page = 0; page < pages; page++) {
+    const url = new URL(`https://api.helius.xyz/v0/addresses/${wallet}/transactions`);
+    url.searchParams.set("api-key", HELIUS_API_KEY);
+    url.searchParams.set("limit", String(limit));
+    if (before) url.searchParams.set("before", before);
+
     try {
-      const data = await fetchJsonRetry(url, { headers }, { retries: 3, timeoutMs: 15000 });
-      const items = asArray(data?.data);
-      if (items.length === 0) break;
+      const res = await fetch(url.toString(), { cache: "no-store" });
+      const raw = await res.text();
       
-      out.push(...items);
-      page++;
-      await sleep(100);
-    } catch (e: any) {
-      const msg = String(e?.message || e);
-      if (/429|502|503|504|timeout|aborted|socket/i.test(msg)) {
-        await sleep(500);
-        i--;
-        continue;
+      if (!res.ok) {
+        throw new Error(`Helius ${res.status}: ${raw.slice(0, 180)}`);
       }
-      throw e;
+
+      let txs: any[];
+      try {
+        txs = JSON.parse(raw);
+      } catch {
+        throw new Error(`Invalid JSON from Helius: ${raw.slice(0, 180)}`);
+      }
+
+      if (!Array.isArray(txs) || txs.length === 0) break;
+      
+      allTxs.push(...txs);
+      before = txs[txs.length - 1]?.signature;
+      if (!before) break;
+    } catch (error) {
+      console.error(`Error fetching page ${page}:`, error);
+      break;
     }
   }
-  return out;
+
+  return allTxs;
+}
+
+function extractBagsMints(txs: any[], programIds: string[]): string[] {
+  const programSet = new Set(programIds);
+  const mints = new Set<string>();
+
+  for (const tx of txs) {
+    // Check if transaction involves any of our program IDs
+    const allInstructions = [
+      ...asArray(tx?.instructions),
+      ...asArray(tx?.innerInstructions).flatMap((ii: any) => asArray(ii?.instructions))
+    ];
+
+    const touchesBagsProgram = allInstructions.some((ins: any) => 
+      programSet.has(ins?.programId)
+    );
+
+    if (touchesBagsProgram) {
+      // Extract mints from token transfers that end with "BAGS"
+      const tokenTransfers = asArray(tx?.tokenTransfers);
+      for (const transfer of tokenTransfers) {
+        const mint = transfer?.mint;
+        if (mint && typeof mint === "string" && mint.endsWith("BAGS")) {
+          mints.add(mint);
+        }
+      }
+    }
+  }
+
+  return Array.from(mints);
+}
+
+async function fetchBagsCreators(mint: string) {
+  const url = `https://public-api-v2.bags.fm/api/v1/token-launch/creator/v2?tokenMint=${encodeURIComponent(mint)}`;
+  
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "x-api-key": BAGS_API_KEY,
+        "accept": "application/json"
+      },
+      cache: "no-store"
+    });
+
+    const raw = await res.text();
+    
+    if (!res.ok) {
+      throw new Error(`Bags API ${res.status}: ${raw.slice(0, 180)}`);
+    }
+
+    let data: any;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      throw new Error(`Invalid JSON from Bags: ${raw.slice(0, 180)}`);
+    }
+
+    return asArray(data?.response);
+  } catch (error) {
+    console.error(`Error fetching creators for ${mint}:`, error);
+    return [];
+  }
 }
 
 export async function GET(req: Request) {
+  if (!HELIUS_API_KEY) {
+    return NextResponse.json({ ok: false, error: "Missing HELIUS_API_KEY" }, { status: 500 });
+  }
+  
+  if (!BAGS_API_KEY) {
+    return NextResponse.json({ ok: false, error: "Missing BAGS_API_KEY" }, { status: 500 });
+  }
+
+  const url = new URL(req.url);
+  const wallet = (url.searchParams.get("wallet") || "").trim();
+  const pages = Math.max(1, Math.min(10, parseInt(url.searchParams.get("pages") || "5", 10)));
+  const limit = Math.max(50, Math.min(100, parseInt(url.searchParams.get("limit") || "100", 10)));
+
+  if (!isValidBase58Wallet(wallet)) {
+    return NextResponse.json({ ok: false, error: "Invalid or missing ?wallet" }, { status: 400 });
+  }
+
   try {
-    if (!BAGS_API_KEY()) return badJson("Missing BAGS_API_KEY", 500);
+    // Get program IDs from env or use defaults
+    const programIdsEnv = process.env.BAGS_PROGRAM_IDS || "";
+    const programIds = programIdsEnv ? programIdsEnv.split(",").map(s => s.trim()) : DEFAULT_PROGRAM_IDS;
 
-    const url = new URL(req.url);
-    const wallet = (url.searchParams.get("wallet") || "").trim();
-    if (!wallet) return badJson("Provide ?wallet=<wallet_address>", 400);
-
-    // Fetch creators from Bags.fm
-    const creators = await fetchBagsCreators(5, 100);
+    // Fetch transactions from Helius
+    const txs = await fetchHeliusTransactions(wallet, pages, limit);
     
-    // Find matching Twitter handles for the wallet
-    const matches = creators.filter(creator => 
-      creator?.wallet === wallet || 
-      creator?.feeWallet === wallet ||
-      creator?.creatorWallet === wallet
-    );
+    // Extract BAGS mints from relevant transactions
+    const bagsMints = extractBagsMints(txs, programIds);
+    
+    if (bagsMints.length === 0) {
+      return NextResponse.json({
+        ok: true,
+        wallet,
+        twitters: [],
+        creators: [],
+        scanned: { pages, limitPerPage: limit, mintsChecked: 0 }
+      });
+    }
 
-    const twitterHandles = matches
-      .map(match => match?.twitter)
-      .filter(Boolean)
-      .filter((handle, index, arr) => arr.indexOf(handle) === index); // Remove duplicates
+    // Fetch creator data for each mint
+    const allCreators: any[] = [];
+    const twitterSet = new Set<string>();
 
-    return okJson({ 
-      ok: true, 
-      input: { wallet }, 
-      twitterHandles,
-      matchCount: matches.length,
-      totalCreators: creators.length
+    for (const mint of bagsMints) {
+      const creators = await fetchBagsCreators(mint);
+      
+      for (const creator of creators) {
+        if (creator?.wallet === wallet && creator?.twitterUsername) {
+          const twitter = creator.twitterUsername.toLowerCase();
+          twitterSet.add(twitter);
+          
+          allCreators.push({
+            mint,
+            twitter,
+            username: creator?.username || null,
+            wallet: creator?.wallet || null,
+            isCreator: !!creator?.isCreator,
+            royaltyPct: typeof creator?.royaltyBps === "number" ? creator.royaltyBps / 100 : null
+          });
+        }
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
+      wallet,
+      twitters: Array.from(twitterSet),
+      creators: allCreators,
+      scanned: { pages, limitPerPage: limit, mintsChecked: bagsMints.length }
     });
-  } catch (e: any) {
-    return badJson(`Wallet to Twitter lookup failed: ${e?.message || String(e)}`, 502);
+
+  } catch (error: any) {
+    return NextResponse.json({ 
+      ok: false, 
+      error: `Analysis failed: ${error?.message || String(error)}` 
+    }, { status: 500 });
   }
 }

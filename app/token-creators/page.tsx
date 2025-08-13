@@ -4,7 +4,6 @@ import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 import ToolShell from "@/components/layout/ToolShell";
 import GlowCard from "@/components/decor/GlowCard";
 import HowItWorks from "@/components/decor/HowItWorks";
-import { getJson } from "@/lib/clientFetch";
 
 function parseJsonSafe(raw: string) {
   try { return { ok: true, data: JSON.parse(raw) }; }
@@ -61,24 +60,24 @@ function CaToCreatorsCard() {
     }
     
     try {
-      const data = await getJson(`/api/token-creators?ca=${encodeURIComponent(clean)}`);
-      if (!data.ok) throw new Error(data.error || "Request failed");
+      const res = await fetch(`/api/token-creators?ca=${encodeURIComponent(clean)}`);
+      const raw = await res.text();
+      const p = parseJsonSafe(raw);
+      if (!p.ok) throw new Error(p.error);
+      const j = p.data;
+      if (!j.ok) throw new Error(j.error || "Request failed");
       
-      const allResults = [
-        ...(data.creators || []).map((c: any) => ({
-          address: c.address,
-          share: c.share,
-          type: 'DAS Creator'
-        })),
-        ...(data.inferredTopSigners || []).map((s: any) => ({
-          address: s.address,
-          hits: s.hits,
-          type: 'Top Signer'
-        }))
-      ];
+      const creators = (Array.isArray(j.data) ? j.data : []).map((c: any) => ({
+        username: c?.username ?? null,
+        twitter: c?.twitterUsername ?? null,
+        wallet: c?.wallet ?? null,
+        royaltyPct: typeof c?.royaltyBps === "number" ? c.royaltyBps / 100 : null,
+        isCreator: !!c?.isCreator,
+        pfp: c?.pfp ?? null,
+      }));
       
-      setRows(allResults);
-      if (!allResults.length) setError("No creators found for this CA.");
+      setRows(creators);
+      if (!creators.length) setError("No creators found for this CA.");
     } catch (e: any) {
       console.error("Fetch creators error:", e);
       setError("Find failed. Please check the contract address and try again.");
@@ -133,34 +132,48 @@ function CaToCreatorsCard() {
             {rows.map((c, i) => (
               <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-4">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-[#666666]" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                    </svg>
-                  </div>
+                  {c.pfp ? (
+                    <img 
+                      src={c.pfp} 
+                      alt={c.username || "User"} 
+                      className="w-10 h-10 rounded-lg object-cover border border-neutral-700" 
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#666666]" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
                   <div className="flex-1">
                     <div className="font-medium text-sm text-green-100">
-                      {c.type}
+                      {c.username || "Unknown User"}
                     </div>
-                    <div className="text-xs text-neutral-400">
-                      {c.type === 'DAS Creator' ? `Share: ${c.share || 0}%` : `${c.hits} transactions`}
-                    </div>
+                    {c.twitter && (
+                      <div className="text-xs text-neutral-400">@{c.twitter}</div>
+                    )}
                   </div>
                   <span className={
                     "px-2 py-1 rounded-full border font-medium text-xs flex-shrink-0 " +
-                    (c.type === 'DAS Creator'
+                    (c.isCreator
                       ? "bg-green-500/10 border-green-500/30 text-green-400"
                       : "bg-amber-500/10 border-amber-500/30 text-amber-300")
                   }>
-                    {c.type === 'DAS Creator' ? "Creator" : "Signer"}
+                    {c.isCreator ? "Creator" : "Fee Share"}
                   </span>
                 </div>
                 
                 <div className="space-y-1">
                   <div>
-                    <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Address</div>
+                    <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Wallet</div>
                     <div className="font-mono text-xs break-all bg-black/50 border border-neutral-800 rounded-xl p-3 text-green-200">
-                      {c.address || "—"}
+                      {c.wallet || "—"}
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Royalty</div>
+                    <div className="bg-black/50 border border-neutral-800 rounded-xl p-3 text-green-200 font-mono text-sm">
+                      {c.royaltyPct != null ? `${c.royaltyPct}%` : "—"}
                     </div>
                   </div>
                 </div>

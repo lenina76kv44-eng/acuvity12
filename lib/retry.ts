@@ -1,7 +1,7 @@
 export const sleep = (ms:number)=>new Promise(r=>setTimeout(r,ms));
 
 export async function fetchTextRetry(input: string|URL, init: RequestInit = {}, {
-  retries = 5, timeoutMs = 20000, backoffMs = 600,
+  retries = 3, timeoutMs = 20000, backoffMs = 600,
   shouldRetry = (s:number, body:string)=> s===429 || s===408 || s===502 || s===503 || s===504
 } = {}) {
   let attempt = 0;

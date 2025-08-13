@@ -1,120 +1,67 @@
-import { env, okJson, badJson, asArray } from "@/lib/env";
-import { fetchJsonRetry, fetchTextRetry, sleep } from "@/lib/retry";
+import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const HELIUS = () => env("HELIUS_API_KEY");
-const BAGS_MINT_SUFFIX = () => env("BAGS_MINT_SUFFIX");
+const API_BASE = "https://public-api-v2.bags.fm/api/v1";
+const KEY = process.env.BAGS_API_KEY || "bags_prod_WLmpt-ZMCdFmN3WsFBON5aJnhYMzkwAUsyIJLZ3tORY";
 
-async function fetchWalletTokens(wallet: string) {
-  const body = {
-    jsonrpc: "2.0",
-    id: "bagsfinder",
-    method: "getTokenAccountsByOwner",
-    params: [
-      wallet,
-      { programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
-      { encoding: "jsonParsed" }
-    ]
-  };
-
-  const txt = await fetchTextRetry(
-    `https://mainnet.helius-rpc.com/?api-key=${HELIUS()}`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body)
-    },
-    { retries: 3, timeoutMs: 15000 }
-  );
-
+async function bags(path: string) {
+  if (!KEY) return { ok: false, error: "Missing BAGS_API_KEY" };
   try {
-    const response = JSON.parse(txt);
-    return asArray(response?.result?.value);
-  } catch {
-    return [];
+    const r = await fetch(`${API_BASE}${path}`, {
+      headers: { "x-api-key": KEY, accept: "application/json" },
+      cache: "no-store",
+    });
+    const raw = await r.text();
+    if (!r.ok) return { ok: false, error: `${r.status}: ${raw.slice(0,200)}` };
+    try { return { ok: true, json: JSON.parse(raw) }; }
+    catch { return { ok: false, error: `Invalid JSON: ${raw.slice(0,200)}` }; }
+  } catch (e: any) {
+    return { ok: false, error: `Fetch failed: ${e?.message || e}` };
   }
 }
 
-async function enrichTokenMetadata(mints: string[]) {
-  if (mints.length === 0) return [];
-
-  const body = {
-    jsonrpc: "2.0",
-    id: "bagsfinder",
-    method: "getAssetBatch",
-    params: { ids: mints.slice(0, 100) }
-  };
-
-  try {
-    const txt = await fetchTextRetry(
-      `https://mainnet.helius-rpc.com/?api-key=${HELIUS()}`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body)
-      },
-      { retries: 2, timeoutMs: 15000 }
-    );
-
-    const response = JSON.parse(txt);
-    return asArray(response?.result);
-  } catch {
-    return [];
-  }
-}
+const asArray = (v: any) => (Array.isArray(v) ? v : []);
 
 export async function GET(req: Request) {
-  try {
-    if (!HELIUS()) return badJson("Missing HELIUS_API_KEY", 500);
+  const url = new URL(req.url);
+  const wallet = (url.searchParams.get("wallet") || "").trim();
+  if (!wallet) return NextResponse.json({ ok:false, error:"Missing ?wallet" }, { status:400 });
 
-    const url = new URL(req.url);
-    const wallet = (url.searchParams.get("wallet") || "").trim();
-    if (!wallet) return badJson("Provide ?wallet=<wallet_address>", 400);
+  // 1) кошелёк → его запуски (минты)
+  const lRes = await bags(`/token-launch/wallet?wallet=${encodeURIComponent(wallet)}`);
+  if (!lRes.ok) return NextResponse.json({ ok:false, error:lRes.error }, { status:502 });
 
-    // Fetch token accounts
-    const tokenAccounts = await fetchWalletTokens(wallet);
-    
-    // Extract mints and filter for BAGS tokens
-    const suffix = BAGS_MINT_SUFFIX();
-    const allMints = tokenAccounts
-      .map((account: any) => account?.account?.data?.parsed?.info?.mint)
-      .filter(Boolean);
-    
-    const bagsMints = allMints.filter((mint: string) => 
-      suffix ? mint.endsWith(suffix) : true
-    );
+  const mints = Array.from(new Set(
+    asArray(lRes.json?.response).map((t: any) => String(t?.tokenMint)).filter(Boolean)
+  )).slice(0, 200); // лимитим, чтобы не упереться в rate limit
 
-    // Enrich with metadata
-    const metadata = await enrichTokenMetadata(bagsMints);
-    
-    // Combine token data with metadata
-    const enrichedTokens = bagsMints.map((mint: string) => {
-      const meta = metadata.find((m: any) => m?.id === mint);
-      const account = tokenAccounts.find((acc: any) => 
-        acc?.account?.data?.parsed?.info?.mint === mint
-      );
-      
-      return {
-        mint,
-        balance: account?.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0,
-        name: meta?.content?.metadata?.name || "Unknown",
-        symbol: meta?.content?.metadata?.symbol || "???",
-        image: meta?.content?.files?.[0]?.uri || null,
-        description: meta?.content?.metadata?.description || null
-      };
+  if (!mints.length) return NextResponse.json({ ok:true, data: [] });
+
+  // 2) по каждому mint → создатели (параллельно)
+  const creatorsRes = await Promise.all(
+    mints.map(m => bags(`/token-launch/creator/v2?tokenMint=${encodeURIComponent(m)}`))
+  );
+
+  // 3) берём только записи, где наш кошелёк фигурирует среди создателей
+  const rows: any[] = [];
+  creatorsRes.forEach((cr, i) => {
+    const mint = mints[i];
+    if (!cr.ok) return;
+    asArray(cr.json?.response).forEach((c: any) => {
+      if (String(c?.wallet) === wallet) {
+        rows.push({
+          mint,
+          role: c?.isCreator ? "creator" : "fee-share",
+          twitter: c?.twitterUsername ?? null,
+          username: c?.username ?? null,
+          royaltyPct: typeof c?.royaltyBps === "number" ? c.royaltyBps / 100 : null,
+        });
+      }
     });
+  });
 
-    return okJson({
-      ok: true,
-      input: { wallet },
-      tokens: enrichedTokens,
-      totalTokens: allMints.length,
-      bagsTokens: bagsMints.length
-    });
-  } catch (e: any) {
-    return badJson(`Wallet coins lookup failed: ${e?.message || String(e)}`, 502);
-  }
+  return NextResponse.json({ ok:true, data: rows });
 }

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { fetchTextRetry } from "@/lib/retry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,12 +22,14 @@ function pickMeta(a: any): Meta {
 }
 
 async function rpcCall(body: any) {
-  const raw = await fetchTextRetry(RPC, {
+  const res = await fetch(RPC, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
     cache: "no-store",
   });
+  const raw = await res.text();
+  if (!res.ok) throw new Error(`${res.status}: ${raw.slice(0,200)}`);
   const json = JSON.parse(raw);
   if (json.error) throw new Error(String(json.error?.message || "RPC error"));
   return json.result;
