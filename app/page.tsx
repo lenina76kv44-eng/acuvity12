@@ -9,7 +9,7 @@ export default function HomePage() {
     <main className="min-h-screen relative overflow-hidden" style={{position: 'relative', zIndex: 1, background: 'transparent'}}>
       {/* Hero Section */}
       <div className="pt-0">
-        <div id="home" className="relative min-h-screen overflow-hidden flex items-center" style={{position: 'relative', zIndex: 2, background: 'transparent'}}>
+        <div id="home" className="relative min-h-screen overflow-hidden flex items-center" style={{position: 'relative', zIndex: 2, background: 'none'}}>
           <div className="relative z-40 flex flex-col lg:flex-row items-center justify-between w-full px-4 py-20 container mx-auto hero-content">
             {/* Left Content */}
             <div className="flex-1 max-w-2xl lg:mr-8 text-center lg:text-left">
