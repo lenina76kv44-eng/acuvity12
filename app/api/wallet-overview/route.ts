@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchTextRetry } from "@/lib/retry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,13 +9,11 @@ const HELIUS_URL = `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS
 
 async function heliusRpc(method: string, params: any) {
   if (!process.env.HELIUS_API_KEY) throw new Error("Missing HELIUS_API_KEY");
-  const r = await fetch(HELIUS_URL, {
+  const raw = await fetchTextRetry(HELIUS_URL, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: "bags", method, params }),
   });
-  const raw = await r.text();
-  if (!r.ok) throw new Error(`${r.status}: ${raw.slice(0,200)}`);
   let j: any;
   try { j = JSON.parse(raw); } catch { throw new Error(`Invalid JSON: ${raw.slice(0,200)}`); }
   if (j.error) throw new Error(j.error.message || "RPC error");

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchTextRetry } from "@/lib/retry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,9 +39,7 @@ export async function GET(req: Request) {
     let before: string | undefined;
 
     for (let p = 0; p < PAGES; p++) {
-      const r = await fetch(addrTx(wallet, LIMIT, before));
-      const raw = await r.text();
-      if (!r.ok) return NextResponse.json({ ok:false, error:`${r.status}: ${raw.slice(0,200)}` }, { status:502 });
+      const raw = await fetchTextRetry(addrTx(wallet, LIMIT, before));
 
       let list: any[]; try { list = JSON.parse(raw); } catch { return NextResponse.json({ ok:false, error:`Invalid JSON: ${raw.slice(0,200)}` }, { status:502 }); }
       if (!Array.isArray(list) || list.length === 0) break;

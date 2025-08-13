@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchJsonRetry } from "@/lib/retry";
 
 export const runtime = "nodejs";
 export const revalidate = 0;
@@ -33,19 +34,9 @@ async function fetchHeliusTransactions(wallet: string, pages: number, limit: num
     if (before) url.searchParams.set("before", before);
 
     try {
-      const res = await fetch(url.toString(), { cache: "no-store" });
-      const raw = await res.text();
-      
-      if (!res.ok) {
-        throw new Error(`Helius ${res.status}: ${raw.slice(0, 180)}`);
-      }
-
-      let txs: any[];
-      try {
-        txs = JSON.parse(raw);
-      } catch {
-        throw new Error(`Invalid JSON from Helius: ${raw.slice(0, 180)}`);
-      }
+      const txs = await fetchJsonRetry(url.toString(), {
+        cache: "no-store"
+      });
 
       if (!Array.isArray(txs) || txs.length === 0) break;
       

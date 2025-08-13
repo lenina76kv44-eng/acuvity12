@@ -1,4 +1,5 @@
 import { env, okJson, badJson, asArray } from "@/lib/env";
+import { fetchJsonRetry } from "@/lib/retry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,10 +31,7 @@ async function fetchTxPages(address: string, pages: number, limit = 100) {
     u.searchParams.set("api-key", HELIUS());
     u.searchParams.set("limit", String(limit));
     if (before) u.searchParams.set("before", before);
-    const r = await fetch(u.toString(), { cache: "no-store" });
-    const raw = await r.text();
-    if (!r.ok) throw new Error(`Helius ${r.status}: ${raw.slice(0,160)}`);
-    const arr = JSON.parse(raw);
+    const arr = await fetchJsonRetry(u.toString(), { cache: "no-store" });
     if (!Array.isArray(arr) || !arr.length) break;
     out.push(...arr);
     before = arr[arr.length - 1]?.signature;
