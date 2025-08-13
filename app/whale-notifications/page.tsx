@@ -16,11 +16,13 @@ const STORAGE_KEY = "bagsfinder.whaleFeed.v1";
 // Mirrors ordered by highest chance to pass CORS first.
 // r.jina.ai proxies are read-only and usually set Access-Control-Allow-Origin:*.
 const MIRRORS: string[] = [
-  `https://r.jina.ai/http://nitter.net/${ACCOUNT}/rss`,
-  `https://r.jina.ai/http://nitter.poast.org/${ACCOUNT}/rss`,
-  `https://r.jina.ai/http://nitter.fdn.fr/${ACCOUNT}/rss`,
-  // direct nitter (may fail CORS, but harmless to try last)
+  `https://nitter.poast.org/${ACCOUNT}/rss`,
   `https://nitter.net/${ACCOUNT}/rss`,
+  `https://nitter.privacydev.net/${ACCOUNT}/rss`,
+  `https://nitter.fdn.fr/${ACCOUNT}/rss`,
+  // Proxy fallbacks
+  `https://api.allorigins.win/get?url=${encodeURIComponent(`https://nitter.net/${ACCOUNT}/rss`)}`,
+  `https://corsproxy.io/?${encodeURIComponent(`https://nitter.net/${ACCOUNT}/rss`)}`,
 ];
 
 function stripTrailingLink(text: string) {
@@ -42,12 +44,28 @@ function toXUrl(nitterLink: string) {
 
 function parseRss(xml: string): FeedItem[] {
   const out: FeedItem[] = [];
+  
+  // Handle proxy responses that wrap the RSS in JSON
+  let rssContent = xml;
+  try {
+    const parsed = JSON.parse(xml);
+    if (parsed.contents) {
+      rssContent = parsed.contents;
+    }
+  } catch {
+    // Not JSON, use as-is
+  }
+  
   const itemRe = /<item>([\s\S]*?)<\/item>/g;
   let m: RegExpExecArray | null;
-  while ((m = itemRe.exec(xml))) {
+  while ((m = itemRe.exec(rssContent))) {
     const seg = m[1];
     const title = (seg.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "")
       .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
       .replace(/\r?\n/g, " ")
       .trim();
     const link = (seg.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "").trim();
@@ -75,11 +93,30 @@ async function fetchFromMirrors(): Promise<string> {
   const errors: string[] = [];
   for (const url of MIRRORS) {
     try {
-      const r = await fetch(url, { cache: "no-store" });
+      const r = await fetch(url, { 
+        cache: "no-store",
+        headers: {
+          'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+          'User-Agent': 'Mozilla/5.0 (compatible; RSS Reader)'
+        }
+      });
       if (!r.ok) { errors.push(`${url}: ${r.status}`); continue; }
       const t = await r.text();
-      if (t.includes("<rss")) return t;
-      errors.push(`${url}: not rss`);
+      
+      // Check if it's RSS or wrapped RSS
+      if (t.includes("<rss") || t.includes("<?xml") || t.includes("<feed")) {
+        return t;
+      }
+      
+      // Check if it's JSON-wrapped RSS (from proxy services)
+      try {
+        const parsed = JSON.parse(t);
+        if (parsed.contents && (parsed.contents.includes("<rss") || parsed.contents.includes("<?xml"))) {
+          return t;
+        }
+      } catch {}
+      
+      errors.push(`${url}: invalid format`);
     } catch (e: any) {
       errors.push(`${url}: ${String(e?.message || e)}`);
     }
@@ -92,23 +129,42 @@ function loadCache(): { items: FeedItem[]; newestId: string } {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { items: [], newestId: "" };
     const j = JSON.parse(raw);
-    return { items: (j.items || []) as FeedItem[], newestId: j.newestId || "" };
+    const items = (j.items || []) as FeedItem[];
+    // Sort items by ID (newest first)
+    items.sort((a, b) => {
+      try { return BigInt(b.id) > BigInt(a.id) ? 1 : -1; } catch { return b.id.localeCompare(a.id); }
+    });
+    return { items, newestId: j.newestId || "" };
   } catch { return { items: [], newestId: "" }; }
 }
 
 function saveCache(items: FeedItem[]) {
+  if (!items.length) return;
   const newestId = items[0]?.id || "";
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ items, newestId, savedAt: Date.now() })); } catch {}
+  try { 
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
+      items: items.slice(0, 100), // Keep only latest 100 posts
+      newestId, 
+      savedAt: Date.now() 
+    })); 
+  } catch (e) {
+    console.warn('Failed to save to localStorage:', e);
+  }
 }
 
 function mergeById(existing: FeedItem[], incoming: FeedItem[]) {
+  if (!incoming.length) return existing;
+  
   const map = new Map(existing.map(i => [i.id, i]));
   for (const it of incoming) map.set(it.id, it);
   const all = [...map.values()];
+  
+  // Sort by ID (newest first)
   all.sort((a, b) => {
     try { return BigInt(b.id) > BigInt(a.id) ? 1 : -1; } catch { return b.id.localeCompare(a.id); }
   });
-  return all;
+  
+  return all.slice(0, 100); // Keep only latest 100 posts
 }
 
 export default function WhaleNotificationsPage() {
@@ -118,9 +174,14 @@ export default function WhaleNotificationsPage() {
 
   // Instant paint from cache
   useEffect(() => {
-    setItems(loadCache().items);
+    const cached = loadCache();
+    setItems(cached.items);
     // then fetch fresh
-    refresh(false);
+    if (cached.items.length === 0) {
+      refresh(true); // Force full refresh on first visit
+    } else {
+      refresh(false); // Just check for new items
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -129,11 +190,23 @@ export default function WhaleNotificationsPage() {
     try {
       const xml = await fetchFromMirrors();
       const fetched = parseRss(xml);
-      const merged = forceFull ? fetched : mergeById(loadCache().items, fetched);
+      
+      if (!fetched.length) {
+        throw new Error("No posts found in RSS feed");
+      }
+      
+      const cached = loadCache();
+      const merged = forceFull ? fetched : mergeById(cached.items, fetched);
       setItems(merged);
       saveCache(merged);
+      
+      if (!forceFull && merged.length > cached.items.length) {
+        console.log(`Found ${merged.length - cached.items.length} new posts`);
+      }
     } catch (e: any) {
-      setError(e?.message || "Failed to load whale feed");
+      const errorMsg = e?.message || "Failed to load whale feed";
+      setError(errorMsg);
+      console.error('Whale feed error:', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -215,6 +288,9 @@ export default function WhaleNotificationsPage() {
           {loading && (
             <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 animate-pulse text-neutral-400">
               <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
+                <span>Loading whale posts<span className="animate-loading-dots"></span></span>
+              </div>
                 <div className="w-4 h-4 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
                 <span>Loading whale posts<span className="animate-loading-dots"></span></span>
               </div>
