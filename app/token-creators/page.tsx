@@ -1,6 +1,9 @@
 "use client";
 import { useState } from "react";
 import Breadcrumbs from "@/components/navigation/Breadcrumbs";
+import ToolShell from "@/components/layout/ToolShell";
+import GlowCard from "@/components/decor/GlowCard";
+import HowItWorks from "@/components/decor/HowItWorks";
 
 function parseJsonSafe(raw: string) {
   try { return { ok: true, data: JSON.parse(raw) }; }
@@ -9,22 +12,26 @@ function parseJsonSafe(raw: string) {
 
 export default function TokenCreatorsPage() {
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white pt-4">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <main className="min-h-screen text-white pt-4" style={{position:'relative', zIndex:1}}>
+      <div className="max-w-4xl mx-auto px-4 py-8" style={{position:'relative', zIndex:1}}>
         <Breadcrumbs />
         
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">CA Finder Search</h1>
-          <p className="text-[#888888] text-base">
-            Find creators and fee splits by contract address
-          </p>
-        </header>
-
-        <div className="max-w-2xl">
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
+        <ToolShell
+          title="CA Finder Search"
+          subtitle="Find creators and fee splits by contract address. Inspect deployer behavior fast."
+        >
+          <GlowCard><div style={{padding:18}}>
             <CaToCreatorsCard />
+          </div></GlowCard>
+
+          <div style={{marginTop:18}}>
+            <HowItWorks steps={[
+              {n:1,title:'Paste contract',desc:'We resolve creator address and fee routing.'},
+              {n:2,title:'Inspect splits',desc:'Understand revenue share, mints and suspicious patterns.'},
+              {n:3,title:'Follow up',desc:'Open creator in Wallet Check for deeper behavior analysis.'}
+            ]}/>
           </div>
-        </div>
+        </ToolShell>
       </div>
     </main>
   );
