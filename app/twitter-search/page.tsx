@@ -151,10 +151,10 @@ function XToWalletCard() {
             className={`rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] btn-animated ${loading ? 'animate-pulse-glow' : ''}`}
           >
             {loading ? (
-              <span className="flex items-center gap-2">
-                <div className="loading-spinner"></div>
-                Finding<span className="animate-loading-dots"></span>
-              </span>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                <span>Finding<span className="animate-loading-dots"></span></span>
+              </div>
             ) : "Find"}
           </button>
         </div>
@@ -192,8 +192,8 @@ function XToWalletCard() {
               </div>
 
               {hLoading && <div className="text-green-300/60 text-xs flex items-center gap-2">
-                <div className="loading-spinner"></div>
-                Finding<span className="animate-loading-dots"></span>
+                <div className="w-4 h-4 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
+                <span>Finding<span className="animate-loading-dots"></span></span>
               </div>}
               {hError && <div className="text-red-400 text-xs">Find failed. Try again.</div>}
 
@@ -360,10 +360,10 @@ function WalletToXCard() {
             className={`rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] btn-animated ${loading ? 'animate-pulse-glow' : ''}`}
           >
             {loading ? (
-              <span className="flex items-center gap-2">
-                <div className="loading-spinner"></div>
-                Finding<span className="animate-loading-dots"></span>
-              </span>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                <span>Finding<span className="animate-loading-dots"></span></span>
+              </div>
             ) : "Find"}
           </button>
         </div>

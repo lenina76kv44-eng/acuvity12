@@ -126,10 +126,10 @@ function WalletReliabilityCard() {
           className={`rounded-xl bg-green-600 text-black px-6 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] btn-animated ${loading ? 'animate-pulse-glow' : ''}`}
         >
           {loading ? (
-            <span className="flex items-center gap-2">
-              <div className="loading-spinner"></div>
-              Analyzing<span className="animate-loading-dots"></span>
-            </span>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+              <span>Analyzing<span className="animate-loading-dots"></span></span>
+            </div>
           ) : "Analyze"}
         </button>
 
