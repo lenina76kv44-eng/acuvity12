@@ -291,9 +291,6 @@ export default function WhaleNotificationsPage() {
                 <div className="w-4 h-4 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
                 <span>Loading whale posts<span className="animate-loading-dots"></span></span>
               </div>
-                <div className="w-4 h-4 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
-                <span>Loading whale posts<span className="animate-loading-dots"></span></span>
-              </div>
             </div>
           )}
         </section>
