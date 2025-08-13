@@ -5,17 +5,16 @@ export const revalidate = 0;
 type FeedItem = {
   id: string;
   text: string;      // trailing link removed
-  url: string;       // https://x.com/.../status/ID
+  url: string;       // https://x.com/<user>/status/<id>
   createdAt: string; // ISO
 };
 
 const ACCOUNT = "BagsWhaleBot";
 
-// You can override via env NITTER_HOSTS (comma-separated) if needed.
-// By default we try several mirrors.
-function getMirrors(): string[] {
-  const envList = (process.env.NITTER_HOSTS || "").trim();
-  if (envList) return envList.split(",").map(s => s.trim()).filter(Boolean);
+// Allow override: NITTER_HOSTS="https://nitter.net,https://nitter.poast.org"
+function nitterMirrors(): string[] {
+  const raw = (process.env.NITTER_HOSTS || "").trim();
+  if (raw) return raw.split(",").map(s => s.trim()).filter(Boolean);
   return [
     "https://nitter.net",
     "https://nitter.poast.org",
@@ -32,7 +31,7 @@ async function fetchWithTimeout(url: string, timeoutMs = 12000) {
     return await fetch(url, {
       signal: ctl.signal,
       headers: {
-        "accept": "application/rss+xml,text/xml,application/xml;q=0.9,*/*;q=0.8",
+        "accept": "application/rss+xml,text/xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.7",
         "user-agent": "bagsfinder/1.0 (+https://example.org)"
       },
       cache: "no-store",
@@ -43,10 +42,11 @@ async function fetchWithTimeout(url: string, timeoutMs = 12000) {
 }
 
 function stripTrailingLink(text: string) {
+  // remove only one trailing URL at the very end; keep inline links
   return text.replace(/\shttps?:\/\/\S+$/i, "").trim();
 }
 
-function toXUrl(nitterLink: string) {
+function toXUrl(nitterLink: string): string {
   try {
     const u = new URL(nitterLink);
     const parts = u.pathname.split("/").filter(Boolean); // [user, status, id]
@@ -62,6 +62,10 @@ function getIdFromLink(link: string): string | null {
   return m ? m[1] : null;
 }
 
+function looksLikeRss(txt: string) {
+  return /<rss[\s>]/i.test(txt) || /<channel[\s>]/i.test(txt);
+}
+
 function parseRss(xml: string): FeedItem[] {
   const out: FeedItem[] = [];
   const itemRe = /<item>([\s\S]*?)<\/item>/g;
@@ -70,14 +74,15 @@ function parseRss(xml: string): FeedItem[] {
     const seg = m[1];
     const title = (seg.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "")
       .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&amp;/g, "&")
-      .replace(/&quot;/g, '"')
+      .replace(/</g, "<")
+      .replace(/>/g, ">")
+      .replace(/&/g, "&")
+      .replace(/"/g, '"')
       .replace(/\r?\n/g, " ")
       .trim();
     const link = (seg.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "").trim();
     const pubDate = (seg.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || "").trim();
+
     const id = getIdFromLink(link) || "";
     if (!id || !title) continue;
 
@@ -88,7 +93,7 @@ function parseRss(xml: string): FeedItem[] {
       createdAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
     });
   }
-
+  // newest → oldest
   out.sort((a, b) => {
     try { return (BigInt(b.id) > BigInt(a.id)) ? 1 : -1; }
     catch { return b.id.localeCompare(a.id); }
@@ -96,27 +101,56 @@ function parseRss(xml: string): FeedItem[] {
   return out;
 }
 
+// Try until one returns valid RSS
 async function fetchRss(username: string): Promise<string> {
-  const mirrors = getMirrors();
   const errs: string[] = [];
-  for (const base of mirrors) {
+
+  // 1) Direct Nitter mirrors
+  for (const base of nitterMirrors()) {
     const url = `${base.replace(/\/+$/,"")}/${username}/rss`;
     try {
       const r = await fetchWithTimeout(url, 12000);
-      if (!r.ok) { errs.push(`${base}: ${r.status}`); continue; }
-      const text = await r.text();
-      const ct = r.headers.get("content-type") || "";
-      // Accept XML or text/plain that contains <rss
-      if ((!ct.includes("xml") && !ct.includes("text")) || !text.includes("<rss")) {
-        errs.push(`${base}: invalid content-type or format`);
-        continue;
+      const ct = (r.headers.get("content-type") || "").toLowerCase();
+      const txt = await r.text();
+      if (r.ok && (ct.includes("xml") || ct.includes("rss") || ct.includes("text")) && looksLikeRss(txt)) {
+        return txt;
       }
-      return text;
+      errs.push(`${base}: ${r.status || "invalid"}${ct ? ` (${ct})` : ""}`);
     } catch (e: any) {
       errs.push(`${base}: ${String(e?.message || e)}`);
     }
   }
-  throw new Error(`All Nitter mirrors failed — ${errs.join(" | ")}`);
+
+  // 2) Same mirrors via r.jina.ai (bypasses CF/CORS in many cases)
+  for (const base of nitterMirrors()) {
+    const host = base.replace(/^https?:\/\//, "");
+    const url = `https://r.jina.ai/http://${host}/${username}/rss`;
+    try {
+      const r = await fetchWithTimeout(url, 12000);
+      const txt = await r.text();
+      if (r.ok && looksLikeRss(txt)) return txt;
+      errs.push(`jina->${host}: bad format`);
+    } catch (e: any) {
+      errs.push(`jina->${host}: ${String(e?.message || e)}`);
+    }
+  }
+
+  // 3) RSSHub fallbacks (public instance; OK for preview)
+  const rsshub = [
+    `https://rsshub.app/x/user/${username}`,
+    `https://rsshub.app/twitter/user/${username}`,
+  ];
+  for (const url of rsshub) {
+    try {
+      const r = await fetchWithTimeout(url, 12000);
+      const txt = await r.text();
+      if (r.ok && looksLikeRss(txt)) return txt;
+    } catch (e: any) {
+      errs.push(`rsshub: ${String(e?.message || e)}`);
+    }
+  }
+
+  throw new Error(`All sources failed — ${errs.join(" | ")}`);
 }
 
 function cmpIdNewer(a: string, b: string) {
@@ -143,7 +177,6 @@ export async function GET(req: Request) {
       status: 200,
       headers: {
         "content-type": "application/json",
-        // public cache in frontends/CDNs to relax mirror load
         "cache-control": "s-maxage=60, stale-while-revalidate=300"
       }
     });
