@@ -74,10 +74,10 @@ function parseRss(xml: string): FeedItem[] {
     const seg = m[1];
     const title = (seg.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "")
       .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-      .replace(/</g, "<")
-      .replace(/>/g, ">")
-      .replace(/&/g, "&")
-      .replace(/"/g, '"')
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
       .replace(/\r?\n/g, " ")
       .trim();
     const link = (seg.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "").trim();
