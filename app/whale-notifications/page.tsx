@@ -3,84 +3,64 @@
 import { useEffect, useState } from "react";
 import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 
-type FeedItem = { id: string; text: string; url: string; createdAt: string; };
-type ApiResp = { ok: boolean; items: FeedItem[]; newestId: string | null; count: number };
+type Item = { id: string; createdAt: string; text: string; url: string; image?: string };
+type ApiResp = { ok: boolean; count: number; latestId: string | null; items: Item[] };
 
-const STORAGE_KEY = "bagsfinder.whaleFeed.v1";
+const CACHE_KEY = "whale:cache.v1";      // stores items[]
+const LAST_SEEN_KEY = "whale:lastSeenId"; // stores latestId
 
-function loadCache() {
+function loadCache(): { items: Item[]; latestId: string } {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { items: [] as FeedItem[], newestId: "" };
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return { items: [], latestId: "" };
     const j = JSON.parse(raw);
-    return { items: (j.items || []) as FeedItem[], newestId: j.newestId || "" };
-  } catch { return { items: [] as FeedItem[], newestId: "" }; }
+    return { items: Array.isArray(j.items) ? j.items : [], latestId: String(j.latestId || "") };
+  } catch {
+    return { items: [], latestId: "" };
+  }
 }
-
-function saveCache(items: FeedItem[]) {
-  try { 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
-      items: items.slice(0, 100), // Keep only latest 100 posts
-      newestId: items[0]?.id || "", 
-      savedAt: Date.now() 
-    })); 
-  } catch {}
+function saveCache(items: Item[], latestId: string) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ items, latestId, ts: Date.now() })); } catch {}
+  try { if (latestId) localStorage.setItem(LAST_SEEN_KEY, latestId); } catch {}
 }
-
-function mergeById(a: FeedItem[], b: FeedItem[]) {
-  const map = new Map(a.map(x => [x.id, x]));
-  for (const it of b) map.set(it.id, it);
+function mergeById(existing: Item[], incoming: Item[]) {
+  const map = new Map(existing.map(x => [x.id, x]));
+  for (const it of incoming) map.set(it.id, it);
   const all = [...map.values()];
-  all.sort((x, y) => {
-    try { return (BigInt(y.id) > BigInt(x.id)) ? 1 : -1; }
-    catch { return y.id.localeCompare(x.id); }
+  all.sort((a,b) => {
+    try { return (BigInt(b.id) > BigInt(a.id)) ? 1 : -1; }
+    catch { return b.id.localeCompare(a.id); }
   });
-  return all.slice(0, 100); // Keep only latest 100 posts
+  return all;
 }
 
 export default function WhaleNotificationsPage() {
-  const [items, setItems] = useState<FeedItem[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [err, setErr] = useState("");
 
   useEffect(() => {
     const cached = loadCache();
     setItems(cached.items);
-    // Auto-refresh on first load
-    if (cached.items.length === 0) {
-      refresh(true); // Force full refresh on first visit
-    } else {
-      refresh(false); // Just check for new items
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    void refresh(true);
   }, []);
 
-  async function refresh(forceFull = false) {
-    setLoading(true); 
-    setError("");
+  async function refresh(initial = false) {
+    setLoading(true); setErr("");
     try {
-      const cached = loadCache();
-      const newestId = forceFull ? "" : (cached.newestId || cached.items[0]?.id || "");
-      const qs = newestId ? `?since_id=${encodeURIComponent(newestId)}&max=120` : `?max=120`;
-      
-      const r = await fetch(`/api/whale-feed${qs}`, { cache: "no-store" });
+      const sinceId = initial ? (localStorage.getItem(LAST_SEEN_KEY) || "") : (localStorage.getItem(LAST_SEEN_KEY) || items[0]?.id || "");
+      const u = new URL("/api/whale-feed", window.location.origin);
+      if (sinceId) u.searchParams.set("sinceId", sinceId);
+      const r = await fetch(u.toString(), { cache: "no-store" });
       const j: ApiResp = await r.json();
-      
-      if (!r.ok || !j?.ok) {
-        throw new Error((j as any)?.error || "Fetch failed");
-      }
-      
-      const merged = forceFull ? j.items : mergeById(cached.items, j.items);
+      if (!r.ok || !j?.ok) throw new Error((j as any)?.error || "Fetch failed");
+
+      const merged = sinceId ? mergeById(items, j.items) : j.items;
       setItems(merged);
-      saveCache(merged);
-      
-      if (!forceFull && merged.length > cached.items.length) {
-        console.log(`Found ${merged.length - cached.items.length} new posts`);
-      }
+      const latestId = j.latestId || merged[0]?.id || sinceId || "";
+      saveCache(merged, latestId);
     } catch (e: any) {
-      const errorMsg = e?.message || "Failed to load whale feed";
-      setError(errorMsg);
-      console.error('Whale feed error:', errorMsg);
+      setErr(String(e?.message || e));
     } finally {
       setLoading(false);
     }
@@ -92,85 +72,82 @@ export default function WhaleNotificationsPage() {
     <main className="min-h-screen bg-[#0a0a0a] text-white pt-4">
       <div className="max-w-5xl mx-auto px-4 py-8">
         <Breadcrumbs />
+
         <header className="mb-6">
           <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Signals — X</div>
           <h1 className="text-3xl font-extrabold tracking-tight mb-2 find-green-gradient">Whale Notifications</h1>
           <p className="text-[#8A8A8A] text-sm">
-            Fresh @BagsWhaleBot alerts. We strip only the trailing link — raw signal, no fluff.
+            Live feed from <span className="text-[#7AEFB8]">@BagsWhaleBot</span> — trailing tracking links removed.
           </p>
           <div className="mt-4 flex gap-3 items-center">
             <button
               onClick={() => refresh(false)}
               disabled={loading}
-              className="rounded-xl bg-green-600 text-black px-5 py-2.5 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-60 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200 btn-animated"
+              className="rounded-xl bg-green-600 text-black px-5 py-2.5 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-60 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] transition-all duration-200"
             >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
-                  <span>Finding<span className="animate-loading-dots"></span></span>
-                </div>
-              ) : "Find new"}
+              {loading ? "Refreshing…" : "Find new"}
             </button>
             <button
-              onClick={() => refresh(true)}
+              onClick={() => { localStorage.removeItem(LAST_SEEN_KEY); refresh(true); }}
               disabled={loading}
-              className="rounded-xl bg-neutral-900 border border-neutral-800 text-green-200 px-5 py-2.5 font-semibold hover:bg-neutral-800 btn-animated"
+              className="rounded-xl bg-neutral-900 border border-neutral-800 text-green-200 px-5 py-2.5 font-semibold hover:bg-neutral-800"
             >
               Reload full
             </button>
-            {error && <span className="text-red-400 text-sm animate-bounce-in">{error}</span>}
+            {err && <span className="text-red-400 text-sm">{err}</span>}
           </div>
         </header>
 
         <section className="space-y-3">
-          {items.map((it, index) => (
-            <article key={it.id} className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 find-glow card-hover animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
+          {items.length === 0 && !loading && !err && (
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 text-neutral-400">
+              No posts yet. Click "Find new".
+            </div>
+          )}
+
+          {items.map((it) => (
+            <article key={it.id} className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 find-glow find-hover">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/10 border border-green-500/20 flex items-center justify-center text-[#7AEFB8] font-bold floating-element">W</div>
+                {it.image ? (
+                  <img src={it.image} alt="" className="w-16 h-16 rounded-lg object-cover border border-neutral-800" />
+                ) : (
+                  <div className="w-16 h-16 rounded-lg border border-neutral-800 bg-neutral-900" />
+                )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-green-100 whitespace-pre-wrap break-words">{it.text}</div>
-                  <div className="text-xs text-neutral-500 mt-2">
+                  <div className="text-xs text-neutral-500 mb-2">
                     {new Date(it.createdAt).toLocaleString()} • ID {it.id}
                   </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <a
-                    href={it.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs px-3 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-green-200 transition-all duration-200 hover:scale-105 btn-animated"
-                  >
-                    Open on X
-                  </a>
-                  <button
-                    onClick={() => copy(it.id)}
-                    className="text-xs px-3 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-green-200 transition-all duration-200 hover:scale-105 btn-animated"
-                  >
-                    Copy ID
-                  </button>
+                  <div className="text-green-100 whitespace-pre-wrap break-words">{it.text || "(no text)"}</div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => copy(it.url)}
+                      className="px-3 py-1 bg-neutral-800 hover:bg-neutral-700 text-green-200 text-xs font-medium rounded-lg"
+                    >
+                      Copy link
+                    </button>
+                    <a
+                      href={it.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1 bg-green-600 hover:bg-green-500 text-black text-xs font-semibold rounded-lg"
+                    >
+                      Open on X
+                    </a>
+                  </div>
                 </div>
               </div>
             </article>
           ))}
 
-          {!loading && items.length === 0 && (
-            <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 text-neutral-400 animate-fade-in">
-              No posts yet. Click "Find new".
-            </div>
-          )}
-
           {loading && (
             <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 animate-pulse text-neutral-400">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
-                <span>Loading whale posts<span className="animate-loading-dots"></span></span>
-              </div>
+              Loading whale posts…
             </div>
           )}
         </section>
 
         <footer className="mt-10 text-xs text-neutral-500">
-          Source mirrored via public Nitter instances. Content © their respective owners.
+          Source via Jina Reader & FixTweet. Content © respective owners.
         </footer>
       </div>
     </main>

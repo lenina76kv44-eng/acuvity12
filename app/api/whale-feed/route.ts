@@ -1,181 +1,154 @@
+// app/api/whale-feed/route.ts
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 type FeedItem = {
   id: string;
-  text: string;      // trailing link removed
-  url: string;       // https://x.com/<user>/status/<id>
-  createdAt: string; // ISO
+  createdAt: string;
+  text: string;
+  url: string;
+  image?: string;
 };
 
 const ACCOUNT = "BagsWhaleBot";
 
-// Allow override: NITTER_HOSTS="https://nitter.net,https://nitter.poast.org"
-function nitterMirrors(): string[] {
-  const raw = (process.env.NITTER_HOSTS || "").trim();
-  if (raw) return raw.split(",").map(s => s.trim()).filter(Boolean);
-  return [
-    "https://nitter.cz",
-    "https://nitter.nl",
-    "https://nitter.it",
-    "https://nitter.unixfox.eu",
-    "https://nitter.moomoo.me",
-    "https://nitter.net",
-    "https://nitter.poast.org",
-  ];
-}
+// primary and fallback sources via Jina Reader (no API key needed)
+const JINA_SOURCES = [
+  `https://r.jina.ai/http://x.com/${ACCOUNT}`,
+  `https://r.jina.ai/http://mobile.twitter.com/${ACCOUNT}`,
+  // extra fallback: rsshub mirrored through Jina (often works in previews)
+  `https://r.jina.ai/http://rsshub.app/x/user/${ACCOUNT}`,
+];
 
-async function fetchWithTimeout(url: string, timeoutMs = 12000) {
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), timeoutMs);
-  try {
-    return await fetch(url, {
-      signal: ctl.signal,
-      headers: {
-        "accept": "application/rss+xml,text/xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.7",
-        "user-agent": "bagsfinder/1.0 (+https://example.org)"
-      },
-      cache: "no-store",
-    });
-  } finally {
-    clearTimeout(t);
-  }
-}
+function sleep(ms: number) { return new Promise(res => setTimeout(res, ms)); }
 
-function stripTrailingLink(text: string) {
-  // remove only one trailing URL at the very end; keep inline links
-  return text.replace(/\shttps?:\/\/\S+$/i, "").trim();
-}
-
-function toXUrl(nitterLink: string): string {
-  try {
-    const u = new URL(nitterLink);
-    const parts = u.pathname.split("/").filter(Boolean); // [user, status, id]
-    if (parts.length >= 3 && parts[1] === "status") {
-      return `https://x.com/${parts[0]}/status/${parts[2]}`;
+async function fetchText(url: string, tries = 3, timeoutMs = 15000): Promise<string> {
+  let lastErr: any;
+  for (let i = 0; i < tries; i++) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), timeoutMs);
+    try {
+      const r = await fetch(url, {
+        signal: ctl.signal,
+        headers: { "user-agent": "BagsFinder/1.0 (+https://example.org)" },
+        cache: "no-store",
+      });
+      const txt = await r.text();
+      if (!r.ok) throw new Error(`${r.status}: ${txt.slice(0,120)}`);
+      if (!txt || txt.length < 64) throw new Error("empty body");
+      return txt;
+    } catch (e) {
+      lastErr = e;
+      await sleep(250 * (i + 1) * (i + 1));
+    } finally {
+      clearTimeout(t);
     }
-  } catch {}
-  return nitterLink;
+  }
+  throw lastErr;
 }
 
-function getIdFromLink(link: string): string | null {
-  const m = link.match(/\/status\/(\d+)/);
-  return m ? m[1] : null;
-}
-
-function looksLikeRss(txt: string) {
-  return /<rss[\s>]/i.test(txt) || /<channel[\s>]/i.test(txt);
-}
-
-function parseRss(xml: string): FeedItem[] {
-  const out: FeedItem[] = [];
-  const itemRe = /<item>([\s\S]*?)<\/item>/g;
+function extractTweetIds(source: string): string[] {
+  // search everywhere for /status/<id> (10–25 digits)
+  const set = new Set<string>();
+  const re = /\/status\/(\d{10,25})/g;
   let m: RegExpExecArray | null;
-  while ((m = itemRe.exec(xml))) {
-    const seg = m[1];
-    const title = (seg.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "")
-      .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&amp;/g, "&")
-      .replace(/&quot;/g, '"')
-      .replace(/\r?\n/g, " ")
-      .trim();
-    const link = (seg.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "").trim();
-    const pubDate = (seg.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || "").trim();
-
-    const id = getIdFromLink(link) || "";
-    if (!id || !title) continue;
-
-    out.push({
-      id,
-      text: stripTrailingLink(title),
-      url: toXUrl(link),
-      createdAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
-    });
-  }
-  // newest → oldest
-  out.sort((a, b) => {
-    try { return (BigInt(b.id) > BigInt(a.id)) ? 1 : -1; }
-    catch { return b.id.localeCompare(a.id); }
+  while ((m = re.exec(source))) set.add(m[1]);
+  // newest first by BigInt
+  return [...set].sort((a, b) => {
+    try { return (BigInt(b) > BigInt(a)) ? 1 : -1; }
+    catch { return b.localeCompare(a); }
   });
-  return out;
 }
 
-// Try until one returns valid RSS
-async function fetchRss(username: string): Promise<string> {
-  const errs: string[] = [];
-
-  // 1) Direct Nitter mirrors
-  for (const base of nitterMirrors()) {
-    const url = `${base.replace(/\/+$/,"")}/${username}/rss`;
-    try {
-      const r = await fetchWithTimeout(url, 12000);
-      const ct = (r.headers.get("content-type") || "").toLowerCase();
-      const txt = await r.text();
-      if (r.ok && (ct.includes("xml") || ct.includes("rss") || ct.includes("text")) && looksLikeRss(txt)) {
-        return txt;
-      }
-      errs.push(`${base}: ${r.status || "invalid"}${ct ? ` (${ct})` : ""}`);
-    } catch (e: any) {
-      errs.push(`${base}: ${String(e?.message || e)}`);
-    }
-  }
-
-  // 2) Same mirrors via r.jina.ai (bypasses CF/CORS in many cases)
-  for (const base of nitterMirrors()) {
-    const host = base.replace(/^https?:\/\//, "");
-    const url = `https://r.jina.ai/http://${host}/${username}/rss`;
-    try {
-      const r = await fetchWithTimeout(url, 12000);
-      const txt = await r.text();
-      if (r.ok && looksLikeRss(txt)) return txt;
-      errs.push(`jina->${host}: bad format`);
-    } catch (e: any) {
-      errs.push(`jina->${host}: ${String(e?.message || e)}`);
-    }
-  }
-
-  // 3) RSSHub fallbacks (public instance; OK for preview)
-  const rsshub = [
-    `https://rsshub.app/x/user/${username}`,
-    `https://rsshub.app/twitter/user/${username}`,
-  ];
-  for (const url of rsshub) {
-    try {
-      const r = await fetchWithTimeout(url, 12000);
-      const txt = await r.text();
-      if (r.ok && looksLikeRss(txt)) return txt;
-    } catch (e: any) {
-      errs.push(`rsshub: ${String(e?.message || e)}`);
-    }
-  }
-
-  throw new Error(`All sources failed — ${errs.join(" | ")}`);
+function stripTrailingTco(text: string): string {
+  // remove only a single trailing t.co link at the very end
+  return String(text || "").replace(/\s*https?:\/\/t\.co\/\S+\s*$/i, "").trim();
 }
 
-function cmpIdNewer(a: string, b: string) {
+async function fetchFxTweet(id: string): Promise<FeedItem | null> {
+  try {
+    const r = await fetch(`https://api.fxtwitter.com/status/${id}`, { cache: "no-store" });
+    if (!r.ok) return null;
+    const j = await r.json();
+    const t = j?.tweet;
+    if (!t) return null;
+
+    // first available media preview
+    const img =
+      (Array.isArray(t?.media?.photos) && t.media.photos[0]?.url) ||
+      (Array.isArray(t?.media?.videos) && t.media.videos[0]?.thumbnail_url) ||
+      undefined;
+
+    return {
+      id: String(t.id),
+      createdAt: t.created_at ? String(t.created_at) : new Date().toISOString(),
+      text: stripTrailingTco(t.text ?? ""),
+      url: String(t.url ?? `https://x.com/i/web/status/${id}`),
+      image: img,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function newerThan(a: string, b: string) {
+  if (!b) return true;
   try { return BigInt(a) > BigInt(b); } catch { return a > b; }
 }
 
 export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const sinceId = (url.searchParams.get("sinceId") || "").trim();
+  const max = Math.max(1, Math.min(60, parseInt(url.searchParams.get("max") || "40", 10)));
+
   try {
-    const url = new URL(req.url);
-    const sinceId = (url.searchParams.get("since_id") || "").trim();
-    const max = Math.max(1, Math.min(200, parseInt(url.searchParams.get("max") || "120", 10)));
+    // 1) try sources via Jina
+    let page: string | null = null;
+    const errs: string[] = [];
+    for (const src of JINA_SOURCES) {
+      try {
+        page = await fetchText(src, 3, 15000);
+        if (page) break;
+      } catch (e: any) {
+        errs.push(`${src}: ${String(e?.message || e)}`);
+      }
+    }
+    if (!page) {
+      return new Response(JSON.stringify({ ok: false, error: `All sources failed — ${errs.join(" | ")}` }), {
+        status: 502, headers: { "content-type": "application/json" }
+      });
+    }
 
-    const xml = await fetchRss(ACCOUNT);
-    const items = parseRss(xml);
-    const filtered = sinceId ? items.filter(it => cmpIdNewer(it.id, sinceId)) : items;
-    const limited = filtered.slice(0, max);
+    // 2) collect tweet ids
+    let ids = extractTweetIds(page);
+    if (!ids.length) {
+      return new Response(JSON.stringify({ ok: true, count: 0, latestId: sinceId || null, items: [] }), {
+        headers: { "content-type": "application/json" }
+      });
+    }
 
-    return new Response(JSON.stringify({
-      ok: true,
-      count: limited.length,
-      newestId: limited[0]?.id || null,
-      items: limited
-    }), {
+    // 3) filter & limit
+    if (sinceId) ids = ids.filter(id => newerThan(id, sinceId));
+    ids = ids.slice(0, max);
+
+    // 4) resolve details via FixTweet
+    const items: FeedItem[] = [];
+    for (const id of ids) {
+      const it = await fetchFxTweet(id);
+      if (it) items.push(it);
+      await sleep(40); // tiny pacing
+    }
+
+    // sort desc just in case
+    items.sort((a, b) => {
+      try { return (BigInt(b.id) > BigInt(a.id)) ? 1 : -1; }
+      catch { return b.id.localeCompare(a.id); }
+    });
+
+    const latestId = items[0]?.id || sinceId || null;
+
+    return new Response(JSON.stringify({ ok: true, count: items.length, latestId, items }), {
       status: 200,
       headers: {
         "content-type": "application/json",
@@ -184,8 +157,7 @@ export async function GET(req: Request) {
     });
   } catch (e: any) {
     return new Response(JSON.stringify({ ok: false, error: String(e?.message || e) }), {
-      status: 502,
-      headers: { "content-type": "application/json" }
+      status: 502, headers: { "content-type": "application/json" }
     });
   }
 }
