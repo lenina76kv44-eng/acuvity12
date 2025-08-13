@@ -204,7 +204,7 @@ function XToWalletCard() {
                       Find results: {hCoins.length} BAGS tokens
                     </div>
                     {hCoins.slice(0, 15).map((c, i) => (
-                      <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3 hover-glow animate-scale-in opacity-0" style={{animationDelay: `${i * 0.15}s`, animationFillMode: 'forwards'}}>
+                      <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3 hover-glow animate-scale-in" style={{animationDelay: `${i * 0.1}s`}}>
                         <div className="flex items-center gap-3 mb-3">
                           {c?.meta?.image ? (
                             <img
