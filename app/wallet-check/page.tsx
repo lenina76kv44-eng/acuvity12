@@ -4,6 +4,7 @@ import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 import ToolShell from "@/components/layout/ToolShell";
 import GlowCard from "@/components/decor/GlowCard";
 import TipsCallout from "@/components/decor/TipsCallout";
+import { getJson } from "@/lib/clientFetch";
 
 function parseJsonSafe(raw: string) {
   try { return { ok: true, data: JSON.parse(raw) }; }
@@ -64,19 +65,8 @@ function WalletReliabilityCard() {
     }
 
     try {
-      const params = new URLSearchParams({
-        address: clean,
-        pages: pages.toString()
-      });
-      
-      const res = await fetch(`/api/analyze/wallet-reliability?${params}`);
-      const raw = await res.text();
-      const p = parseJsonSafe(raw);
-      if (!p.ok) throw new Error(p.error);
-      const j = p.data;
-      if (!j.ok) throw new Error(j.error || "Analysis failed");
-      
-      setResults(j);
+      const res = await getJson(`/api/analyze/wallet-reliability?address=${encodeURIComponent(clean)}&pages=5`);
+      setResults(res);
     } catch (e: any) {
       console.error("Wallet reliability analysis error:", e);
       setError("Analysis failed. Try again.");
@@ -146,19 +136,19 @@ function WalletReliabilityCard() {
               <div className="bg-black/50 border border-neutral-800 rounded-xl p-3">
                 <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Balance</div>
                 <div className="font-mono text-sm text-green-200">
-                  {results.metrics.solBalance != null ? `${results.metrics.solBalance} SOL` : "—"}
+                  {results.features?.solBalance != null ? `${results.features.solBalance} SOL` : "—"}
                 </div>
               </div>
               <div className="bg-black/50 border border-neutral-800 rounded-xl p-3">
                 <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Transactions</div>
                 <div className="font-mono text-sm text-green-200">
-                  {results.metrics.txCount}
+                  {results.features?.txCount || 0}
                 </div>
               </div>
               <div className="bg-black/50 border border-neutral-800 rounded-xl p-3">
-                <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Age (Days)</div>
+                <div className="text-xs text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Last Activity</div>
                 <div className="font-mono text-sm text-green-200">
-                  {results.metrics.ageDays != null ? results.metrics.ageDays : "—"}
+                  {results.features?.lastActivityAgoDays != null ? `${results.features.lastActivityAgoDays} days ago` : "—"}
                 </div>
               </div>
               <div className="bg-black/50 border border-neutral-800 rounded-xl p-3">
@@ -178,9 +168,11 @@ function WalletReliabilityCard() {
                     {results.ai.score}/100
                   </div>
                 </div>
-                <div className={`px-4 py-2 rounded-full border font-medium text-sm ${getScoreBg(results.ai.score)} ${getScoreColor(results.ai.score)}`}>
-                  {results.ai.rating}
-                </div>
+                {results.ai.usedAI && (
+                  <div className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-medium">
+                    AI Analysis
+                  </div>
+                )}
               </div>
             </div>
 
@@ -189,10 +181,10 @@ function WalletReliabilityCard() {
               <div className="text-xs text-[#7AEFB8] font-semibold mb-4 uppercase tracking-wide">AI Security Analysis</div>
               
               <div className="space-y-3 mb-4">
-                {results.ai.bullets.map((bullet: string, i: number) => (
+                {(results.ai.redFlags || []).map((flag: string, i: number) => (
                   <div key={i} className="flex items-start gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 flex-shrink-0"></div>
-                    <div className="text-sm text-green-100">{bullet}</div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 flex-shrink-0"></div>
+                    <div className="text-sm text-red-200">{flag}</div>
                   </div>
                 ))}
               </div>
@@ -207,19 +199,19 @@ function WalletReliabilityCard() {
             {/* Additional Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-black/50 border border-neutral-800 rounded-xl p-4">
-                <div className="text-xs text-[#7AEFB8] font-semibold mb-2 uppercase tracking-wide">Swap Activity</div>
-                <div className="font-mono text-lg text-green-200">{results.metrics.swapCount}</div>
-                <div className="text-xs text-neutral-400">Total swaps</div>
+                <div className="text-xs text-[#7AEFB8] font-semibold mb-2 uppercase tracking-wide">Token Buys</div>
+                <div className="font-mono text-lg text-green-200">{results.features?.buys || 0}</div>
+                <div className="text-xs text-neutral-400">Purchase transactions</div>
               </div>
               <div className="bg-black/50 border border-neutral-800 rounded-xl p-4">
-                <div className="text-xs text-[#7AEFB8] font-semibold mb-2 uppercase tracking-wide">Counterparties</div>
-                <div className="font-mono text-lg text-green-200">{results.metrics.uniqueCounterparties}</div>
-                <div className="text-xs text-neutral-400">Unique addresses</div>
+                <div className="text-xs text-[#7AEFB8] font-semibold mb-2 uppercase tracking-wide">Token Sells</div>
+                <div className="font-mono text-lg text-green-200">{results.features?.sells || 0}</div>
+                <div className="text-xs text-neutral-400">Sale transactions</div>
               </div>
               <div className="bg-black/50 border border-neutral-800 rounded-xl p-4">
-                <div className="text-xs text-[#7AEFB8] font-semibold mb-2 uppercase tracking-wide">BAGS Claims</div>
-                <div className="font-mono text-lg text-green-200">{results.metrics.bagsFeeClaims}</div>
-                <div className="text-xs text-neutral-400">Fee claims detected</div>
+                <div className="text-xs text-[#7AEFB8] font-semibold mb-2 uppercase tracking-wide">Recent Activity</div>
+                <div className="font-mono text-lg text-green-200">{results.features?.recentTxs || 0}</div>
+                <div className="text-xs text-neutral-400">Last 30 days</div>
               </div>
             </div>
           </div>

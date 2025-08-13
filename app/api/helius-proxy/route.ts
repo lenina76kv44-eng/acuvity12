@@ -1,56 +1,54 @@
-import { NextResponse } from "next/server";
+import { env, okJson, badJson, asArray } from "@/lib/env";
+import { fetchJsonRetry, fetchTextRetry, sleep } from "@/lib/retry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "";
+const HELIUS = () => env("HELIUS_API_KEY");
 
-const sleep = (ms:number)=> new Promise(r=>setTimeout(r,ms));
-
-async function fetchWithRetry(u: URL, tries = 5, timeoutMs = 20000) {
-  for (let i=1;i<=tries;i++){
-    const ctl = new AbortController();
-    const t = setTimeout(()=>ctl.abort(), timeoutMs);
-    try {
-      const r = await fetch(u.toString(), { signal: ctl.signal, headers: { accept: "application/json" }, cache:"no-store" });
-      const raw = await r.text();
-      if (!r.ok) {
-        if ((r.status===429 || r.status===502 || r.status===503 || r.status===504) && i < tries) {
-          await sleep(300*i*i);
-          continue;
-        }
-        return NextResponse.json({ ok:false, error:`Helius ${r.status}: ${raw.slice(0,200)}` }, { status:r.status });
-      }
-      clearTimeout(t);
-      return new NextResponse(raw, { status: 200, headers: { "content-type":"application/json" }});
-    } catch (e:any) {
-      clearTimeout(t);
-      const msg = String(e?.message||e);
-      if (/aborted|timeout|network|socket/i.test(msg) && i < tries) {
-        await sleep(300*i*i);
-        continue;
-      }
-      return NextResponse.json({ ok:false, error: msg }, { status: 502 });
-    }
-  }
-  return NextResponse.json({ ok:false, error: "Failed after retries" }, { status: 502 });
+async function fetchAddressPage(addr: string, before: string | undefined, limit: number) {
+  const u = new URL(`https://api.helius.xyz/v0/addresses/${addr}/transactions`);
+  u.searchParams.set("api-key", HELIUS());
+  u.searchParams.set("limit", String(limit));
+  if (before) u.searchParams.set("before", before);
+  return fetchJsonRetry(u.toString(), {}, { retries: 3, timeoutMs: 20000 });
 }
 
 export async function GET(req: Request) {
-  if (!HELIUS_API_KEY) return NextResponse.json({ ok:false, error:"Missing HELIUS_API_KEY" }, { status:500 });
+  try {
+    if (!HELIUS()) return badJson("Missing HELIUS_API_KEY", 500);
 
-  const url = new URL(req.url);
-  const address = (url.searchParams.get("address") || "").trim();
-  const before  = url.searchParams.get("before") || "";
-  const limit   = Math.max(1, Math.min(200, parseInt(url.searchParams.get("limit") || "100", 10)));
+    const url = new URL(req.url);
+    const mode = url.searchParams.get("mode") || "txs";
 
-  if (!address) return NextResponse.json({ ok:false, error:"Missing ?address" }, { status:400 });
+    if (mode === "txs") {
+      const address = (url.searchParams.get("address") || "").trim();
+      const limit = Math.max(1, Math.min(100, parseInt(url.searchParams.get("limit") || "100", 10)));
+      const before = url.searchParams.get("before") || undefined;
+      if (!address) return badJson("Provide ?address=", 400);
+      const arr = await fetchAddressPage(address, before, limit);
+      return okJson(arr);
+    }
 
-  const u = new URL(`https://api.helius.xyz/v0/addresses/${address}/transactions`);
-  u.searchParams.set("api-key", HELIUS_API_KEY);
-  u.searchParams.set("limit", String(limit));
-  if (before) u.searchParams.set("before", before);
+    if (mode === "das-batch") {
+      const ids = url.searchParams.getAll("id").filter(Boolean);
+      if (!ids.length) return badJson("Provide ?id=<mint>&id=<mint2>…", 400);
+      const body = { jsonrpc: "2.0", id: "bagsfinder", method: "getAssetBatch", params: { ids } };
+      const j = await fetchJsonRetry<any>(
+        `https://mainnet.helius-rpc.com/?api-key=${HELIUS()}`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        },
+        { retries: 2, timeoutMs: 15000 }
+      );
+      return okJson(asArray((j as any)?.result));
+    }
 
-  return fetchWithRetry(u, 3, 20000);
+    return badJson("Unknown mode (use mode=txs or mode=das-batch)", 400);
+  } catch (e: any) {
+    return badJson(`Helius proxy failed: ${e?.message || String(e)}`, 502);
+  }
 }
