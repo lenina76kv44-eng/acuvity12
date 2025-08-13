@@ -3,167 +3,38 @@
 import { useEffect, useState } from "react";
 import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 
-type FeedItem = {
-  id: string;
-  text: string;
-  url: string;
-  createdAt: string;
-};
+type FeedItem = { id: string; text: string; url: string; createdAt: string; };
+type ApiResp = { ok: boolean; items: FeedItem[]; newestId: string | null; count: number };
 
-const ACCOUNT = "BagsWhaleBot";
 const STORAGE_KEY = "bagsfinder.whaleFeed.v1";
 
-// Mirrors ordered by highest chance to pass CORS first.
-// r.jina.ai proxies are read-only and usually set Access-Control-Allow-Origin:*.
-const MIRRORS: string[] = [
-  `https://nitter.poast.org/${ACCOUNT}/rss`,
-  `https://nitter.net/${ACCOUNT}/rss`,
-  `https://nitter.privacydev.net/${ACCOUNT}/rss`,
-  `https://nitter.fdn.fr/${ACCOUNT}/rss`,
-  // Proxy fallbacks
-  `https://api.allorigins.win/get?url=${encodeURIComponent(`https://nitter.net/${ACCOUNT}/rss`)}`,
-  `https://corsproxy.io/?${encodeURIComponent(`https://nitter.net/${ACCOUNT}/rss`)}`,
-];
-
-function stripTrailingLink(text: string) {
-  // remove only a single trailing URL at the very end; keep inline links
-  return text.replace(/\shttps?:\/\/\S+$/i, "").trim();
-}
-
-function toXUrl(nitterLink: string) {
-  // convert nitter .../user/status/ID -> https://x.com/user/status/ID
-  try {
-    const u = new URL(nitterLink);
-    const parts = u.pathname.split("/").filter(Boolean); // [user, "status", id]
-    if (parts.length >= 3 && parts[1] === "status") {
-      return `https://x.com/${parts[0]}/status/${parts[2]}`;
-    }
-  } catch {}
-  return nitterLink;
-}
-
-function parseRss(xml: string): FeedItem[] {
-  const out: FeedItem[] = [];
-  
-  // Handle proxy responses that wrap the RSS in JSON
-  let rssContent = xml;
-  try {
-    const parsed = JSON.parse(xml);
-    if (parsed.contents) {
-      rssContent = parsed.contents;
-    }
-  } catch {
-    // Not JSON, use as-is
-  }
-  
-  const itemRe = /<item>([\s\S]*?)<\/item>/g;
-  let m: RegExpExecArray | null;
-  while ((m = itemRe.exec(rssContent))) {
-    const seg = m[1];
-    const title = (seg.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "")
-      .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&amp;/g, "&")
-      .replace(/&quot;/g, '"')
-      .replace(/\r?\n/g, " ")
-      .trim();
-    const link = (seg.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "").trim();
-    const pubDate = (seg.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || "").trim();
-
-    const id = link.match(/\/status\/(\d+)/)?.[1] || "";
-    if (!id || !title) continue;
-
-    out.push({
-      id,
-      text: stripTrailingLink(title),
-      url: toXUrl(link),
-      createdAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
-    });
-  }
-
-  // newest → oldest by id (BigInt-safe fallback)
-  out.sort((a, b) => {
-    try { return BigInt(b.id) > BigInt(a.id) ? 1 : -1; } catch { return b.id.localeCompare(a.id); }
-  });
-  return out;
-}
-
-async function fetchFromMirrors(): Promise<string> {
-  const errors: string[] = [];
-  for (const url of MIRRORS) {
-    try {
-      const r = await fetch(url, { 
-        cache: "no-store",
-        headers: {
-          'Accept': 'application/rss+xml, application/xml, text/xml, */*',
-          'User-Agent': 'Mozilla/5.0 (compatible; RSS Reader)'
-        }
-      });
-      if (!r.ok) { errors.push(`${url}: ${r.status}`); continue; }
-      const t = await r.text();
-      
-      // Check if it's RSS or wrapped RSS
-      if (t.includes("<rss") || t.includes("<?xml") || t.includes("<feed")) {
-        return t;
-      }
-      
-      // Check if it's JSON-wrapped RSS (from proxy services)
-      try {
-        const parsed = JSON.parse(t);
-        if (parsed.contents && (parsed.contents.includes("<rss") || parsed.contents.includes("<?xml"))) {
-          return t;
-        }
-      } catch {}
-      
-      errors.push(`${url}: invalid format`);
-    } catch (e: any) {
-      errors.push(`${url}: ${String(e?.message || e)}`);
-    }
-  }
-  throw new Error(errors.join(" | "));
-}
-
-function loadCache(): { items: FeedItem[]; newestId: string } {
+function loadCache() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { items: [], newestId: "" };
+    if (!raw) return { items: [] as FeedItem[], newestId: "" };
     const j = JSON.parse(raw);
-    const items = (j.items || []) as FeedItem[];
-    // Sort items by ID (newest first)
-    items.sort((a, b) => {
-      try { return BigInt(b.id) > BigInt(a.id) ? 1 : -1; } catch { return b.id.localeCompare(a.id); }
-    });
-    return { items, newestId: j.newestId || "" };
-  } catch { return { items: [], newestId: "" }; }
+    return { items: (j.items || []) as FeedItem[], newestId: j.newestId || "" };
+  } catch { return { items: [] as FeedItem[], newestId: "" }; }
 }
 
 function saveCache(items: FeedItem[]) {
-  if (!items.length) return;
-  const newestId = items[0]?.id || "";
   try { 
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
       items: items.slice(0, 100), // Keep only latest 100 posts
-      newestId, 
+      newestId: items[0]?.id || "", 
       savedAt: Date.now() 
     })); 
-  } catch (e) {
-    console.warn('Failed to save to localStorage:', e);
-  }
+  } catch {}
 }
 
-function mergeById(existing: FeedItem[], incoming: FeedItem[]) {
-  if (!incoming.length) return existing;
-  
-  const map = new Map(existing.map(i => [i.id, i]));
-  for (const it of incoming) map.set(it.id, it);
+function mergeById(a: FeedItem[], b: FeedItem[]) {
+  const map = new Map(a.map(x => [x.id, x]));
+  for (const it of b) map.set(it.id, it);
   const all = [...map.values()];
-  
-  // Sort by ID (newest first)
-  all.sort((a, b) => {
-    try { return BigInt(b.id) > BigInt(a.id) ? 1 : -1; } catch { return b.id.localeCompare(a.id); }
+  all.sort((x, y) => {
+    try { return (BigInt(y.id) > BigInt(x.id)) ? 1 : -1; }
+    catch { return y.id.localeCompare(x.id); }
   });
-  
   return all.slice(0, 100); // Keep only latest 100 posts
 }
 
@@ -172,11 +43,10 @@ export default function WhaleNotificationsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Instant paint from cache
   useEffect(() => {
     const cached = loadCache();
     setItems(cached.items);
-    // then fetch fresh
+    // Auto-refresh on first load
     if (cached.items.length === 0) {
       refresh(true); // Force full refresh on first visit
     } else {
@@ -186,17 +56,21 @@ export default function WhaleNotificationsPage() {
   }, []);
 
   async function refresh(forceFull = false) {
-    setLoading(true); setError("");
+    setLoading(true); 
+    setError("");
     try {
-      const xml = await fetchFromMirrors();
-      const fetched = parseRss(xml);
+      const cached = loadCache();
+      const newestId = forceFull ? "" : (cached.newestId || cached.items[0]?.id || "");
+      const qs = newestId ? `?since_id=${encodeURIComponent(newestId)}&max=120` : `?max=120`;
       
-      if (!fetched.length) {
-        throw new Error("No posts found in RSS feed");
+      const r = await fetch(`/api/whale-feed${qs}`, { cache: "no-store" });
+      const j: ApiResp = await r.json();
+      
+      if (!r.ok || !j?.ok) {
+        throw new Error((j as any)?.error || "Fetch failed");
       }
       
-      const cached = loadCache();
-      const merged = forceFull ? fetched : mergeById(cached.items, fetched);
+      const merged = forceFull ? j.items : mergeById(cached.items, j.items);
       setItems(merged);
       saveCache(merged);
       
