@@ -6,32 +6,32 @@ import GlowCard from "@/components/decor/GlowCard";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-background relative overflow-hidden">
+    <main className="min-h-screen bg-background relative overflow-hidden" style={{position: 'relative', zIndex: 1}}>
       {/* Hero Section */}
       <div className="pt-0">
-        <div id="home" className="relative min-h-screen overflow-hidden flex items-center hero-bg">
+        <div id="home" className="relative min-h-screen overflow-hidden flex items-center hero-bg" style={{position: 'relative', zIndex: 2}}>
           <div className="relative z-40 flex flex-col lg:flex-row items-center justify-between w-full px-4 py-20 container mx-auto hero-content">
             {/* Left Content */}
             <div className="flex-1 max-w-2xl lg:mr-8 text-center lg:text-left">
-              <h1 className="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight font-display text-white section-title">
+              <h1 className="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight font-display text-white section-title section-animate">
                 SHAPING THE<br />
                 FUTURE OF<br />
                 <span className="accent">WEB3 ANALYTICS</span>
               </h1>
-              <p className="text-xl md:text-2xl max-w-2xl text-gray-400 leading-relaxed mb-12 font-normal">
+              <p className="text-xl md:text-2xl max-w-2xl text-gray-400 leading-relaxed mb-12 font-normal section-animate-delay">
                 Advanced Solana wallet scanner — detect links, track memecoin activity, avoid rugs.
               </p>
-              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start section-animate-delay-2">
                 <Link
                   href="/twitter-search"
-                  className="btn-primary ringed px-10 py-4 text-lg font-bold inline-flex items-center gap-2"
+                  className="btn-primary ringed btn-animated px-10 py-4 text-lg font-bold inline-flex items-center gap-2"
                 >
-                  <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
+                  <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block bounce-in" alt="start" />
                   GET STARTED
                 </Link>
                 <Link
                   href="/faq"
-                  className="btn-secondary ringed px-10 py-4 text-lg font-bold"
+                  className="btn-secondary ringed btn-animated px-10 py-4 text-lg font-bold"
                 >
                   DOCUMENTATION
                 </Link>
@@ -39,11 +39,11 @@ export default function HomePage() {
             </div>
 
             {/* Right Scanner Card */}
-            <div className="flex-shrink-0 w-full lg:w-96 mt-12 lg:mt-0">
+            <div className="flex-shrink-0 w-full lg:w-96 mt-12 lg:mt-0 section-animate-delay">
               <GlowCard className="hero-scanner">
                 <section 
                   aria-label="Acuvity Scanner banner"
-                  className="scanner-card relative overflow-hidden"
+                  className="scanner-card relative overflow-hidden card-hover"
                   style={{
                     background: 'linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(20, 20, 20, 0.9) 100%)',
                     borderRadius: '24px',
@@ -76,7 +76,7 @@ export default function HomePage() {
                     r="380" 
                     fill="url(#rg)" 
                     opacity="0.6"
-                    className="animate-pulse"
+                    className="animate-pulse pulse-glow"
                   />
                   <g filter="url(#softShadow)" className="animate-float">
                     <rect x="70" y="250" width="84" height="84" rx="18" fill="#0E983B" opacity="0.16" />
@@ -106,40 +106,40 @@ export default function HomePage() {
                         width="40" 
                         height="40" 
                         alt="Acuvity logo" 
-                        className="rounded-full object-cover floating-element"
+                        className="rounded-full object-cover floating-element bounce-in"
                         style={{ filter: 'drop-shadow(rgba(0, 0, 0, 0.12) 0px 4px 10px)' }}
                       />
-                      <h2 className="text-2xl font-black text-white tracking-wide">
+                      <h2 className="text-2xl font-black text-white tracking-wide section-animate">
                         ACUVITY SCANNER
                       </h2>
                     </div>
-                    <p className="text-gray-300 text-base leading-relaxed mb-6 max-w-lg">
+                    <p className="text-gray-300 text-base leading-relaxed mb-6 max-w-lg section-animate-delay">
                       Fast, comprehensive wallet analysis with AI-powered security insights. Detect links, track memecoin activity, avoid rugs with AI assistance.
                     </p>
                     <Link
                       href="/twitter-search"
-                      className="inline-flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-white transition-all duration-200 hover:scale-105"
+                      className="inline-flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-white btn-animated"
                       style={{
                         background: 'linear-gradient(135deg, #0E983B, #22C55E)',
                         boxShadow: 'rgba(14, 152, 59, 0.35) 0px 10px 24px'
                       }}
                     >
                       Start scanning
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4 bounce-in" />
                     </Link>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="flex items-center gap-3">
-                      <img src="https://i.imgur.com/X0mWOKf.png" width="24" height="24" alt="" loading="lazy" />
+                  <div className="grid grid-cols-1 gap-4 section-animate-delay-2">
+                    <div className="flex items-center gap-3 stagger-item">
+                      <img src="https://i.imgur.com/X0mWOKf.png" width="24" height="24" alt="" loading="lazy" className="bounce-in" />
                       <span className="text-white font-semibold text-sm">Deep Transaction analysis</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <img src="https://i.imgur.com/iyzRIyn.png" width="24" height="24" alt="" loading="lazy" />
+                    <div className="flex items-center gap-3 stagger-item">
+                      <img src="https://i.imgur.com/iyzRIyn.png" width="24" height="24" alt="" loading="lazy" className="bounce-in" />
                       <span className="text-white font-semibold text-sm">Risk pattern detection</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <img src="https://i.imgur.com/ESs7DAD.png" width="24" height="24" alt="" loading="lazy" />
+                    <div className="flex items-center gap-3 stagger-item">
+                      <img src="https://i.imgur.com/ESs7DAD.png" width="24" height="24" alt="" loading="lazy" className="bounce-in" />
                       <span className="text-white font-semibold text-sm">AI-powered insights</span>
                     </div>
                   </div>
@@ -152,29 +152,29 @@ export default function HomePage() {
       </div>
 
       {/* What is Acuvity Section */}
-      <section id="features" className="py-24 text-center relative z-40">
+      <section id="features" className="py-24 text-center relative z-40 section-animate" style={{position: 'relative', zIndex: 3}}>
         <div className="container mx-auto px-4">
           <div className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight section-animate">
               WHAT IS ACUVITY
             </h2>
-            <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed font-normal">
+            <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed font-normal section-animate-delay">
               Build your Web3 analytics workflows in minutes. Analyze any blockchain address 
               with real-time risk scores. Deploy custom AI agents directly from your dashboard.
             </p>
           </div>
 
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 section-animate-delay-2">
             {/* Discover */}
-            <div className="group relative feature-card hover:transform hover:scale-105 cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300">
+            <div className="group relative feature-card tool-card cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 stagger-item">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
-                  <img src="https://i.imgur.com/iyzRIyn.png" alt="DISCOVER." className="w-16 h-16 icon3d floating-element" />
+                  <img src="https://i.imgur.com/iyzRIyn.png" alt="DISCOVER." className="w-16 h-16 icon3d floating-element bounce-in" />
                 </div>
-                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight section-animate" style={{ color: '#0E983B' }}>
                   DISCOVER.
                 </h3>
-                <ul className="text-left space-y-2 text-gray-300 mb-8">
+                <ul className="text-left space-y-2 text-gray-300 mb-8 section-animate-delay">
                   <li>• Uncover hidden connections</li>
                   <li>• Analyze wallet behavior</li>
                   <li>• Detect Solana token launches</li>
@@ -185,7 +185,7 @@ export default function HomePage() {
                 </ul>
                 <Link
                   href="/twitter-search"
-                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all duration-300 text-black"
+                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide btn-animated text-black"
                   style={{ background: '#0E983B' }}
                 >
                   SCAN NOW
@@ -194,15 +194,15 @@ export default function HomePage() {
             </div>
 
             {/* Analyze */}
-            <div className="group relative feature-card hover:transform hover:scale-105 cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300">
+            <div className="group relative feature-card tool-card cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 stagger-item">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
-                  <img src="https://i.imgur.com/X0mWOKf.png" alt="ANALYZE." className="w-16 h-16 icon3d floating-element" />
+                  <img src="https://i.imgur.com/X0mWOKf.png" alt="ANALYZE." className="w-16 h-16 icon3d floating-element bounce-in" />
                 </div>
-                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight section-animate" style={{ color: '#0E983B' }}>
                   ANALYZE.
                 </h3>
-                <ul className="text-left space-y-2 text-gray-300 mb-8">
+                <ul className="text-left space-y-2 text-gray-300 mb-8 section-animate-delay">
                   <li>• Risk assessment and scoring</li>
                   <li>• Behavioral analysis with AI</li>
                   <li>• Advanced wallet metrics</li>
@@ -213,7 +213,7 @@ export default function HomePage() {
                 </ul>
                 <Link
                   href="/wallet-check"
-                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all duration-300 text-black"
+                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide btn-animated text-black"
                   style={{ background: '#0E983B' }}
                 >
                   CHECK NOW
@@ -222,15 +222,15 @@ export default function HomePage() {
             </div>
 
             {/* Deploy */}
-            <div className="group relative feature-card bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 opacity-50 cursor-not-allowed">
+            <div className="group relative feature-card tool-card bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 opacity-50 cursor-not-allowed stagger-item">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
-                  <img src="https://i.imgur.com/CHFZ6ZX.png" alt="DEPLOY." className="w-16 h-16 icon3d floating-element" />
+                  <img src="https://i.imgur.com/CHFZ6ZX.png" alt="DEPLOY." className="w-16 h-16 icon3d floating-element bounce-in" />
                 </div>
-                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight section-animate" style={{ color: '#0E983B' }}>
                   DEPLOY.
                 </h3>
-                <ul className="text-left space-y-2 text-gray-300 mb-8">
+                <ul className="text-left space-y-2 text-gray-300 mb-8 section-animate-delay">
                   <li>• Advanced blockchain intelligence</li>
                   <li>• Automated risk monitoring</li>
                   <li>• Custom alert systems</li>
@@ -249,82 +249,84 @@ export default function HomePage() {
       </section>
 
       {/* Live Analysis Tools Section */}
-      <section id="tools" className="py-24 relative z-10" style={{
+      <section id="tools" className="py-24 relative z-10 section-animate" style={{
+        position: 'relative', 
+        zIndex: 3,
         background: 'linear-gradient(135deg, rgba(14, 152, 59, 0.05) 0%, rgba(34, 197, 94, 0.02) 50%, rgba(14, 152, 59, 0.05) 100%)'
       }}>
         <div className="container mx-auto px-4 relative z-40">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight section-animate">
               LIVE ANALYSIS TOOLS
             </h2>
-            <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed font-normal">
+            <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed font-normal section-animate-delay">
               Experience the power of professional blockchain analysis. Test our tools instantly - 
               no registration required. Sign up only for advanced analysis history and access 
               advanced features.
             </p>
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-12 section-animate-delay-2">
             {/* X Search Tool */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 tool-card stagger-item">
               <div className="flex items-center gap-4 mb-6">
-                <img src="https://i.imgur.com/iyzRIyn.png" className="w-12 h-12 icon3d" alt="X Search" />
-                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <img src="https://i.imgur.com/iyzRIyn.png" className="w-12 h-12 icon3d bounce-in" alt="X Search" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight section-animate" style={{ color: '#0E983B' }}>
                   X SEARCH SCANNER
                 </h3>
               </div>
-              <p className="text-gray-400 mb-6">
+              <p className="text-gray-400 mb-6 section-animate-delay">
                 Analyze habits and trace history through Solana transactions
               </p>
               <Link
                 href="/twitter-search"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
                 style={{ background: '#0E983B' }}
               >
                 START SCANNING
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 bounce-in" />
               </Link>
             </div>
 
             {/* CA Finder Tool */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 tool-card stagger-item">
               <div className="flex items-center gap-4 mb-6">
-                <img src="https://i.imgur.com/X0mWOKf.png" className="w-12 h-12 icon3d" alt="CA Finder" />
-                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <img src="https://i.imgur.com/X0mWOKf.png" className="w-12 h-12 icon3d bounce-in" alt="CA Finder" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight section-animate" style={{ color: '#0E983B' }}>
                   CA FINDER
                 </h3>
               </div>
-              <p className="text-gray-400 mb-6">
+              <p className="text-gray-400 mb-6 section-animate-delay">
                 Discover token creators and fee structures through contract analysis
               </p>
               <Link
                 href="/token-creators"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
                 style={{ background: '#0E983B' }}
               >
                 EXPLORE CREATORS
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 bounce-in" />
               </Link>
             </div>
 
             {/* Wallet Reliability Check */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 tool-card stagger-item">
               <div className="flex items-center gap-4 mb-6">
-                <img src="https://i.imgur.com/ESs7DAD.png" className="w-12 h-12 icon3d" alt="Wallet Check" />
-                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <img src="https://i.imgur.com/ESs7DAD.png" className="w-12 h-12 icon3d bounce-in" alt="Wallet Check" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight section-animate" style={{ color: '#0E983B' }}>
                   WALLET RELIABILITY CHECK
                 </h3>
               </div>
-              <p className="text-gray-400 mb-6">
+              <p className="text-gray-400 mb-6 section-animate-delay">
                 AI-powered wallet analysis with behavioral risk assessment
               </p>
               <Link
                 href="/wallet-check"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-black"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
                 style={{ background: '#0E983B' }}
               >
                 CHECK WALLET
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 bounce-in" />
               </Link>
             </div>
           </div>
@@ -332,53 +334,53 @@ export default function HomePage() {
       </section>
 
       {/* Ecosystem Section */}
-      <section className="py-24 relative z-30 overflow-hidden">
+      <section className="py-24 relative z-30 overflow-hidden section-animate" style={{position: 'relative', zIndex: 3}}>
         <div className="container mx-auto px-4 relative z-40">
-          <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto">
+          <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto card-hover">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
+                <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight section-animate">
                   OUR ECOSYSTEM
                 </h2>
-                <p className="text-gray-400 text-xl mb-8 leading-relaxed font-normal">
+                <p className="text-gray-400 text-xl mb-8 leading-relaxed font-normal section-animate-delay">
                   Everything on Web3, powered by our AI. Acuvity is one of the first 
                   platforms that unifies analytics, risk, deployment and on-chain 
                   governance in one place.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-4 section-animate-delay-2">
                   <Link
                     href="/twitter-search"
-                    className="inline-flex items-center gap-2 px-10 py-4 text-lg font-bold rounded-xl text-black transition-all duration-300 hover:scale-105"
+                    className="inline-flex items-center gap-2 px-10 py-4 text-lg font-bold rounded-xl text-black btn-animated"
                     style={{ background: '#0E983B' }}
                   >
-                    <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
+                    <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block bounce-in" alt="start" />
                     EXPLORE
                   </Link>
                   <Link
                     href="/faq"
-                    className="px-10 py-4 text-lg font-bold rounded-xl border border-gray-600 hover:border-[#0E983B] text-white transition-all duration-300 hover:scale-105"
+                    className="px-10 py-4 text-lg font-bold rounded-xl border border-gray-600 hover:border-[#0E983B] text-white btn-animated"
                   >
                     DOCUMENTATION
                   </Link>
                 </div>
               </div>
 
-              <div className="text-center">
+              <div className="text-center section-animate-delay">
                 <div className="relative">
                   <img 
                     src="https://i.imgur.com/jcLZvxY.png" 
                     alt="Analytics" 
-                    className="w-64 h-64 mx-auto floating-element"
+                    className="w-64 h-64 mx-auto floating-element bounce-in"
                     style={{ filter: 'drop-shadow(rgba(14, 152, 59, 0.3) 0px 20px 40px)' }}
                   />
                   
                   {/* Floating Icons */}
-                  <img src="https://i.imgur.com/X0mWOKf.png" alt="Security" className="absolute top-4 right-4 w-12 h-12 animate-float" />
-                  <img src="https://i.imgur.com/i4E5ZuP.png" alt="Reports" className="absolute top-12 left-12 w-10 h-10 animate-float-delayed" />
-                  <img src="https://i.imgur.com/eBYdwGI.png" alt="DEX Swaps" className="absolute bottom-16 right-12 w-11 h-11 animate-float" />
-                  <img src="https://i.imgur.com/CHFZ6ZX.png" alt="AI Automation" className="absolute top-32 left-4 w-9 h-9 animate-float-delayed" />
-                  <img src="https://i.imgur.com/lTr0Z7H.png" alt="Risk Detection" className="absolute bottom-4 left-16 w-8 h-8 animate-float" />
-                  <img src="https://i.imgur.com/8NMpdwt.png" alt="Bridge Analysis" className="absolute top-8 right-32 w-9 h-9 animate-float-delayed" />
+                  <img src="https://i.imgur.com/X0mWOKf.png" alt="Security" className="absolute top-4 right-4 w-12 h-12 animate-float bounce-in" />
+                  <img src="https://i.imgur.com/i4E5ZuP.png" alt="Reports" className="absolute top-12 left-12 w-10 h-10 animate-float-delayed bounce-in" />
+                  <img src="https://i.imgur.com/eBYdwGI.png" alt="DEX Swaps" className="absolute bottom-16 right-12 w-11 h-11 animate-float bounce-in" />
+                  <img src="https://i.imgur.com/CHFZ6ZX.png" alt="AI Automation" className="absolute top-32 left-4 w-9 h-9 animate-float-delayed bounce-in" />
+                  <img src="https://i.imgur.com/lTr0Z7H.png" alt="Risk Detection" className="absolute bottom-4 left-16 w-8 h-8 animate-float bounce-in" />
+                  <img src="https://i.imgur.com/8NMpdwt.png" alt="Bridge Analysis" className="absolute top-8 right-32 w-9 h-9 animate-float-delayed bounce-in" />
                 </div>
               </div>
             </div>
