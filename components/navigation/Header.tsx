@@ -39,13 +39,13 @@ export default function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium btn-animated ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
                       ? 'bg-[#00ff88]/10 text-[#00ff88] border border-[#00ff88]/20'
                       : 'text-[#888888] hover:text-white hover:bg-[#1a1a1a]'
                   }`}
                 >
-                  <Icon className="w-4 h-4 bounce-in" />
+                  <Icon className="w-4 h-4" />
                   {item.name}
                 </Link>
               );

@@ -45,7 +45,7 @@ export default function Footer() {
             </Link>
             <a
               href="https://x.com/AcuvityAI"
-              className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-8 py-3 rounded-xl font-semibold btn-animated inline-block"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-[#888888] hover:text-[#00ff88] transition-colors"
             >
