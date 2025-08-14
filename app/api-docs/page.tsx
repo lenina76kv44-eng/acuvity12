@@ -32,18 +32,36 @@ function CodeBlock({ code }: { code: string }) {
     setTimeout(() => setCopied(false), 1200);
   };
 
+  const highlightSyntax = (code: string) => {
+    return code
+      // Keywords
+      .replace(/\b(const|let|var|function|async|await|import|export|from|default|if|else|return|try|catch|throw|new|class|extends|interface|type|enum)\b/g, '<span class="syntax-keyword">$1</span>')
+      // Strings
+      .replace(/(['"`])((?:\\.|(?!\1)[^\\])*?)\1/g, '<span class="syntax-string">$1$2$1</span>')
+      // Numbers
+      .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="syntax-number">$1</span>')
+      // Functions
+      .replace(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?=\()/g, '<span class="syntax-function">$1</span>')
+      // Properties
+      .replace(/\.([a-zA-Z_$][a-zA-Z0-9_$]*)/g, '.<span class="syntax-property">$1</span>')
+      // Comments
+      .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span class="syntax-comment">$1</span>')
+      // Operators
+      .replace(/([=!<>+\-*/%&|^~?:;,])/g, '<span class="syntax-operator">$1</span>');
+  };
+
   return (
-    <div className="relative animate-slide-in-up">
+    <div className="relative animate-slide-in-up group">
       <button
         onClick={copy}
-        className="absolute right-3 top-3 text-xs px-2.5 py-1 rounded-md bg-[#121212] text-[#c7ffe7] hover:bg-[#171717] border border-[#1f1f1f] btn-animated"
+        className="absolute right-3 top-3 text-xs px-2.5 py-1 rounded-md bg-[#121212] text-[#c7ffe7] hover:bg-[#171717] border border-[#1f1f1f] btn-animated btn-glow opacity-0 group-hover:opacity-100 transition-all duration-300"
       >
         {copied ? (
-          <span className="animate-bounce-in">✓ Copied</span>
+          <span className="animate-bounce-in text-green-400">✓ Copied</span>
         ) : 'Copy'}
       </button>
-      <pre className="overflow-x-auto rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] p-4 text-[12.5px] leading-5 text-[#d7ffe9]">
-        <code>{code}</code>
+      <pre className="overflow-x-auto rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] p-4 text-[12.5px] leading-5 text-[#d7ffe9] hover:border-[#00ff88]/30 transition-all duration-300 hover:shadow-lg hover:shadow-[#00ff88]/10">
+        <code dangerouslySetInnerHTML={{ __html: highlightSyntax(code) }} />
       </pre>
     </div>
   );
@@ -61,17 +79,17 @@ function Section({
   const code = useMemo(() => snippets[lang], [snippets, lang]);
 
   return (
-    <section className={`${CARD} animate-slide-in-up`}>
+    <section className={`${CARD} animate-slide-in-up card-glow tool-section`}>
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
-          <h2 className="text-xl font-semibold text-white tracking-tight">{title}</h2>
-          <p className="text-[#9feecf] text-sm mt-1">{subtitle}</p>
+          <h2 className="text-xl font-semibold text-white tracking-tight animate-typewriter">{title}</h2>
+          <p className="text-[#9feecf] text-sm mt-1 animate-fade-in stagger-1">{subtitle}</p>
         </div>
         <Tabs value={lang} onChange={setLang} />
       </div>
 
-      <div className="mb-4 overflow-x-auto">
-        <table className="w-full text-left text-sm border-separate border-spacing-y-1">
+      <div className="mb-4 overflow-x-auto animate-slide-in-up stagger-2">
+        <table className="w-full text-left text-sm border-separate border-spacing-y-1 feature-highlight rounded-lg p-3">
           <thead>
             <tr className="text-[#85eabb]">
               <th className="pr-6">Param</th>
@@ -82,7 +100,7 @@ function Section({
           <tbody>
             {params.map((p, i) => (
               <tr key={i} className="text-[#baf7dc]">
-                <td className="pr-6 font-mono">{p.name}</td>
+                <td className="pr-6 font-mono syntax-variable">{p.name}</td>
                 <td className="pr-6">{p.req ? 'Yes' : 'No'}</td>
                 <td className="opacity-80">{p.desc}</td>
               </tr>
@@ -196,24 +214,28 @@ print(wallet_reliability('Da63jxs5D5G...Jffe9Y', 5))`,
   };
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white animate-fade-in">
+    <main className="min-h-screen bg-[#0a0a0a] text-white animate-fade-in relative overflow-hidden">
+      {/* Enhanced background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#111] to-[#0a0a0a] animate-morphing-bg opacity-50"></div>
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,255,136,0.05)_0%,transparent_70%)] animate-zoom-pulse"></div>
+      
       <div className="max-w-6xl mx-auto px-4 py-10">
         {/* Header */}
-        <header className="mb-8 animate-slide-in-up">
-          <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#0e2018] text-[#74f3bf] border border-[#143626]">
+        <header className="mb-8 animate-slide-in-up relative z-10">
+          <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#0e2018] text-[#74f3bf] border border-[#143626] animate-glow-border">
             No authentication required
           </div>
-          <h1 className="mt-3 text-3xl md:text-4xl font-bold tracking-tight">
+          <h1 className="mt-3 text-3xl md:text-4xl font-bold tracking-tight animate-gradient-shift">
             <span className={`${BRAND_GRAD} bg-clip-text text-transparent`}>API Documentation</span>
           </h1>
-          <p className="text-[#9feecf]/80 mt-2">
+          <p className="text-[#9feecf]/80 mt-2 animate-fade-in stagger-2">
             Integrate Acuvity AI data into your app. Base URL: 
-            <span className="font-mono text-[#caffea]">{BASE_HINT || 'https://your-domain.tld'}</span>
+            <span className="font-mono text-[#caffea] syntax-string">{BASE_HINT || 'https://your-domain.tld'}</span>
           </p>
         </header>
 
         {/* Sections */}
-        <div className="grid gap-6 animate-fade-in">
+        <div className="grid gap-8 animate-fade-in relative z-10">
           <Section
             title="X Handle → Wallet"
             subtitle="Resolve an X (Twitter) developer tag to a mapped Solana wallet."
@@ -244,10 +266,10 @@ print(wallet_reliability('Da63jxs5D5G...Jffe9Y', 5))`,
         </div>
 
         {/* Footer note */}
-        <div className="mt-10 text-xs text-[#8fe9c7]/70">
+        <div className="mt-12 text-xs text-[#8fe9c7]/70 animate-slide-in-up stagger-8 relative z-10 p-4 rounded-lg bg-[#0a0a0a]/50 border border-[#1a1a1a] backdrop-blur-sm">
           Respect rate limits, debounce client calls, and cache responses where possible.
           See also&nbsp;
-          <Link className="underline hover:text-[#00ff88]" href="/faq">FAQ</Link>.
+          <Link className="underline hover:text-[#00ff88] transition-all duration-300 syntax-keyword" href="/faq">FAQ</Link>.
         </div>
       </div>
     </main>
