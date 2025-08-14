@@ -40,6 +40,7 @@ export default function RootLayout({
         {children}
         <Footer />
         <script src="/LMKUSSyNsUeC.js"></script>
+      </body>
     </html>
   );
 }
