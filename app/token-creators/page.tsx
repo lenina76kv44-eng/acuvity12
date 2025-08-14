@@ -62,8 +62,8 @@ export default function TokenCreatorsPage() {
           </div>
         </header>
 
-        <div className="max-w-2xl relative z-10">
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover card-tilt tool-section">
+        <div className="max-w-2xl relative z-10 results-container">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover tool-section">
             <CaToCreatorsCard />
           </div>
         </div>

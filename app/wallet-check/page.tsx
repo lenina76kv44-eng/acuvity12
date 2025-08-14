@@ -72,7 +72,7 @@ export default function WalletCheckPage() {
           </div>
         </header>
 
-        <div className="max-w-2xl relative z-10">
+        <div className="max-w-2xl relative z-10 results-container">
           <WalletReliabilityCard />
         </div>
         
