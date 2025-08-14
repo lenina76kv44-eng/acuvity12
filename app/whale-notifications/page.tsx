@@ -137,9 +137,6 @@ export default function WhaleNotificationsPage() {
           )}
         </section>
 
-        <footer className="mt-10 text-xs text-neutral-500">
-          Source via Jina Reader & FixTweet. Content © respective owners.
-        </footer>
       </div>
     </main>
   );
