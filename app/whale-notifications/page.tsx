@@ -43,7 +43,7 @@ export default function WhaleNotificationsPage() {
       <div className="max-w-5xl mx-auto px-4">
         <header className="mb-6">
           <h1 className="text-3xl font-bold">Whale Notifications</h1>
-          <p className="text-neutral-400">Live feed from @{process.env.NEXT_PUBLIC_WHALE_USER || "BagsWhaleBot"} — last 25 posts. Clean text, no trailing links.</p>
+          <p className="text-neutral-400">Latest posts from @BagsWhaleBot — parsed directly via FixTweet API</p>
         </header>
 
         <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5">
