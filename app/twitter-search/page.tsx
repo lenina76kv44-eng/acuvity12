@@ -62,7 +62,7 @@ export default function TwitterSearchPage() {
           </div>
         </header>
 
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover tool-section animate-slide-in-up">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
           <XToWalletCard />
           <WalletToXCard />
         </div>
@@ -242,25 +242,11 @@ function XToWalletCard() {
         )}
 
         {wallet && (
-          <div className="mt-4 space-y-4 animate-slide-in-up results-container">
+          <div className="mt-4 space-y-4 animate-slide-in-up">
             <div className="success-state rounded-xl p-4">
               <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold animate-fade-in">Mapped Wallet</div>
-              <div className="mt-1 flex items-center gap-3 bg-black/50 border border-neutral-800 rounded-xl p-3 hover-glow">
-                <div className="font-mono break-all text-green-100 wallet-display flex-1">
-                  {wallet}
-                </div>
-                <a
-                  href={`https://solscan.io/account/${wallet}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-2 bg-[#00ff88] hover:bg-[#00cc6a] text-black text-xs font-semibold rounded-lg transition-all duration-300 hover:scale-105 flex items-center gap-1 whitespace-nowrap"
-                  title="View on Solscan"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7Z"/>
-                  </svg>
-                  Solscan
-                </a>
+              <div className="mt-1 font-mono break-all bg-black/50 border border-neutral-800 rounded-xl p-3 hover-glow">
+                {wallet}
               </div>
             </div>
 
@@ -428,7 +414,7 @@ function WalletToXCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover tool-section animate-slide-in-up stagger-2">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover card-tilt tool-section animate-slide-in-up stagger-2">
       <div className="mb-6">
         <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold animate-fade-in">Wallet → X</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight animate-typewriter">Wallet → X tags</h2>

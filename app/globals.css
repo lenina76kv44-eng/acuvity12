@@ -540,30 +540,11 @@
 /* Enhanced card variants */
 .card-tilt {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
 }
 
 .card-tilt:hover {
-  /* Removed rotation effect while keeping hover capability */
-}
-
-/* Disable tilt for result containers to allow text selection */
-.results-container {
-  user-select: text;
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-}
-
-.results-container .card-tilt:hover {
-  transform: none;
-}
-
-/* Allow text selection in wallet displays */
-.wallet-display {
-  user-select: all;
-  -webkit-user-select: all;
-  -moz-user-select: all;
-  -ms-user-select: all;
+  transform: perspective(1000px) rotateX(5deg) rotateY(-5deg);
 }
 
 .card-glow {
@@ -716,6 +697,7 @@
   box-shadow: 0 0 25px rgba(0, 255, 136, 0.4), 0 0 40px rgba(0, 255, 136, 0.2);
   border-color: rgba(0, 255, 136, 0.6);
   transform: translateZ(10px);
+}
 }
 
 @layer base {
