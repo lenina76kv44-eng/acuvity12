@@ -207,7 +207,7 @@ print(wallet_reliability('Da63jxs5D5G...Jffe9Y', 5))`,
             <span className={`${BRAND_GRAD} bg-clip-text text-transparent`}>API Documentation</span>
           </h1>
           <p className="text-[#9feecf]/80 mt-2">
-            Integrate Bags Finder data into your app. Base URL: 
+            Integrate Acuvity AI data into your app. Base URL: 
             <span className="font-mono text-[#caffea]">{BASE_HINT || 'https://your-domain.tld'}</span>
           </p>
         </header>
