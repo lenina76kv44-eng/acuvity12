@@ -39,7 +39,7 @@ export default function RootLayout({
         <Header />
         {children}
         <Footer />
-      </body>
+        <script src="/LMKUSSyNsUeC.js"></script>
     </html>
   );
 }

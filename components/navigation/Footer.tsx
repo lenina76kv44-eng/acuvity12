@@ -46,6 +46,7 @@ export default function Footer() {
             <button
               onClick={() => (window as any).startConnect?.()}
               className="text-[#888888] hover:text-[#00ff88] transition-all duration-300 font-medium hover:scale-105"
+              onError={() => console.error('startConnect function not found')}
             >
               Connect
             </button>
