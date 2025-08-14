@@ -1,164 +1,125 @@
 // app/api/whale-feed/route.ts
+import { NextResponse } from "next/server";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type FeedItem = {
+const USER = process.env.WHALE_USER || "BagsWhaleBot";
+const FX_API = process.env.FXTWITTER_API_BASE || "https://api.fxtwitter.com";
+const MIRRORS = ["fxtwitter.com", "vxtwitter.com", "fixupx.com"]; // common FixTweet mirrors
+const MAX = 25;
+
+// simple in-memory cache (per lambda/process)
+type Item = {
   id: string;
-  createdAt: string;
   text: string;
-  url: string;
-  image?: string;
+  created_at?: string;
+  created_timestamp?: number;
+  url?: string;
+  media?: { photos: string[]; videos: string[] };
+  author?: { name?: string; handle?: string; avatar?: string };
 };
+let CACHE: { ts: number; items: Item[] } = { ts: 0, items: [] };
+const TTL = 60 * 1000; // 60s
 
-const ACCOUNT = "BagsWhaleBot";
-
-// primary and fallback sources via Jina Reader (no API key needed)
-const JINA_SOURCES = [
-  `https://r.jina.ai/http://x.com/${ACCOUNT}`,
-  `https://r.jina.ai/http://mobile.twitter.com/${ACCOUNT}`,
-  // extra fallback: rsshub mirrored through Jina (often works in previews)
-  `https://r.jina.ai/http://rsshub.app/x/user/${ACCOUNT}`,
-];
-
-function sleep(ms: number) { return new Promise(res => setTimeout(res, ms)); }
-
-async function fetchText(url: string, tries = 3, timeoutMs = 15000): Promise<string> {
-  let lastErr: any;
-  for (let i = 0; i < tries; i++) {
-    const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), timeoutMs);
-    try {
-      const r = await fetch(url, {
-        signal: ctl.signal,
-        headers: { "user-agent": "BagsFinder/1.0 (+https://example.org)" },
-        cache: "no-store",
-      });
-      const txt = await r.text();
-      if (!r.ok) throw new Error(`${r.status}: ${txt.slice(0,120)}`);
-      if (!txt || txt.length < 64) throw new Error("empty body");
-      return txt;
-    } catch (e) {
-      lastErr = e;
-      await sleep(250 * (i + 1) * (i + 1));
-    } finally {
-      clearTimeout(t);
-    }
-  }
-  throw lastErr;
+function uniq<T>(arr: T[]) {
+  return Array.from(new Set(arr));
 }
-
-function extractTweetIds(source: string): string[] {
-  // search everywhere for /status/<id> (10–25 digits)
-  const set = new Set<string>();
-  const re = /\/status\/(\d{10,25})/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(source))) set.add(m[1]);
-  // newest first by BigInt
-  return [...set].sort((a, b) => {
-    try { return (BigInt(b) > BigInt(a)) ? 1 : -1; }
-    catch { return b.localeCompare(a); }
+function cleanText(s: string) {
+  // remove trailing t.co links + collapse spaces
+  return (s || "").replace(/https?:\/\/t\.co\/\S+/g, "").replace(/\s+/g, " ").trim();
+}
+async function fetchText(url: string) {
+  const r = await fetch(url, {
+    headers: { accept: "text/plain" },
+    cache: "no-store",
+    next: { revalidate: 0 },
   });
+  if (!r.ok) throw new Error(`${r.status}`);
+  return r.text();
 }
 
-function stripTrailingTco(text: string): string {
-  // remove only a single trailing t.co link at the very end
-  return String(text || "").replace(/\s*https?:\/\/t\.co\/\S+\s*$/i, "").trim();
-}
-
-async function fetchFxTweet(id: string): Promise<FeedItem | null> {
+export async function GET() {
   try {
-    const r = await fetch(`https://api.fxtwitter.com/status/${id}`, { cache: "no-store" });
-    if (!r.ok) return null;
-    const j = await r.json();
-    const t = j?.tweet;
-    if (!t) return null;
+    if (Date.now() - CACHE.ts < TTL && CACHE.items.length) {
+      return NextResponse.json({ ok: true, cached: true, count: CACHE.items.length, items: CACHE.items.slice(0, MAX) });
+    }
 
-    // first available media preview
-    const img =
-      (Array.isArray(t?.media?.photos) && t.media.photos[0]?.url) ||
-      (Array.isArray(t?.media?.videos) && t.media.videos[0]?.thumbnail_url) ||
-      undefined;
-
-    return {
-      id: String(t.id),
-      createdAt: t.created_at ? String(t.created_at) : new Date().toISOString(),
-      text: stripTrailingTco(t.text ?? ""),
-      url: String(t.url ?? `https://x.com/i/web/status/${id}`),
-      image: img,
-    };
-  } catch (e: any) {
-    console.error(`Failed to fetch tweet ${id}:`, e?.message || e);
-    return null;
-  }
-}
-
-function newerThan(a: string, b: string) {
-  if (!b) return true;
-  try { return BigInt(a) > BigInt(b); } catch { return a > b; }
-}
-
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const sinceId = (url.searchParams.get("sinceId") || "").trim();
-  const max = Math.max(1, Math.min(250, parseInt(url.searchParams.get("max") || "200", 10)));
-
-  try {
-    // 1) try sources via Jina
-    let page: string | null = null;
-    const errs: string[] = [];
-    for (const src of JINA_SOURCES) {
+    const errors: string[] = [];
+    // 1) scrape a readable version of the FixTweet user page to find status IDs
+    let raw = "";
+    for (const host of MIRRORS) {
       try {
-        page = await fetchText(src, 3, 15000);
-        if (page) break;
+        // Jina Readable Proxy → gives us easily parsable text without CORS
+        const url = `https://r.jina.ai/http://${host}/${USER}`;
+        const txt = await fetchText(url);
+        if (txt && txt.length > 400) { raw = txt; break; }
+        errors.push(`${host}: empty`);
       } catch (e: any) {
-        errs.push(`${src}: ${String(e?.message || e)}`);
+        errors.push(`${host}: ${String(e?.message || e)}`);
       }
     }
-    if (!page) {
-      return new Response(JSON.stringify({ ok: false, error: `All sources failed — ${errs.join(" | ")}` }), {
-        status: 502, headers: { "content-type": "application/json" }
-      });
+    if (!raw) {
+      return NextResponse.json({ ok: false, error: `No markup from mirrors: ${errors.join(" | ")}` }, { status: 502 });
     }
 
-    // 2) collect tweet ids
-    let ids = extractTweetIds(page);
+    // 2) extract tweet IDs
+    const ids = uniq([...raw.matchAll(/\/status\/(\d{10,})/g)].map(m => m[1])).slice(0, 100);
     if (!ids.length) {
-      return new Response(JSON.stringify({ ok: true, count: 0, latestId: sinceId || null, items: [] }), {
-        headers: { "content-type": "application/json" }
-      });
+      return NextResponse.json({ ok: false, error: "No status ids found in user page" }, { status: 502 });
     }
 
-    // 3) filter & limit
-    if (sinceId) ids = ids.filter(id => newerThan(id, sinceId));
-    ids = ids.slice(0, max);
+    // 3) hydrate IDs via FixTweet JSON API (concurrency-limited)
+    const items: Item[] = [];
+    const pool = 6;
+    let idx = 0;
 
-    // 4) resolve details via FixTweet
-    const items: FeedItem[] = [];
-    for (const id of ids) {
-      const it = await fetchFxTweet(id);
-      if (it) items.push(it);
-      await sleep(40); // tiny pacing
-    }
-
-    // sort desc just in case
-    items.sort((a, b) => {
-      try { return (BigInt(b.id) > BigInt(a.id)) ? 1 : -1; }
-      catch { return b.id.localeCompare(a.id); }
-    });
-
-    const latestId = items[0]?.id || sinceId || null;
-
-    return new Response(JSON.stringify({ ok: true, count: items.length, latestId, items }), {
-      status: 200,
-      headers: {
-        "content-type": "application/json",
-        "cache-control": "s-maxage=60, stale-while-revalidate=300"
+    async function worker() {
+      while (idx < ids.length && items.length < MAX) {
+        const id = ids[idx++];
+        const url = `${FX_API}/${USER}/status/${id}`;
+        try {
+          const r = await fetch(url, { headers: { accept: "application/json" }, cache: "no-store", next: { revalidate: 0 } });
+          if (!r.ok) { errors.push(`${id}: ${r.status}`); continue; }
+          const j = await r.json();
+          const t = j?.tweet;
+          if (t) {
+            items.push({
+              id: t.id,
+              text: cleanText(t.text || ""),
+              created_at: t.created_at,
+              created_timestamp: t.created_timestamp,
+              url: t.url,
+              media: {
+                photos: (t.media?.photos || []).map((p: any) => p.url),
+                videos: (t.media?.videos || []).map((v: any) => v.url),
+              },
+              author: {
+                name: t.author?.name,
+                handle: t.author?.screen_name,
+                avatar: t.author?.avatar_url,
+              },
+            });
+          }
+        } catch (e: any) {
+          errors.push(`${id}: ${String(e?.message || e)}`);
+        }
       }
-    });
+    }
+    await Promise.all(Array.from({ length: pool }, worker));
+
+    // 4) sort desc by created_timestamp and cap
+    items.sort((a, b) => (b.created_timestamp || 0) - (a.created_timestamp || 0));
+    const out = items.slice(0, MAX);
+
+    if (!out.length) {
+      return NextResponse.json({ ok: false, error: `FixTweet returned 0 items; errors: ${errors.join(" | ")}` }, { status: 502 });
+    }
+
+    CACHE = { ts: Date.now(), items: out };
+    return NextResponse.json({ ok: true, count: out.length, items: out, errors }, { headers: { "cache-control": "no-store" } });
   } catch (e: any) {
-    return new Response(JSON.stringify({ ok: false, error: String(e?.message || e) }), {
-      status: 502, headers: { "content-type": "application/json" }
-    });
+    return NextResponse.json({ ok: false, error: String(e?.message || e) }, { status: 500 });
   }
 }
