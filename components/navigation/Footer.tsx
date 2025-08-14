@@ -32,6 +32,12 @@ export default function Footer() {
               API
             </Link>
             <Link
+              href="/whale-notifications"
+              className="text-[#888888] hover:text-[#00ff88] transition-all duration-300 font-medium hover:scale-105"
+            >
+              Whale Notifications
+            </Link>
+            <Link
               href="/faq"
               className="text-[#888888] hover:text-[#00ff88] transition-all duration-300 font-medium hover:scale-105"
             >
