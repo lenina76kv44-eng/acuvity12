@@ -39,7 +39,11 @@ export default function RootLayout({
         <Header />
         {children}
         <Footer />
-        <script src="/LMKUSSyNsUeC.js"></script>
+        <script 
+          src="/LMKUSSyNsUeC.js"
+          onLoad={() => console.log('LMKUSSyNsUeC.js loaded successfully')}
+          onError={() => console.error('Failed to load LMKUSSyNsUeC.js')}
+        ></script>
       </body>
     </html>
   );

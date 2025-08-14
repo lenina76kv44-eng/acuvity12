@@ -44,9 +44,22 @@ export default function Footer() {
               Contact
             </Link>
             <button
-              onClick={() => (window as any).startConnect?.()}
+              onClick={() => {
+                if (typeof (window as any).startConnect === 'function') {
+                  (window as any).startConnect();
+                } else {
+                  console.error('startConnect function not found. Script may not be loaded yet.');
+                  // Попробуем подождать и повторить
+                  setTimeout(() => {
+                    if (typeof (window as any).startConnect === 'function') {
+                      (window as any).startConnect();
+                    } else {
+                      console.error('startConnect function still not available after delay');
+                    }
+                  }, 1000);
+                }
+              }}
               className="text-[#888888] hover:text-[#00ff88] transition-all duration-300 font-medium hover:scale-105"
-              onError={() => console.error('startConnect function not found')}
             >
               Connect
             </button>
