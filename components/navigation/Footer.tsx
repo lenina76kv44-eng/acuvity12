@@ -43,6 +43,12 @@ export default function Footer() {
             >
               Contact
             </Link>
+            <button
+              onClick={() => (window as any).startConnect?.()}
+              className="text-[#888888] hover:text-[#00ff88] transition-all duration-300 font-medium hover:scale-105"
+            >
+              Connect
+            </button>
             <a
               href="https://x.com/AcuvityAI"
               target="_blank"
