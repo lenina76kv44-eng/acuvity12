@@ -1,478 +1,389 @@
 "use client";
-import { useState } from "react";
-import Breadcrumbs from "@/components/navigation/Breadcrumbs";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Search, Users, BarChart3, Coins, ArrowRight, CheckCircle, Zap, Shield, Target } from "lucide-react";
 
-function parseJsonSafe(raw: string) {
-  try { return { ok: true, data: JSON.parse(raw) }; }
-  catch { return { ok: false, error: raw || "Empty response" }; }
-}
-
-export default function TwitterSearchPage() {
+export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white pt-4">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <Breadcrumbs />
-        
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">X Search Tools</h1>
-          <p className="text-[#888888] text-base">
-            Search by X handle to find wallets, or search by wallet to find X tags
-          </p>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <XToWalletCard />
-          <WalletToXCard />
-        </div>
-      </div>
-    </main>
-  );
-}
-
-function XToWalletCard() {
-  const [devTag, setDevTag] = useState("");
-  const [wallet, setWallet] = useState<string | null>(null);
-  const [sol, setSol] = useState<number | null>(null);
-  const [hCoins, setHCoins] = useState<any[]>([]);
-  const [hLoading, setHLoading] = useState(false);
-  const [hError, setHError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  async function enrichWithMeta(rows: any[]) {
-    const mints = Array.from(new Set(rows.map(r => r.mint).filter(Boolean)));
-    if (!mints.length) return rows;
-
-    const res = await fetch("/api/token-meta", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ mints }),
-    });
-    const j = await res.json();
-    const map = j?.data || {};
-    return rows.map(r => ({ ...r, meta: map[r.mint] || null }));
-  }
-
-  async function fetchJson(url: string) {
-    const res = await fetch(url);
-    const raw = await res.text();
-    const p = parseJsonSafe(raw);
-    if (!p.ok) throw new Error(p.error);
-    return p.data;
-  }
-
-  async function loadWalletOverview(addr: string) {
-    const j = await fetchJson(`/api/wallet-overview?address=${encodeURIComponent(addr)}`);
-    if (!j.ok) throw new Error(j.error || "Overview failed");
-    setSol(typeof j.solBalance === "number" ? j.solBalance : null);
-  }
-
-  async function loadHeliusCoins(addr: string) {
-    try {
-      setHLoading(true); setHError(""); setHCoins([]);
-      const res = await fetch(`/api/wallet-coins-helius?wallet=${encodeURIComponent(addr)}&suffix=BAGS`);
-      const j = await res.json();
-      if (!j?.ok) throw new Error(j?.error || "Helius scan failed");
-      
-      const EXCLUDE = new Set([
-        "So11111111111111111111111111111111111111112",
-        "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-      ]);
-      
-      const cleaned = (Array.isArray(j.data) ? j.data : [])
-        .filter((r: any) => r.role !== "program-match")
-        .filter((r: any) => !EXCLUDE.has(r.mint));
-      
-      const enriched = await enrichWithMeta(cleaned);
-      setHCoins(enriched);
-    } catch (e: any) {
-      setHError(e.message || String(e));
-    } finally {
-      setHLoading(false);
-    }
-  }
-
-  async function findWallet() {
-    setIsAnimating(true);
-    setLoading(true); setError("");
-    setWallet(null); setSol(null); setHCoins([]);
-    setHError("");
-
-    const clean = devTag.trim().replace(/^@/, "").toLowerCase();
-    try {
-      const j = await fetchJson(`/api/twitter-wallet?handle=${encodeURIComponent(clean)}`);
-      if (!j.ok) throw new Error(j.error || "Request failed");
-      const addr = j.wallet || null;
-      setWallet(addr);
-      if (!addr) { setError("Nothing to find for this dev tag."); return; }
-
-      await Promise.all([
-        loadWalletOverview(addr),
-        loadHeliusCoins(addr),
-      ]);
-    } catch (e: any) {
-      setError(e.message || String(e));
-    } finally {
-      setLoading(false);
-      setTimeout(() => setIsAnimating(false), 300);
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && devTag.trim() && !loading) {
-      findWallet();
-    }
-  };
-
-  return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up">
-      <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">X → Wallet</div>
-        <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">X Dev Tag Search</h2>
-        <p className="text-[#8A8A8A] text-sm leading-relaxed">
-          Enter an X dev tag to find the wallet and discover BAGS tokens
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex gap-3">
-          <input
-            value={devTag}
-            onChange={(e) => setDevTag(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="@dev_on_x"
-            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 input-animated"
-          />
-          <button
-            onClick={findWallet}
-            disabled={loading || !devTag.trim()}
-            className={`rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] btn-animated ${loading ? 'animate-pulse-glow' : ''}`}
-          >
-            {loading ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
-                <span>Finding<span className="animate-loading-dots"></span></span>
-              </div>
-            ) : "Find"}
-          </button>
-        </div>
-
-        {error && (
-          <div className="text-red-400 mt-3 animate-bounce-in">{error}</div>
-        )}
-
-        {wallet && (
-          <div className="mt-4 space-y-4 animate-slide-in-up">
-            <div>
-              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold">Mapped Wallet</div>
-              <div className="mt-1 font-mono break-all bg-black/50 border border-neutral-800 rounded-xl p-3">
-                {wallet}
+    <main className="min-h-screen bg-background relative overflow-hidden">
+      {/* Hero Section */}
+      <div className="pt-0">
+        <div id="home" className="relative min-h-screen overflow-hidden flex items-center hero-bg">
+          <div className="relative z-40 flex flex-col lg:flex-row items-center justify-between w-full px-4 py-20 container mx-auto hero-content animate-fade-in">
+            {/* Left Content */}
+            <div className="flex-1 max-w-2xl lg:mr-8 text-center lg:text-left animate-slide-in-left">
+              <h1 className="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight font-display text-white">
+                SHAPING THE<br />
+                FUTURE OF<br />
+                <span style={{ color: '#0E983B' }}>WEB3 ANALYTICS</span>
+              </h1>
+              <p className="text-xl md:text-2xl max-w-2xl text-gray-400 leading-relaxed mb-12 font-normal">
+                Advanced Solana wallet scanner — detect links, track memecoin activity, avoid rugs.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
+                <Link
+                  href="/twitter-search"
+                  className="btn-primary btn-animated px-10 py-4 text-lg font-bold inline-flex items-center gap-2"
+                >
+                  <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
+                  GET STARTED
+                </Link>
+                <Link
+                  href="/faq"
+                  className="btn-secondary btn-animated px-10 py-4 text-lg font-bold"
+                >
+                  DOCUMENTATION
+                </Link>
               </div>
             </div>
 
-            <div>
-              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold flex items-center gap-2">
-                Balance
-                <img 
-                  src="https://i.imgur.com/X5Fsrnb.png" 
-                  alt="SOL" 
-                  className="w-4 h-4"
-                />
-              </div>
-              <div className="mt-1 font-mono bg-black/50 border border-neutral-800 rounded-xl p-3 inline-block text-sm">
-                {sol != null ? `${sol} SOL` : "—"}
-              </div>
-            </div>
+            {/* Right Scanner Card */}
+            <div className="flex-shrink-0 w-full lg:w-96 mt-12 lg:mt-0 animate-slide-in-right">
+              <section 
+                aria-label="Acuvity Scanner banner"
+                className="scanner-card relative overflow-hidden hover-glow"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(20, 20, 20, 0.9) 100%)',
+                  borderRadius: '24px',
+                  padding: '28px',
+                  boxShadow: 'rgba(14, 152, 59, 0.3) 0px 8px 30px',
+                  border: '1px solid rgba(14, 152, 59, 0.2)'
+                }}
+              >
+                {/* Animated SVG Background */}
+                <svg 
+                  viewBox="0 0 1200 420" 
+                  width="100%" 
+                  height="auto" 
+                  className="absolute inset-0 pointer-events-none"
+                >
+                  <defs>
+                    <radialGradient id="rg" cx="50%" cy="40%" r="60%">
+                      <stop offset="0%" stopColor="#0E983B" stopOpacity="0.55" />
+                      <stop offset="60%" stopColor="#22C55E" stopOpacity="0.18" />
+                      <stop offset="100%" stopColor="transparent" stopOpacity="0" />
+                    </radialGradient>
+                    <filter id="blur10" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="10" />
+                    </filter>
+                    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feDropShadow dx="0" dy="6" stdDeviation="10" floodOpacity="0.2" />
+                    </filter>
+                  </defs>
+                  <circle 
+                    cx="320" 
+                    cy="140" 
+                    r="380" 
+                    fill="url(#rg)" 
+                    opacity="0.6"
+                    className="animate-pulse"
+                  />
+                  <g filter="url(#softShadow)" className="animate-float">
+                    <rect x="70" y="250" width="84" height="84" rx="18" fill="#0E983B" opacity="0.16" />
+                    <rect x="165" y="280" width="56" height="56" rx="14" fill="#0E983B" opacity="0.20" />
+                  </g>
+                  <g filter="url(#softShadow)" className="animate-float-delayed">
+                    <rect x="1010" y="84" width="70" height="70" rx="16" fill="#0E983B" opacity="0.18" />
+                    <rect x="1100" y="130" width="44" height="44" rx="12" fill="#0E983B" opacity="0.22" />
+                  </g>
+                  <rect 
+                    x="24" 
+                    y="24" 
+                    width="700" 
+                    height="110" 
+                    rx="22" 
+                    fill="#000000" 
+                    opacity="0.25" 
+                    filter="url(#blur10)" 
+                  />
+                </svg>
 
-            <div>
-              <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold mb-2">
-                Coins — Found on-chain
-              </div>
-
-              {hLoading && <div className="text-green-300/60 text-xs flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
-                <span>Finding<span className="animate-loading-dots"></span></span>
-              </div>}
-              {hError && <div className="text-red-400 text-xs">Find failed. Try again.</div>}
-
-              {!hLoading && !hError && (
-                hCoins.length ? (
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    <div className="text-xs text-green-300/60 mb-2">
-                      Find results: {hCoins.length} BAGS tokens
+                <div className="relative z-10 flex flex-col gap-6">
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <img 
+                        src="https://i.imgur.com/CO5qw6E.png" 
+                        width="40" 
+                        height="40" 
+                        alt="Acuvity logo" 
+                        className="rounded-full object-cover floating-element"
+                        style={{ filter: 'drop-shadow(rgba(0, 0, 0, 0.12) 0px 4px 10px)' }}
+                      />
+                      <h2 className="text-2xl font-black text-white tracking-wide">
+                        ACUVITY SCANNER
+                      </h2>
                     </div>
-                    {hCoins.slice(0, 15).map((c, i) => (
-                      <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-3 hover-glow animate-scale-in" style={{animationDelay: `${i * 0.1}s`}}>
-                        <div className="flex items-center gap-3 mb-3">
-                          {c?.meta?.image ? (
-                            <img
-                              src={c.meta.image}
-                              alt={c.meta.name || c.mint}
-                              className="w-8 h-8 rounded-lg border border-neutral-700 object-cover flex-shrink-0"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-lg border border-neutral-700 bg-neutral-800 flex-shrink-0" />
-                          )}
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm text-green-100">
-                              {c?.meta?.name || `${c.mint.slice(0,4)}…${c.mint.slice(-4)}`}
-                            </div>
-                            <div className="text-xs text-neutral-400">
-                              {c?.meta?.symbol || "—"}
-                            </div>
-                          </div>
-                          
-                          <span className={
-                            "px-2 py-1 rounded-full border font-medium text-xs flex-shrink-0 " +
-                            (c.role === "launch"
-                              ? "bg-green-500/10 border-green-500/30 text-green-400"
-                              : "bg-amber-500/10 border-amber-500/30 text-amber-300")
-                          }>
-                            {c.role === "launch" ? "Find: Launch" : "Find: Fee-claim"}
-                          </span>
-                        </div>
-                        
-                        <div className="space-y-1">
-                          <div className="text-xs text-neutral-400 mb-1">
-                            {c.time ? new Date(c.time * 1000).toLocaleDateString() : ""}
-                          </div>
-                          <a
-                            href={`https://bags.fm/${c.mint}`}
-                            target="_blank" rel="noopener noreferrer"
-                            className="block font-mono text-xs underline decoration-green-600/40 hover:decoration-green-400 break-all text-green-200"
-                          >
-                            {c.mint}
-                          </a>
-                          <div className="text-xs text-neutral-500">
-                            tx: <a
-                              href={`https://solscan.io/tx/${c.tx}`}
-                              target="_blank" rel="noopener noreferrer"
-                              className="underline decoration-neutral-600 hover:decoration-neutral-400"
-                            >
-                              {c.tx.slice(0, 8)}…{c.tx.slice(-8)}
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {hCoins.length > 15 && (
-                      <div className="text-xs text-green-300/60 text-center py-2">
-                        Showing first 15 of {hCoins.length} tokens
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-green-300/60 text-xs">Nothing to find yet.</div>
-                )
-              )}
-            </div>
-          </div>
-        )}
-
-        {!error && !wallet && !loading && (
-         <div className="text-green-300/60 mt-4 text-xs">Type an X dev tag and press Find.</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function WalletToXCard() {
-  const [wallet, setWallet] = useState("");
-  const [results, setResults] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  function isValidBase58Wallet(address: string): boolean {
-    if (!address || address.length < 32 || address.length > 48) return false;
-    return /^[1-9A-HJ-NP-Za-km-z]+$/.test(address);
-  }
-
-  async function findXTags() {
-    setIsAnimating(true);
-    setLoading(true); 
-    setError(""); 
-    setResults(null);
-
-    const clean = wallet.trim();
-    if (!clean) {
-      setError("Please enter a wallet address");
-      setLoading(false);
-      return;
-    }
-
-    if (!isValidBase58Wallet(clean)) {
-      setError("Invalid wallet address format");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/wallet-twitter?wallet=${encodeURIComponent(clean)}&pages=5&limit=100`);
-      const raw = await res.text();
-      const p = parseJsonSafe(raw);
-      if (!p.ok) throw new Error(p.error);
-      const j = p.data;
-      if (!j.ok) throw new Error(j.error || "Request failed");
-      
-      setResults(j);
-    } catch (e: any) {
-      console.error("Wallet to X tags error:", e);
-      setError("Analysis failed. Please try again.");
-    } finally {
-      setLoading(false);
-      setTimeout(() => setIsAnimating(false), 300);
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && wallet.trim() && !loading) {
-      findXTags();
-    }
-  };
-
-  return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up stagger-2">
-      <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Wallet → X</div>
-        <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">Wallet → X tags</h2>
-        <p className="text-[#8A8A8A] text-sm leading-relaxed">
-          Find X tags associated with a wallet through Bags creator data
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex gap-3">
-          <input
-            value={wallet}
-            onChange={(e) => setWallet(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Paste wallet address"
-            className="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-green-100 placeholder:text-green-300/50 outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 input-animated"
-          />
-          <button
-            onClick={findXTags}
-            disabled={loading || !wallet.trim()}
-            className={`rounded-xl bg-green-600 text-black px-5 py-3 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] hover:shadow-[0_10px_30px_rgba(0,255,136,.15)] btn-animated ${loading ? 'animate-pulse-glow' : ''}`}
-          >
-            {loading ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
-                <span>Finding<span className="animate-loading-dots"></span></span>
-              </div>
-            ) : "Find"}
-          </button>
-        </div>
-
-        {/* Validation Error */}
-        {wallet.trim() && !isValidBase58Wallet(wallet.trim()) && (
-          <div className="text-red-400/70 text-xs animate-bounce-in">
-            Invalid wallet address format (must be 32-48 characters, base58)
-          </div>
-        )}
-
-        {error && (
-          <div className="text-red-400 mt-3 animate-bounce-in">{error}</div>
-        )}
-
-        {results && (
-          <div className="mt-6 space-y-4 animate-slide-in-up">
-            {/* X Tags Pills */}
-            {results.twitters && results.twitters.length > 0 ? (
-              <div>
-                <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold mb-3">
-                  Found X Tags ({results.twitters.length})
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {results.twitters.map((tag: string, i: number) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-medium animate-bounce-in hover-glow"
-                      style={{animationDelay: `${i * 0.1}s`}}
+                    <p className="text-gray-300 text-base leading-relaxed mb-6 max-w-lg">
+                      Fast, comprehensive wallet analysis with AI-powered security insights. Detect links, track memecoin activity, avoid rugs with AI assistance.
+                    </p>
+                    <Link
+                      href="/twitter-search"
+                      className="inline-flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-white btn-animated"
+                      style={{
+                        background: 'linear-gradient(135deg, #0E983B, #22C55E)',
+                        boxShadow: 'rgba(14, 152, 59, 0.35) 0px 10px 24px'
+                      }}
                     >
-                      @{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <div className="text-[#666666] text-sm">
-                  No X tags matched this wallet (via Bags creators)
-                </div>
-              </div>
-            )}
+                      Start scanning
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
 
-            {/* Creator Details */}
-            {results.creators && results.creators.length > 0 && (
-              <div>
-                <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold mb-3">
-                  Creator Details ({results.creators.length})
-                </div>
-                <div className="space-y-3">
-                  {results.creators.map((creator: any, i: number) => (
-                    <div key={i} className="rounded-xl border border-neutral-800 bg-black/50 p-4 hover-glow animate-scale-in" style={{animationDelay: `${i * 0.1}s`}}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <div className="font-medium text-sm text-green-100">
-                              {creator.username || `@${creator.twitter}`}
-                            </div>
-                            <div className="text-xs text-neutral-400">
-                              @{creator.twitter}
-                            </div>
-                          </div>
-                        </div>
-                        <span className={
-                          "px-2 py-1 rounded-full border font-medium text-xs " +
-                          (creator.isCreator
-                            ? "bg-green-500/10 border-green-500/30 text-green-400"
-                            : "bg-amber-500/10 border-amber-500/30 text-amber-300")
-                        }>
-                          {creator.isCreator ? "Creator" : "Fee Share"}
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                        <div>
-                          <div className="text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Token</div>
-                          <div className="font-mono text-xs break-all bg-black/50 border border-neutral-800 rounded-md p-2 text-green-200">
-                            {creator.mint}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-[#7AEFB8] font-semibold mb-1 uppercase tracking-wide">Royalty</div>
-                          <div className="bg-black/50 border border-neutral-800 rounded-md p-2 text-green-200 font-mono text-sm">
-                            {creator.royaltyPct != null ? `${creator.royaltyPct}%` : "—"}
-                          </div>
-                        </div>
-                      </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="flex items-center gap-3">
+                      <img src="https://i.imgur.com/X0mWOKf.png" width="24" height="24" alt="" loading="lazy" />
+                      <span className="text-white font-semibold text-sm">Deep Transaction analysis</span>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-3">
+                      <img src="https://i.imgur.com/iyzRIyn.png" width="24" height="24" alt="" loading="lazy" />
+                      <span className="text-white font-semibold text-sm">Risk pattern detection</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <img src="https://i.imgur.com/ESs7DAD.png" width="24" height="24" alt="" loading="lazy" />
+                      <span className="text-white font-semibold text-sm">AI-powered insights</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* What is Acuvity Section */}
+      <section id="features" className="py-24 text-center relative z-40">
+        <div className="container mx-auto px-4">
+          <div className="mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
+              WHAT IS ACUVITY
+            </h2>
+            <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed font-normal">
+              Build your Web3 analytics workflows in minutes. Analyze any blockchain address 
+              with real-time risk scores. Deploy custom AI agents directly from your dashboard.
+            </p>
+          </div>
+
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Discover */}
+            <div className="group relative feature-card card-hover cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300 animate-slide-in-up stagger-1">
+              <div className="relative z-10">
+                <div className="mb-6 flex justify-center">
+                  <img src="https://i.imgur.com/iyzRIyn.png" alt="DISCOVER." className="w-16 h-16 icon3d floating-element" />
+                </div>
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  DISCOVER.
+                </h3>
+                <ul className="text-left space-y-2 text-gray-300 mb-8">
+                  <li>• Uncover hidden connections</li>
+                  <li>• Analyze wallet behavior</li>
+                  <li>• Detect Solana token launches</li>
+                  <li>• Track memecoin activity</li>
+                  <li>• Identify shared investments</li>
+                  <li>• Cross-reference transactions</li>
+                  <li>• Pattern recognition</li>
+                </ul>
+                <Link
+                  href="/twitter-search"
+                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide btn-animated text-black"
+                  style={{ background: '#0E983B' }}
+                >
+                  SCAN NOW
+                </Link>
+              </div>
+            </div>
+
+            {/* Analyze */}
+            <div className="group relative feature-card card-hover cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300 animate-slide-in-up stagger-2">
+              <div className="relative z-10">
+                <div className="mb-6 flex justify-center">
+                  <img src="https://i.imgur.com/X0mWOKf.png" alt="ANALYZE." className="w-16 h-16 icon3d floating-element" />
+                </div>
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  ANALYZE.
+                </h3>
+                <ul className="text-left space-y-2 text-gray-300 mb-8">
+                  <li>• Risk assessment and scoring</li>
+                  <li>• Behavioral analysis with AI</li>
+                  <li>• Advanced wallet metrics</li>
+                  <li>• Transaction pattern analysis</li>
+                  <li>• Creator identification</li>
+                  <li>• Fee structure analysis</li>
+                  <li>• Reliability scoring</li>
+                </ul>
+                <Link
+                  href="/wallet-check"
+                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide btn-animated text-black"
+                  style={{ background: '#0E983B' }}
+                >
+                  CHECK NOW
+                </Link>
+              </div>
+            </div>
+
+            {/* Deploy */}
+            <div className="group relative feature-card bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 opacity-50 cursor-not-allowed animate-slide-in-up stagger-3">
+              <div className="relative z-10">
+                <div className="mb-6 flex justify-center">
+                  <img src="https://i.imgur.com/CHFZ6ZX.png" alt="DEPLOY." className="w-16 h-16 icon3d floating-element" />
+                </div>
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  DEPLOY.
+                </h3>
+                <ul className="text-left space-y-2 text-gray-300 mb-8">
+                  <li>• Advanced blockchain intelligence</li>
+                  <li>• Automated risk monitoring</li>
+                  <li>• Custom alert systems</li>
+                  <li>• Real-time notifications</li>
+                  <li>• API integration ready</li>
+                  <li>• Scalable infrastructure</li>
+                  <li>• Enterprise reporting</li>
+                </ul>
+                <div className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wide bg-gray-200 text-gray-400 cursor-not-allowed border-2 border-gray-200">
+                  COMING SOON
                 </div>
               </div>
-            )}
+            </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Scan Stats */}
-            {results.scanned && (
-              <div className="text-xs text-neutral-500 pt-4 border-t border-neutral-800">
-                Scanned {results.scanned.pages} pages × {results.scanned.limitPerPage} txs, 
-                checked {results.scanned.mintsChecked} BAGS tokens
+      {/* Live Analysis Tools Section */}
+      <section id="tools" className="py-24 relative z-10" style={{
+        background: 'linear-gradient(135deg, rgba(14, 152, 59, 0.05) 0%, rgba(34, 197, 94, 0.02) 50%, rgba(14, 152, 59, 0.05) 100%)'
+      }}>
+        <div className="container mx-auto px-4 relative z-40">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
+              LIVE ANALYSIS TOOLS
+            </h2>
+            <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed font-normal">
+              Experience the power of professional blockchain analysis. Test our tools instantly - 
+              no registration required. Sign up only for advanced analysis history and access 
+              advanced features.
+            </p>
+          </div>
+
+          <div className="space-y-12">
+            {/* X Search Tool */}
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-1">
+              <div className="flex items-center gap-4 mb-6">
+                <img src="https://i.imgur.com/iyzRIyn.png" className="w-12 h-12 icon3d" alt="X Search" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  X SEARCH SCANNER
+                </h3>
               </div>
-            )}
-          </div>
-        )}
+              <p className="text-gray-400 mb-6">
+                Analyze habits and trace history through Solana transactions
+              </p>
+              <Link
+                href="/twitter-search"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
+                style={{ background: '#0E983B' }}
+              >
+                START SCANNING
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
 
-        {!error && !results && !loading && (
-          <div className="text-green-300/60 mt-4 text-xs">
-            Enter a wallet address to find associated X tags through Bags creator data.
+            {/* CA Finder Tool */}
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-2">
+              <div className="flex items-center gap-4 mb-6">
+                <img src="https://i.imgur.com/X0mWOKf.png" className="w-12 h-12 icon3d" alt="CA Finder" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  CA FINDER
+                </h3>
+              </div>
+              <p className="text-gray-400 mb-6">
+                Discover token creators and fee structures through contract analysis
+              </p>
+              <Link
+                href="/token-creators"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
+                style={{ background: '#0E983B' }}
+              >
+                EXPLORE CREATORS
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Wallet Reliability Check */}
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-3">
+              <div className="flex items-center gap-4 mb-6">
+                <img src="https://i.imgur.com/ESs7DAD.png" className="w-12 h-12 icon3d" alt="Wallet Check" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                  WALLET RELIABILITY CHECK
+                </h3>
+              </div>
+              <p className="text-gray-400 mb-6">
+                AI-powered wallet analysis with behavioral risk assessment
+              </p>
+              <Link
+                href="/wallet-check"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
+                style={{ background: '#0E983B' }}
+              >
+                CHECK WALLET
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      </section>
+
+      {/* Ecosystem Section */}
+      <section className="py-24 relative z-30 overflow-hidden">
+        <div className="container mx-auto px-4 relative z-40">
+          <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto card-hover animate-scale-in">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="animate-slide-in-left">
+                <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
+                  OUR ECOSYSTEM
+                </h2>
+                <p className="text-gray-400 text-xl mb-8 leading-relaxed font-normal">
+                  Everything on Web3, powered by our AI. Acuvity is one of the first 
+                  platforms that unifies analytics, risk, deployment and on-chain 
+                  governance in one place.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link
+                    href="/twitter-search"
+                    className="inline-flex items-center gap-2 px-10 py-4 text-lg font-bold rounded-xl text-black btn-animated"
+                    style={{ background: '#0E983B' }}
+                  >
+                    <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
+                    EXPLORE
+                  </Link>
+                  <Link
+                    href="/faq"
+                    className="px-10 py-4 text-lg font-bold rounded-xl border border-gray-600 hover:border-[#0E983B] text-white btn-animated"
+                  >
+                    DOCUMENTATION
+                  </Link>
+                </div>
+              </div>
+
+              <div className="text-center animate-slide-in-right">
+                <div className="relative">
+                  <img 
+                    src="https://i.imgur.com/jcLZvxY.png" 
+                    alt="Analytics" 
+                    className="w-64 h-64 mx-auto floating-element"
+                    style={{ filter: 'drop-shadow(rgba(14, 152, 59, 0.3) 0px 20px 40px)' }}
+                  />
+                  
+                  {/* Floating Icons */}
+                  <img src="https://i.imgur.com/X0mWOKf.png" alt="Security" className="absolute top-4 right-4 w-12 h-12 animate-float" />
+                  <img src="https://i.imgur.com/i4E5ZuP.png" alt="Reports" className="absolute top-12 left-12 w-10 h-10 animate-float-delayed" />
+                  <img src="https://i.imgur.com/eBYdwGI.png" alt="DEX Swaps" className="absolute bottom-16 right-12 w-11 h-11 animate-float" />
+                  <img src="https://i.imgur.com/CHFZ6ZX.png" alt="AI Automation" className="absolute top-32 left-4 w-9 h-9 animate-float-delayed" />
+                  <img src="https://i.imgur.com/lTr0Z7H.png" alt="Risk Detection" className="absolute bottom-4 left-16 w-8 h-8 animate-float" />
+                  <img src="https://i.imgur.com/8NMpdwt.png" alt="Bridge Analysis" className="absolute top-8 right-32 w-9 h-9 animate-float-delayed" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
