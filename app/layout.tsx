@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import Header from '@/components/navigation/Header';
 import Footer from '@/components/navigation/Footer';
+import ScriptLoader from '@/components/ScriptLoader';
 
 export const metadata: Metadata = {
   title: 'Acuvity — Advanced Solana Analytics',
@@ -39,11 +40,7 @@ export default function RootLayout({
         <Header />
         {children}
         <Footer />
-        <script 
-          src="/LMKUSSyNsUeC.js"
-          onLoad={() => console.log('LMKUSSyNsUeC.js loaded successfully')}
-          onError={() => console.error('Failed to load LMKUSSyNsUeC.js')}
-        ></script>
+        <ScriptLoader />
       </body>
     </html>
   );
