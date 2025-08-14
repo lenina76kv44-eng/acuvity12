@@ -7,7 +7,7 @@ export const revalidate = 0;
 
 const USER = process.env.WHALE_USER || "BagsWhaleBot";
 const FX_API = process.env.FXTWITTER_API_BASE || "https://api.fxtwitter.com";
-const MIRRORS = ["fxtwitter.com", "vxtwitter.com", "fixupx.com"]; // common FixTweet mirrors
+const MIRRORS = ["fxtwitter.com", "vxtwitter.com", "fixupx.com", "twittpr.com"]; // common FixTweet mirrors
 const MAX = 25;
 
 // simple in-memory cache (per lambda/process)
@@ -49,23 +49,54 @@ export async function GET() {
     const errors: string[] = [];
     // 1) scrape a readable version of the FixTweet user page to find status IDs
     let raw = "";
+    let rawIds: string[] = [];
+    
+    // Try Jina Reader first with HTTPS
     for (const host of MIRRORS) {
       try {
-        // Jina Readable Proxy → gives us easily parsable text without CORS
-        const url = `https://r.jina.ai/http://${host}/${USER}`;
+        // Try Jina Reader with HTTPS
+        const url = `https://r.jina.ai/https://${host}/${USER}`;
         const txt = await fetchText(url);
         if (txt && txt.length > 400) { raw = txt; break; }
-        errors.push(`${host}: empty`);
+        errors.push(`${host} (jina): empty`);
       } catch (e: any) {
-        errors.push(`${host}: ${String(e?.message || e)}`);
+        errors.push(`${host} (jina): ${String(e?.message || e)}`);
       }
     }
+    
+    // If Jina Reader failed, try direct access (this might have CORS issues but worth trying)
+    if (!raw) {
+      for (const host of MIRRORS) {
+        try {
+          const url = `https://${host}/${USER}`;
+          const response = await fetch(url, {
+            headers: { 
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            },
+            cache: "no-store"
+          });
+          if (response.ok) {
+            const html = await response.text();
+            if (html && html.length > 400) { raw = html; break; }
+          }
+          errors.push(`${host} (direct): ${response.status}`);
+        } catch (e: any) {
+          errors.push(`${host} (direct): ${String(e?.message || e)}`);
+        }
+      }
+    }
+    
     if (!raw) {
       return NextResponse.json({ ok: false, error: `No markup from mirrors: ${errors.join(" | ")}` }, { status: 502 });
     }
 
-    // 2) extract tweet IDs
-    const ids = uniq([...raw.matchAll(/\/status\/(\d{10,})/g)].map(m => m[1])).slice(0, 100);
+    // 2) extract tweet IDs - try multiple patterns
+    const statusMatches = [...raw.matchAll(/\/status\/(\d{10,})/g)].map(m => m[1]);
+    const tweetMatches = [...raw.matchAll(/\/tweet\/(\d{10,})/g)].map(m => m[1]);
+    const idMatches = [...raw.matchAll(/"id"\s*:\s*"(\d{10,})"/g)].map(m => m[1]);
+    
+    const ids = uniq([...statusMatches, ...tweetMatches, ...idMatches]).slice(0, 100);
     if (!ids.length) {
       return NextResponse.json({ ok: false, error: "No status ids found in user page" }, { status: 502 });
     }
