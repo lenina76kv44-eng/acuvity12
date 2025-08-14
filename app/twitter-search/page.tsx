@@ -167,8 +167,20 @@ function XToWalletCard() {
           <div className="mt-4 space-y-4 animate-slide-in-up">
             <div>
               <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold">Mapped Wallet</div>
-              <div className="mt-1 font-mono break-all bg-black/50 border border-neutral-800 rounded-xl p-3">
-                {wallet}
+              <div className="mt-1 bg-black/50 border border-neutral-800 rounded-xl p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-mono break-all text-green-200 flex-1">
+                    {wallet}
+                  </div>
+                  <a
+                    href={`https://solscan.io/account/${wallet}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors duration-200 btn-animated"
+                  >
+                    Solscan
+                  </a>
+                </div>
               </div>
             </div>
 
