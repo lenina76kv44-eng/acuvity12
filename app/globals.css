@@ -452,24 +452,6 @@
   animation: particle-float 4s ease-in-out infinite;
 }
 
-/* VS Code syntax highlighting */
-.vscode-code {
-  color: #d4d4d4; /* Default text */
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  white-space: pre;
-  line-height: 1.5;
-}
-
-/* VS Code color scheme */
-.vscode-code .keyword { color: #569cd6; } /* Blue for keywords */
-.vscode-code .string { color: #ce9178; } /* Orange for strings */
-.vscode-code .comment { color: #6a9955; } /* Green for comments */
-.vscode-code .function { color: #dcdcaa; } /* Yellow for functions */
-.vscode-code .variable { color: #9cdcfe; } /* Light blue for variables */
-.vscode-code .number { color: #b5cea8; } /* Light green for numbers */
-.vscode-code .operator { color: #d4d4d4; } /* Default for operators */
-.vscode-code .punctuation { color: #d4d4d4; } /* Default for punctuation */
-
 /* Intersection Observer triggered animations */
 .scroll-animate {
   opacity: 0;

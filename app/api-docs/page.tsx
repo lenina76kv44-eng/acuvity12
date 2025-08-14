@@ -43,7 +43,7 @@ function CodeBlock({ code }: { code: string }) {
         ) : 'Copy'}
       </button>
       <pre className="overflow-x-auto rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] p-4 text-[12.5px] leading-5 text-[#d7ffe9]">
-        <code className="vscode-code" dangerouslySetInnerHTML={{ __html: code }}></code>
+        <code>{code}</code>
       </pre>
     </div>
   );
