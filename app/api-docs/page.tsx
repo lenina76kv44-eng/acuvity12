@@ -46,7 +46,6 @@ function Tabs({
   );
 }
 
-function CodeBlock({ code }: { code: string }) {
 function CodeBlock({ code, lang }: { code: string; lang: Lang }) {
   const [copied, setCopied] = useState(false);
   const highlightedCode = useMemo(() => highlightSyntax(code, lang), [code, lang]);
@@ -323,14 +322,6 @@ print(wallet_reliability('Da63jxs5D5G...Jffe9Y', 5))`,
               </Link>
             </div>
           </div>
-        </div>
-      </div>
-    </main>
-  );
-}
-          Respect rate limits, debounce client calls, and cache responses where possible.
-          See also&nbsp;
-          <Link className="underline hover:text-[#00ff88]" href="/faq">FAQ</Link>.
         </div>
       </div>
     </main>
