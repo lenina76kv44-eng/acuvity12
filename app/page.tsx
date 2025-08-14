@@ -4,26 +4,6 @@ import Link from "next/link";
 import { Search, Users, BarChart3, Coins, ArrowRight, CheckCircle, Zap, Shield, Target } from "lucide-react";
 
 export default function HomePage() {
-  useEffect(() => {
-    // Intersection Observer for scroll animations
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate');
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
-    );
-
-    // Observe all scroll-animate elements
-    const elements = document.querySelectorAll('.scroll-animate, .scroll-animate-left, .scroll-animate-right');
-    elements.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <main className="min-h-screen bg-background relative overflow-hidden">
       {/* Hero Section */}
@@ -31,7 +11,7 @@ export default function HomePage() {
         <div id="home" className="relative min-h-screen overflow-hidden flex items-center hero-bg">
           <div className="relative z-40 flex flex-col lg:flex-row items-center justify-between w-full px-4 py-20 container mx-auto hero-content animate-fade-in">
             {/* Left Content */}
-            <div className="flex-1 max-w-2xl lg:mr-8 text-center lg:text-left scroll-animate-left">
+            <div className="flex-1 max-w-2xl lg:mr-8 text-center lg:text-left animate-slide-in-left">
               <h1 className="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight font-display text-white">
                 SHAPING THE<br />
                 FUTURE OF<br />
@@ -58,10 +38,10 @@ export default function HomePage() {
             </div>
 
             {/* Right Scanner Card */}
-            <div className="flex-shrink-0 w-full lg:w-96 mt-12 lg:mt-0 scroll-animate-right">
+            <div className="flex-shrink-0 w-full lg:w-96 mt-12 lg:mt-0 animate-slide-in-right">
               <section 
                 aria-label="Acuvity Scanner banner"
-                className="scanner-card relative overflow-hidden enhanced-glow animate-glow-pulse"
+                className="scanner-card relative overflow-hidden hover-glow"
                 style={{
                   background: 'linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(20, 20, 20, 0.9) 100%)',
                   borderRadius: '24px',
@@ -171,10 +151,10 @@ export default function HomePage() {
       </div>
 
       {/* What is Acuvity Section */}
-      <section id="features" className="py-24 text-center relative z-40 scroll-animate">
+      <section id="features" className="py-24 text-center relative z-40">
         <div className="container mx-auto px-4">
           <div className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight animate-text-glow">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
               WHAT IS ACUVITY
             </h2>
             <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed font-normal">
@@ -185,7 +165,7 @@ export default function HomePage() {
 
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Discover */}
-            <div className="group relative feature-card card-hover cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300 enhanced-glow scroll-animate stagger-1">
+            <div className="group relative feature-card card-hover cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300 animate-slide-in-up stagger-1">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
                   <img src="https://i.imgur.com/iyzRIyn.png" alt="DISCOVER." className="w-16 h-16 icon3d floating-element" />
@@ -213,7 +193,7 @@ export default function HomePage() {
             </div>
 
             {/* Analyze */}
-            <div className="group relative feature-card card-hover cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300 enhanced-glow scroll-animate stagger-2">
+            <div className="group relative feature-card card-hover cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300 animate-slide-in-up stagger-2">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
                   <img src="https://i.imgur.com/X0mWOKf.png" alt="ANALYZE." className="w-16 h-16 icon3d floating-element" />
@@ -241,7 +221,7 @@ export default function HomePage() {
             </div>
 
             {/* Deploy */}
-            <div className="group relative feature-card bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 opacity-50 cursor-not-allowed scroll-animate stagger-3">
+            <div className="group relative feature-card bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 opacity-50 cursor-not-allowed animate-slide-in-up stagger-3">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
                   <img src="https://i.imgur.com/CHFZ6ZX.png" alt="DEPLOY." className="w-16 h-16 icon3d floating-element" />
@@ -268,12 +248,12 @@ export default function HomePage() {
       </section>
 
       {/* Live Analysis Tools Section */}
-      <section id="tools" className="py-24 relative z-10 scroll-animate" style={{
+      <section id="tools" className="py-24 relative z-10" style={{
         background: 'linear-gradient(135deg, rgba(14, 152, 59, 0.05) 0%, rgba(34, 197, 94, 0.02) 50%, rgba(14, 152, 59, 0.05) 100%)'
       }}>
         <div className="container mx-auto px-4 relative z-40">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight animate-text-glow">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
               LIVE ANALYSIS TOOLS
             </h2>
             <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed font-normal">
@@ -285,7 +265,7 @@ export default function HomePage() {
 
           <div className="space-y-12">
             {/* X Search Tool */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover enhanced-glow scroll-animate stagger-1">
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-1">
               <div className="flex items-center gap-4 mb-6">
                 <img src="https://i.imgur.com/iyzRIyn.png" className="w-12 h-12 icon3d" alt="X Search" />
                 <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
@@ -306,7 +286,7 @@ export default function HomePage() {
             </div>
 
             {/* CA Finder Tool */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover enhanced-glow scroll-animate stagger-2">
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-2">
               <div className="flex items-center gap-4 mb-6">
                 <img src="https://i.imgur.com/X0mWOKf.png" className="w-12 h-12 icon3d" alt="CA Finder" />
                 <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
@@ -327,7 +307,7 @@ export default function HomePage() {
             </div>
 
             {/* Wallet Reliability Check */}
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover enhanced-glow scroll-animate stagger-3">
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-3">
               <div className="flex items-center gap-4 mb-6">
                 <img src="https://i.imgur.com/ESs7DAD.png" className="w-12 h-12 icon3d" alt="Wallet Check" />
                 <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
@@ -351,12 +331,12 @@ export default function HomePage() {
       </section>
 
       {/* Ecosystem Section */}
-      <section className="py-24 relative z-30 overflow-hidden scroll-animate">
+      <section className="py-24 relative z-30 overflow-hidden">
         <div className="container mx-auto px-4 relative z-40">
-          <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto card-hover enhanced-glow animate-scale-in">
+          <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto card-hover animate-scale-in">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="scroll-animate-left">
-                <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight animate-text-glow">
+              <div className="animate-slide-in-left">
+                <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
                   OUR ECOSYSTEM
                 </h2>
                 <p className="text-gray-400 text-xl mb-8 leading-relaxed font-normal">
@@ -382,7 +362,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="text-center scroll-animate-right">
+              <div className="text-center animate-slide-in-right">
                 <div className="relative">
                   <img 
                     src="https://i.imgur.com/jcLZvxY.png" 

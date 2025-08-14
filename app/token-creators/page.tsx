@@ -13,48 +13,15 @@ export default function TokenCreatorsPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Breadcrumbs />
         
-        <header className="mb-12 scroll-animate">
-          <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#0e2018] text-[#74f3bf] border border-[#143626] mb-4 animate-glow-pulse">
-            Creator Discovery
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 animate-text-glow">CA Finder Search</h1>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">CA Finder Search</h1>
           <p className="text-[#888888] text-base">
             Find creators and fee splits by contract address
           </p>
-          
-          {/* Tool description */}
-          <div className="mt-8 bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 enhanced-glow scroll-animate-left">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-[#00ff88]/10 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-[#00ff88]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#00ff88]">Contract Analysis</h3>
-            </div>
-            <p className="text-gray-300 mb-4">
-              Enter any Solana token contract address to discover who created it, their social profiles, 
-              and how royalties are distributed. Perfect for due diligence and creator research.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#00ff88] rounded-full"></div>
-                <span className="text-gray-400">Creator identification</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#00ff88] rounded-full"></div>
-                <span className="text-gray-400">Fee structure analysis</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#00ff88] rounded-full"></div>
-                <span className="text-gray-400">Social profile linking</span>
-              </div>
-            </div>
-          </div>
         </header>
 
-        <div className="max-w-2xl scroll-animate">
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow enhanced-glow card-hover">
+        <div className="max-w-2xl">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow find-hover">
             <CaToCreatorsCard />
           </div>
         </div>

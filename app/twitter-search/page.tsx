@@ -13,48 +13,14 @@ export default function TwitterSearchPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Breadcrumbs />
         
-        <header className="mb-12 scroll-animate">
-          <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#0e2018] text-[#74f3bf] border border-[#143626] mb-4 animate-glow-pulse">
-            Real-time Analysis
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 animate-text-glow">X Search Tools</h1>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">X Search Tools</h1>
           <p className="text-[#888888] text-base">
             Search by X handle to find wallets, or search by wallet to find X tags
           </p>
-          
-          {/* Tool descriptions */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 enhanced-glow scroll-animate-left">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-[#00ff88]/10 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-[#00ff88]" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-[#00ff88]">X → Wallet</h3>
-              </div>
-              <p className="text-gray-300 text-sm">
-                Enter an X handle to discover the mapped Solana wallet address and associated BAGS tokens. Perfect for finding creator wallets.
-              </p>
-            </div>
-            
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 enhanced-glow scroll-animate-right">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-[#00ff88]/10 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-[#00ff88]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-[#00ff88]">Wallet → X</h3>
-              </div>
-              <p className="text-gray-300 text-sm">
-                Reverse lookup: enter a wallet address to find all associated X handles through Bags creator data. Discover who owns what.
-              </p>
-            </div>
-          </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 scroll-animate">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <XToWalletCard />
           <WalletToXCard />
         </div>
@@ -161,9 +127,9 @@ function XToWalletCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover enhanced-glow animate-slide-in-up">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up">
       <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold animate-border-glow">X → Wallet</div>
+        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">X → Wallet</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">X Dev Tag Search</h2>
         <p className="text-[#8A8A8A] text-sm leading-relaxed">
           Enter an X dev tag to find the wallet and discover BAGS tokens
@@ -370,9 +336,9 @@ function WalletToXCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover enhanced-glow animate-slide-in-up stagger-2">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up stagger-2">
       <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold animate-border-glow">Wallet → X</div>
+        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Wallet → X</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">Wallet → X tags</h2>
         <p className="text-[#8A8A8A] text-sm leading-relaxed">
           Find X tags associated with a wallet through Bags creator data

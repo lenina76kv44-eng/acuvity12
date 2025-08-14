@@ -13,51 +13,14 @@ export default function WalletCheckPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Breadcrumbs />
         
-        <header className="mb-12 scroll-animate">
-          <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#0e2018] text-[#74f3bf] border border-[#143626] mb-4 animate-glow-pulse">
-            AI-Powered Analysis
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 find-green-gradient animate-text-glow">Wallet Reliability Check</h1>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2 find-green-gradient">Wallet Reliability Check</h1>
           <p className="text-[#888888] text-base">
             AI-powered analysis of wallet activity and reliability metrics using on-chain data.
           </p>
-          
-          {/* Tool description */}
-          <div className="mt-8 bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 enhanced-glow scroll-animate-left">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-[#00ff88]/10 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-[#00ff88]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#00ff88]">AI Security Analysis</h3>
-            </div>
-            <p className="text-gray-300 mb-4">
-              Get comprehensive reliability scores powered by advanced AI analysis of on-chain behavior patterns, 
-              transaction history, and risk indicators. Perfect for due diligence and security assessment.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#00ff88] rounded-full"></div>
-                <span className="text-gray-400">Behavioral pattern analysis</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#00ff88] rounded-full"></div>
-                <span className="text-gray-400">Risk score calculation</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#00ff88] rounded-full"></div>
-                <span className="text-gray-400">Transaction depth analysis</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#00ff88] rounded-full"></div>
-                <span className="text-gray-400">AI-powered insights</span>
-              </div>
-            </div>
-          </div>
         </header>
 
-        <div className="max-w-2xl scroll-animate">
+        <div className="max-w-2xl">
           <WalletReliabilityCard />
         </div>
       </div>
@@ -134,9 +97,9 @@ function WalletReliabilityCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover enhanced-glow animate-slide-in-up">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up">
       <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold animate-border-glow">AI Analysis</div>
+        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">AI Analysis</div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">Wallet Reliability Check</h2>
         <p className="text-[#8A8A8A] text-sm leading-relaxed">
           Get an AI-powered reliability score based on on-chain activity patterns.
