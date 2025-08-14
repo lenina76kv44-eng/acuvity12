@@ -87,7 +87,8 @@ async function fetchFxTweet(id: string): Promise<FeedItem | null> {
       url: String(t.url ?? `https://x.com/i/web/status/${id}`),
       image: img,
     };
-  } catch {
+  } catch (e: any) {
+    console.error(`Failed to fetch tweet ${id}:`, e?.message || e);
     return null;
   }
 }
@@ -100,7 +101,7 @@ function newerThan(a: string, b: string) {
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const sinceId = (url.searchParams.get("sinceId") || "").trim();
-  const max = Math.max(1, Math.min(60, parseInt(url.searchParams.get("max") || "40", 10)));
+  const max = Math.max(1, Math.min(250, parseInt(url.searchParams.get("max") || "200", 10)));
 
   try {
     // 1) try sources via Jina
