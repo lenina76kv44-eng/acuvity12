@@ -5,15 +5,10 @@ import Image from 'next/image';
 
 type ApiResp = {
   ok: boolean;
-  windowHours: number;
-  totalTokens: number;
-  activePairs: number;
-  totals: {
-    liquidityUsd: number;
-    volume24hUsd: number;
-  };
-  list?: Array<{
-    mint: string; pairsCount: number; topPair: { pairAddress: string; dex: string; priceUsd: number | null; fdv: number | null; liquidityUsd: number; vol24: number; url: string | null; base: { symbol: string | null; name: string | null; image: string | null; }; } | null;
+  input?: any;
+  aggregate?: {
+    tokens: number; pairs: number; volume24hUsd: number;
+    liquidityUsd: number; marketCapUsd: number; txns24h: number; at: number;
   };
   top?: Array<{
     pair: string; chainId: string; dexId: string; url: string;
@@ -32,7 +27,7 @@ export default function BagsLivePanel() {
   const load = async () => {
     setLoading(true); setErr('');
     try {
-      const r = await fetch('/api/bags-daily?hours=24', { cache: 'no-store' });
+      const r = await fetch('/api/dex/aggregate?query=bags&take=8', { cache: 'no-store' });
       if (!r.ok) throw new Error(`${r.status}`);
       const j: ApiResp = await r.json();
       if (!j.ok) throw new Error(j.error || 'Failed');
@@ -44,10 +39,10 @@ export default function BagsLivePanel() {
     }
   };
 
-  useEffect(() => { load(); }, []); // Initial load
+  useEffect(() => { load(); }, []);
 
-  const a = data?.totals;
-  const top = data?.list || [];
+  const a = data?.aggregate;
+  const top = data?.top || [];
 
   return (
     <section className="mt-16">
@@ -57,17 +52,11 @@ export default function BagsLivePanel() {
             Live BAGS Markets
           </h2>
           <div className="flex items-center gap-3">
-            {data?.totalTokens != null && (
-              <span className="text-xs text-neutral-400">
-                Discovered {data.totalTokens} BAGS tokens in last {data.windowHours}h
-              </span>
-            )}
-            {/* Removed the "Updated" timestamp as it's now handled by the cache */}
-            {/* {a?.at && (
+            {a?.at && (
               <span className="text-xs text-neutral-400">
                 Updated {new Date(a.at).toLocaleTimeString()}
               </span>
-            )} */}
+            )}
             <button
               onClick={load}
               disabled={loading}
@@ -80,14 +69,10 @@ export default function BagsLivePanel() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard title="Total BAGS Tokens" value={data ? nf(data.totalTokens, 0) : '—'} />
-          <StatCard title="Active Dex Pairs" value={data ? nf(data.activePairs, 0) : '—'} />
-          <StatCard title="24h Volume" value={a ? `$${nf(a.volume24hUsd, 0)}` : '—'} />
-          <StatCard title="Total Liquidity" value={a ? `$${nf(a.liquidityUsd, 0)}` : '—'} />
-        </div>
-        <div className="text-xs text-neutral-400 mt-4 text-center">
-          Universe: BAGS tokens created in last {data?.windowHours || 24}h (Bags/chain).
-          Prices & volumes are enriched from DexScreener where available.
+          <StatCard title="Total Tokens" value={a ? nf(a.tokens, 0) : '—'} />
+          <StatCard title="Active Pairs" value={a ? nf(a.pairs, 0) : '—'} />
+          <StatCard title="24h Volume" value={a ? `$${nf(a.volume24hUsd)}` : '—'} />
+          <StatCard title="Total Liquidity" value={a ? `$${nf(a.liquidityUsd)}` : '—'} />
         </div>
 
         {/* Table */}
@@ -130,40 +115,30 @@ export default function BagsLivePanel() {
                     </tr>
                   )}
                   {top.map((r, i) => (
-                    <tr key={r.mint} className="border-t border-neutral-900 hover:bg-black/30">
+                    <tr key={i} className="border-t border-neutral-900 hover:bg-black/30">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          {r.topPair?.base?.image ? (
-                            <Image src={r.topPair.base.image} alt={r.topPair.base.symbol || r.mint} width={28} height={28} className="rounded" />
+                          {r.logo ? (
+                            <Image src={r.logo} alt={r.pair} width={28} height={28} className="rounded" />
                           ) : (
-                            <div className="w-7 h-7 rounded bg-green-800 flex-shrink-0" /> // Placeholder
+                            <div className="w-7 h-7 rounded bg-neutral-800" />
                           )}
-                          <div className="text-green-100">
-                            {r.topPair?.base?.symbol || r.mint.slice(0, 4) + '...' + r.mint.slice(-4)}
-                          </div>
+                          <div className="text-green-100">{r.pair}</div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-neutral-300">{r.topPair?.dex ? 'solana' : '—'}</td>
-                      <td className="px-4 py-3 text-neutral-300">{r.topPair?.dex || '—'}</td>
-                      <td className="px-4 py-3 text-right text-neutral-200">
-                        {r.topPair?.priceUsd != null ? `$${nf(r.topPair.priceUsd)}` : '—'}
+                      <td className="px-4 py-3 text-neutral-300">{r.chainId}</td>
+                      <td className="px-4 py-3 text-neutral-300">{r.dexId}</td>
+                      <td className="px-4 py-3 text-right text-neutral-200">${nf(r.priceUsd)}</td>
+                      <td className={`px-4 py-3 text-right ${r.change24 >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {nf(r.change24)}%
                       </td>
-                      <td className={`px-4 py-3 text-right ${r.topPair?.vol24 != null ? (r.topPair.vol24 >= 0 ? 'text-green-400' : 'text-red-400') : 'text-neutral-400'}`}>
-                        {r.topPair?.vol24 != null ? `${nf(r.topPair.vol24)}%` : '—'} {/* Assuming vol24 is used for change, or add priceChange to API */}
-                      </td>
-                      <td className="px-4 py-3 text-right text-neutral-200">
-                        {r.topPair?.vol24 != null ? `$${nf(r.topPair.vol24, 0)}` : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right text-neutral-200">
-                        {r.topPair?.liquidityUsd != null ? `$${nf(r.topPair.liquidityUsd, 0)}` : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right text-neutral-200">
-                        {r.topPair?.fdv != null ? `$${nf(r.topPair.fdv, 0)}` : '—'}
-                      </td>
+                      <td className="px-4 py-3 text-right text-neutral-200">${nf(r.vol24)}</td>
+                      <td className="px-4 py-3 text-right text-neutral-200">${nf(r.liquidity)}</td>
+                      <td className="px-4 py-3 text-right text-neutral-200">${nf(r.fdv)}</td>
                       <td className="px-4 py-3 text-right">
-                        {r.topPair?.url ? (
-                          <a href={r.topPair.url} target="_blank" rel="noreferrer"
-                             className="text-xs rounded bg-green-600 text-black px-3 py-1 font-medium hover:bg-green-500 btn-animated">
+                        {r.url && (
+                          <a href={r.url} target="_blank" rel="noreferrer"
+                             className="text-xs rounded bg-green-600 text-black px-3 py-1 font-medium hover:bg-green-500">
                             Dexscreener
                           </a>
                         )}

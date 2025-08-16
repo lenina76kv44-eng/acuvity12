@@ -153,7 +153,7 @@ export default function HomePage() {
       </div>
 
       {/* Bags Live Markets */}
-      <BagsLivePanel /> {/* This component will now fetch from /api/bags-daily */}
+      <BagsLivePanel />
 
       {/* What is Acuvity Section */}
       <section id="features" className="py-24 text-center relative z-40">
