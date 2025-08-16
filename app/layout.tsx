@@ -40,7 +40,7 @@ export default function RootLayout({
         <Header />
         {children}
         <Footer />
-        <ScriptLoader />
+        {/* <ScriptLoader /> */}
       </body>
     </html>
   );
