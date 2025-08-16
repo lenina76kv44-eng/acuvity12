@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import Icon from '@/src/components/ui/Icon';
 
 const BRAND_GRAD = 'bg-gradient-to-r from-[#00ff88] to-[#00cc6a]';
 const BORDER = 'border border-[#1a1a1a]';
@@ -203,7 +204,8 @@ print(wallet_reliability('Da63jxs5D5G...Jffe9Y', 5))`,
           <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#0e2018] text-[#74f3bf] border border-[#143626]">
             No authentication required
           </div>
-          <h1 className="mt-3 text-3xl md:text-4xl font-bold tracking-tight">
+          <h1 className="mt-3 text-3xl md:text-4xl font-bold tracking-tight flex items-center gap-2">
+            <Icon name="apiKey" size={32} />
             <span className={`${BRAND_GRAD} bg-clip-text text-transparent`}>API Documentation</span>
           </h1>
           <p className="text-[#9feecf]/80 mt-2">

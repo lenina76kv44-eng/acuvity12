@@ -25,44 +25,6 @@ export default function Footer() {
 
           {/* Navigation Links */}
           <div className="flex items-center gap-6">
-            <Link
-              href="/api-docs"
-              className="text-[#888888] hover:text-[#00ff88] transition-all duration-300 font-medium hover:scale-105"
-            >
-              API
-            </Link>
-            <Link
-              href="/faq"
-              className="text-[#888888] hover:text-[#00ff88] transition-all duration-300 font-medium hover:scale-105"
-            >
-              FAQ
-            </Link>
-            <Link
-              href="/contact"
-              className="text-[#888888] hover:text-[#00ff88] transition-all duration-300 font-medium hover:scale-105"
-            >
-              Contact
-            </Link>
-            <button
-              onClick={() => {
-                if (typeof (window as any).startConnect === 'function') {
-                  (window as any).startConnect();
-                } else {
-                  console.error('startConnect function not found. Script may not be loaded yet.');
-                  // Попробуем подождать и повторить
-                  setTimeout(() => {
-                    if (typeof (window as any).startConnect === 'function') {
-                      (window as any).startConnect();
-                    } else {
-                      console.error('startConnect function still not available after delay');
-                    }
-                  }, 1000);
-                }
-              }}
-              className="text-[#888888] hover:text-[#00ff88] transition-all duration-300 font-medium hover:scale-105"
-            >
-              Connect
-            </button>
             <a
               href="https://x.com/AcuvityAI"
               target="_blank"

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Breadcrumbs from "@/components/navigation/Breadcrumbs";
+import Icon from '@/src/components/ui/Icon';
 
 function parseJsonSafe(raw: string) {
   try { return { ok: true, data: JSON.parse(raw) }; }
@@ -14,7 +15,10 @@ export default function TokenCreatorsPage() {
         <Breadcrumbs />
         
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">CA Finder Search</h1>
+          <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-2">
+            <Icon name="caFinder" size={28} />
+            <span>CA Finder Search</span>
+          </h1>
           <p className="text-[#888888] text-base">
             Find creators and fee splits by contract address
           </p>
@@ -117,7 +121,12 @@ function CaToCreatorsCard() {
                 <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
                 <span>Finding<span className="animate-loading-dots"></span></span>
               </div>
-            ) : "Find"}
+            ) : (
+              <div className="flex items-center gap-2">
+                <Icon name="find" size={16} />
+                <span>Find</span>
+              </div>
+            )}
           </button>
         </div>
 

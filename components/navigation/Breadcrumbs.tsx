@@ -11,7 +11,6 @@ const pathNames: Record<string, string> = {
   '/wallet-check': 'Wallet Check',
   '/whale-notifications': 'Whale Notifications',
   '/faq': 'FAQ',
-  '/contact': 'Contact',
 };
 
 export default function Breadcrumbs() {

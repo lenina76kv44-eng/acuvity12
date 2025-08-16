@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Breadcrumbs from "@/components/navigation/Breadcrumbs";
+import Icon from '@/src/components/ui/Icon';
 
 function parseJsonSafe(raw: string) {
   try { return { ok: true, data: JSON.parse(raw) }; }
@@ -14,7 +15,10 @@ export default function TwitterSearchPage() {
         <Breadcrumbs />
         
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">X Search Tools</h1>
+          <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-2">
+            <Icon name="xSearch" size={28} />
+            <span>X Search Tools</span>
+          </h1>
           <p className="text-[#888888] text-base">
             Search by X handle to find wallets, or search by wallet to find X tags
           </p>
@@ -155,7 +159,12 @@ function XToWalletCard() {
                 <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
                 <span>Finding<span className="animate-loading-dots"></span></span>
               </div>
-            ) : "Find"}
+            ) : (
+              <div className="flex items-center gap-2">
+                <Icon name="find" size={16} />
+                <span>Find</span>
+              </div>
+            )}
           </button>
         </div>
 
@@ -254,8 +263,9 @@ function XToWalletCard() {
                           <a
                             href={`https://bags.fm/${c.mint}`}
                             target="_blank" rel="noopener noreferrer"
-                            className="block font-mono text-xs underline decoration-green-600/40 hover:decoration-green-400 break-all text-green-200"
+                            className="flex items-center gap-1 font-mono text-xs underline decoration-green-600/40 hover:decoration-green-400 break-all text-green-200"
                           >
+                            <Icon name="token" size={12} />
                             {c.mint}
                           </a>
                           <div className="text-xs text-neutral-500">
@@ -376,7 +386,12 @@ function WalletToXCard() {
                 <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
                 <span>Finding<span className="animate-loading-dots"></span></span>
               </div>
-            ) : "Find"}
+            ) : (
+              <div className="flex items-center gap-2">
+                <Icon name="find" size={16} />
+                <span>Find</span>
+              </div>
+            )}
           </button>
         </div>
 

@@ -2,6 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Icon from '@/src/components/ui/Icon';
 
 type Item = {
   id: string;
@@ -42,13 +43,19 @@ export default function WhaleNotificationsPage() {
     <main className="min-h-screen bg-[#0a0a0a] text-white pt-6">
       <div className="max-w-5xl mx-auto px-4">
         <header className="mb-6">
-          <h1 className="text-3xl font-bold">Whale Notifications</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Icon name="whale" size={28} />
+            <span>Whale Notifications</span>
+          </h1>
           <p className="text-neutral-400">Latest posts from @BagsWhaleBot — parsed directly via FixTweet API</p>
         </header>
 
         <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5">
           <div className="mb-4 flex items-center justify-between">
-            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold">Feed</div>
+            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold flex items-center gap-1">
+              <Icon name="alert" size={14} />
+              Feed
+            </div>
             <button
               onClick={() => location.reload()}
               className="px-3 py-1 rounded-lg bg-green-600 text-black text-xs font-semibold hover:bg-green-500"

@@ -203,10 +203,12 @@ export default function FAQPage() {
               Can't find what you're looking for? Reach out to our team for additional support.
             </p>
             <a
-              href="/contact"
+              href="https://x.com/AcuvityAI"
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-[#00ff88] hover:bg-[#00cc6a] text-black px-8 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 inline-block"
             >
-              Contact Us
+              Contact Us on X
             </a>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Breadcrumbs from "@/components/navigation/Breadcrumbs";
+import Icon from '@/src/components/ui/Icon';
 
 function parseJsonSafe(raw: string) {
   try { return { ok: true, data: JSON.parse(raw) }; }
@@ -14,7 +15,10 @@ export default function WalletCheckPage() {
         <Breadcrumbs />
         
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2 find-green-gradient">Wallet Reliability Check</h1>
+          <h1 className="text-3xl font-bold text-white mb-2 find-green-gradient flex items-center gap-2">
+            <Icon name="walletCheck" size={28} />
+            <span>Wallet Reliability Check</span>
+          </h1>
           <p className="text-[#888888] text-base">
             AI-powered analysis of wallet activity and reliability metrics using on-chain data.
           </p>
@@ -99,7 +103,10 @@ function WalletReliabilityCard() {
   return (
     <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up">
       <div className="mb-6">
-        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">AI Analysis</div>
+        <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold flex items-center gap-1">
+          <Icon name="riskGauge" size={14} />
+          AI Analysis
+        </div>
         <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">Wallet Reliability Check</h2>
         <p className="text-[#8A8A8A] text-sm leading-relaxed">
           Get an AI-powered reliability score based on on-chain activity patterns.
@@ -130,7 +137,12 @@ function WalletReliabilityCard() {
               <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
               <span>Analyzing<span className="animate-loading-dots"></span></span>
             </div>
-          ) : "Analyze"}
+          ) : (
+            <div className="flex items-center gap-2">
+              <Icon name="check" size={16} />
+              <span>Analyze</span>
+            </div>
+          )}
         </button>
 
         {error && (

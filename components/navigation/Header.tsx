@@ -3,15 +3,15 @@ import { useState } from 'react';
 import { Menu, X, Search, Home, Users, Coins, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Icon from '@/src/components/ui/Icon';
 
 const navigation = [
-  { name: 'X Search', href: '/twitter-search', icon: Search },
-  { name: 'CA Finder', href: '/token-creators', icon: Users },
-  { name: 'Wallet Check', href: '/wallet-check', icon: Coins },
-  { name: 'Whale Notifications', href: '/whale-notifications', icon: BarChart3 },
-  { name: 'API', href: '/api-docs', icon: BarChart3 },
-  { name: 'FAQ', href: '/faq', icon: Users },
-  { name: 'Contact', href: '/contact', icon: Users },
+  { name: 'X Search', href: '/twitter-search', icon: 'xSearch' },
+  { name: 'CA Finder', href: '/token-creators', icon: 'caFinder' },
+  { name: 'Wallet Check', href: '/wallet-check', icon: 'walletCheck' },
+  { name: 'Whale Notifications', href: '/whale-notifications', icon: 'whale' },
+  { name: 'API', href: '/api-docs', icon: 'api' },
+  { name: 'FAQ', href: '/faq', icon: 'faq' },
 ];
 
 export default function Header() {
@@ -34,7 +34,6 @@ export default function Header() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {navigation.map((item) => {
-              const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
                 <Link
@@ -46,7 +45,7 @@ export default function Header() {
                       : 'text-[#888888] hover:text-white hover:bg-[#1a1a1a]'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon name={item.icon} size={18} className="mr-2" />
                   {item.name}
                 </Link>
               );
@@ -72,7 +71,6 @@ export default function Header() {
           <div className="md:hidden border-t border-[#1a1a1a] py-4">
             <div className="space-y-1">
               {navigation.map((item) => {
-                const Icon = item.icon;
                 const isActive = pathname === item.href;
                 return (
                   <Link
@@ -85,7 +83,7 @@ export default function Header() {
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon name={item.icon} size={20} className="mr-3" />
                     {item.name}
                   </Link>
                 );

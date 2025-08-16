@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Users, BarChart3, Coins, ArrowRight, CheckCircle, Zap, Shield, Target } from "lucide-react";
+import Icon from '@/src/components/ui/Icon';
 
 export default function HomePage() {
   return (
@@ -25,7 +26,7 @@ export default function HomePage() {
                   href="/twitter-search"
                   className="btn-primary btn-animated px-10 py-4 text-lg font-bold inline-flex items-center gap-2"
                 >
-                  <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
+                  <Icon name="analyze" size={20} />
                   GET STARTED
                 </Link>
                 <Link
@@ -131,15 +132,15 @@ export default function HomePage() {
 
                   <div className="grid grid-cols-1 gap-4">
                     <div className="flex items-center gap-3">
-                      <img src="https://i.imgur.com/X0mWOKf.png" width="24" height="24" alt="" loading="lazy" />
+                      <Icon name="history" size={18} className="mr-1" />
                       <span className="text-white font-semibold text-sm">Deep Transaction analysis</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <img src="https://i.imgur.com/iyzRIyn.png" width="24" height="24" alt="" loading="lazy" />
+                      <Icon name="shield" size={18} className="mr-1" />
                       <span className="text-white font-semibold text-sm">Risk pattern detection</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <img src="https://i.imgur.com/ESs7DAD.png" width="24" height="24" alt="" loading="lazy" />
+                      <Icon name="trend" size={18} className="mr-1" />
                       <span className="text-white font-semibold text-sm">AI-powered insights</span>
                     </div>
                   </div>
@@ -168,9 +169,9 @@ export default function HomePage() {
             <div className="group relative feature-card card-hover cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300 animate-slide-in-up stagger-1">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
-                  <img src="https://i.imgur.com/iyzRIyn.png" alt="DISCOVER." className="w-16 h-16 icon3d floating-element" />
+                  <Icon name="bubbleGraph" size={64} className="icon3d floating-element" />
                 </div>
-                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight flex items-center justify-center" style={{ color: '#0E983B' }}>
                   DISCOVER.
                 </h3>
                 <ul className="text-left space-y-2 text-gray-300 mb-8">
@@ -196,9 +197,9 @@ export default function HomePage() {
             <div className="group relative feature-card card-hover cursor-pointer bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-[#0E983B]/50 transition-all duration-300 animate-slide-in-up stagger-2">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
-                  <img src="https://i.imgur.com/X0mWOKf.png" alt="ANALYZE." className="w-16 h-16 icon3d floating-element" />
+                  <Icon name="riskGauge" size={64} className="icon3d floating-element" />
                 </div>
-                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight flex items-center justify-center" style={{ color: '#0E983B' }}>
                   ANALYZE.
                 </h3>
                 <ul className="text-left space-y-2 text-gray-300 mb-8">
@@ -224,9 +225,9 @@ export default function HomePage() {
             <div className="group relative feature-card bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 opacity-50 cursor-not-allowed animate-slide-in-up stagger-3">
               <div className="relative z-10">
                 <div className="mb-6 flex justify-center">
-                  <img src="https://i.imgur.com/CHFZ6ZX.png" alt="DEPLOY." className="w-16 h-16 icon3d floating-element" />
+                  <Icon name="automation" size={64} className="icon3d floating-element" />
                 </div>
-                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <h3 className="text-3xl font-black mb-6 font-display uppercase tracking-tight flex items-center justify-center" style={{ color: '#0E983B' }}>
                   DEPLOY.
                 </h3>
                 <ul className="text-left space-y-2 text-gray-300 mb-8">
@@ -267,8 +268,8 @@ export default function HomePage() {
             {/* X Search Tool */}
             <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-1">
               <div className="flex items-center gap-4 mb-6">
-                <img src="https://i.imgur.com/iyzRIyn.png" className="w-12 h-12 icon3d" alt="X Search" />
-                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <Icon name="xSearch" size={48} className="icon3d" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight flex items-center" style={{ color: '#0E983B' }}>
                   X SEARCH SCANNER
                 </h3>
               </div>
@@ -280,16 +281,16 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
                 style={{ background: '#0E983B' }}
               >
+                <Icon name="analyze" size={18} className="mr-2" />
                 START SCANNING
-                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
             {/* CA Finder Tool */}
             <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-2">
               <div className="flex items-center gap-4 mb-6">
-                <img src="https://i.imgur.com/X0mWOKf.png" className="w-12 h-12 icon3d" alt="CA Finder" />
-                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <Icon name="caFinder" size={48} className="icon3d" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight flex items-center" style={{ color: '#0E983B' }}>
                   CA FINDER
                 </h3>
               </div>
@@ -301,16 +302,16 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
                 style={{ background: '#0E983B' }}
               >
+                <Icon name="find" size={18} className="mr-2" />
                 EXPLORE CREATORS
-                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
             {/* Wallet Reliability Check */}
             <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 card-hover animate-slide-in-up stagger-3">
               <div className="flex items-center gap-4 mb-6">
-                <img src="https://i.imgur.com/ESs7DAD.png" className="w-12 h-12 icon3d" alt="Wallet Check" />
-                <h3 className="text-2xl font-black font-display uppercase tracking-tight" style={{ color: '#0E983B' }}>
+                <Icon name="walletCheck" size={48} className="icon3d" />
+                <h3 className="text-2xl font-black font-display uppercase tracking-tight flex items-center" style={{ color: '#0E983B' }}>
                   WALLET RELIABILITY CHECK
                 </h3>
               </div>
@@ -322,8 +323,8 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold btn-animated text-black"
                 style={{ background: '#0E983B' }}
               >
+                <Icon name="check" size={18} className="mr-2" />
                 CHECK WALLET
-                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -350,7 +351,7 @@ export default function HomePage() {
                     className="inline-flex items-center gap-2 px-10 py-4 text-lg font-bold rounded-xl text-black btn-animated"
                     style={{ background: '#0E983B' }}
                   >
-                    <img src="https://i.imgur.com/iyzRIyn.png" width="20" height="20" className="inline-block" alt="start" />
+                    <Icon name="analyze" size={20} className="mr-2" />
                     EXPLORE
                   </Link>
                   <Link
@@ -372,12 +373,31 @@ export default function HomePage() {
                   />
                   
                   {/* Floating Icons */}
-                  <img src="https://i.imgur.com/X0mWOKf.png" alt="Security" className="absolute top-4 right-4 w-12 h-12 animate-float" />
-                  <img src="https://i.imgur.com/i4E5ZuP.png" alt="Reports" className="absolute top-12 left-12 w-10 h-10 animate-float-delayed" />
-                  <img src="https://i.imgur.com/eBYdwGI.png" alt="DEX Swaps" className="absolute bottom-16 right-12 w-11 h-11 animate-float" />
-                  <img src="https://i.imgur.com/CHFZ6ZX.png" alt="AI Automation" className="absolute top-32 left-4 w-9 h-9 animate-float-delayed" />
-                  <img src="https://i.imgur.com/lTr0Z7H.png" alt="Risk Detection" className="absolute bottom-4 left-16 w-8 h-8 animate-float" />
-                  <img src="https://i.imgur.com/8NMpdwt.png" alt="Bridge Analysis" className="absolute top-8 right-32 w-9 h-9 animate-float-delayed" />
+                  <div className="absolute top-4 right-4 animate-float">
+                    <Icon name="shield" size={48} />
+                  </div>
+                  <div className="absolute top-12 left-12 animate-float-delayed">
+                    <Icon name="history" size={40} />
+                  </div>
+                  <div className="absolute bottom-16 right-12 animate-float">
+                    <Icon name="swap" size={44} />
+                  </div>
+                  <div className="absolute top-32 left-4 animate-float-delayed">
+                    <Icon name="automation" size={36} />
+                  </div>
+                  <div className="absolute bottom-4 left-16 animate-float">
+                    <Icon name="alert" size={32} />
+                  </div>
+                  <div className="absolute top-8 right-32 animate-float-delayed">
+                    <Icon name="bridge" size={36} />
+                  </div>
+                </div>
+                
+                {/* Ecosystem badges */}
+                <div className="flex items-center justify-center gap-4 mt-6">
+                  <Icon name="helius" size={22} className="mx-1" alt="Helius" />
+                  <Icon name="jupiter" size={22} className="mx-1" alt="Jupiter" />
+                  <Icon name="dexscreener" size={22} className="mx-1" alt="Dexscreener" />
                 </div>
               </div>
             </div>
