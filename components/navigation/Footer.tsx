@@ -2,30 +2,26 @@
 import Link from 'next/link';
 
 export default function Footer() {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <footer className="bg-black border-t border-[#1a1a1a]">
+    <footer className="bg-[#0a0a0a] border-t border-[#1a1a1a] mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          {/* <button
-            onClick={() => {
-              if (typeof (window as any).startConnect === 'function') {
-                (window as any).startConnect();
-              } else {
-                console.error('startConnect function not found. Script may not be loaded yet.');
-                // Попробуем подождать и повторить
-                setTimeout(() => {
-                  if (typeof (window as any).startConnect === 'function') {
-                    (window as any).startConnect();
-                  } else {
-                    console.error('startConnect function still not available after delay');
-                  }
-                }, 1000);
-              }
-            }}
-            className="text-[#888888] hover:text-[#00ff88] transition-all duration-300 font-medium hover:scale-105"
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+          {/* Logo */}
+          <button
+            onClick={scrollToTop}
+            className="flex items-center gap-3 hover:opacity-80 transition-all duration-300 group hover:scale-105"
           >
-            Connect
-          </button> */}
+            <img 
+              src="https://i.imgur.com/jcLZvxY.png" 
+              alt="Acuvity" 
+              className="w-12 h-12 rounded-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ease-out"
+            />
+            <span className="text-xl font-bold text-white">Acuvity</span>
+          </button>
 
           {/* Navigation Links */}
           <div className="flex items-center gap-6">
