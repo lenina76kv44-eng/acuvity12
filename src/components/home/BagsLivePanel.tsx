@@ -1,48 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import React from 'react';
+import { useMarkets } from '@/src/hooks/useMarkets';
+import { cf, kmb, pf } from '@/src/lib/number';
 
-type ApiResp = {
-  ok: boolean;
-  input?: any;
-  aggregate?: {
-    tokens: number; pairs: number; volume24hUsd: number;
-    liquidityUsd: number; marketCapUsd: number; txns24h: number; at: number;
-  };
-  top?: Array<{
-    pair: string; chainId: string; dexId: string; url: string;
-    priceUsd: number; change24: number; vol24: number; liquidity: number; fdv: number; logo: string | null;
-  }>;
-  error?: string;
-};
-
-const nf = (v: number, d = 2) => (isFinite(v) ? v.toLocaleString(undefined, { maximumFractionDigits: d }) : '—');
+function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
+      <div className="text-xs uppercase tracking-wider text-zinc-400">{label}</div>
+      <div className="mt-2 text-3xl font-bold text-white">{value}</div>
+    </div>
+  );
+}
 
 export default function BagsLivePanel() {
-  const [data, setData] = useState<ApiResp | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string>('');
-
-  const load = async () => {
-    setLoading(true); setErr('');
-    try {
-      const r = await fetch('/api/dex/aggregate?query=bags&take=8', { cache: 'no-store' });
-      if (!r.ok) throw new Error(`${r.status}`);
-      const j: ApiResp = await r.json();
-      if (!j.ok) throw new Error(j.error || 'Failed');
-      setData(j);
-    } catch (e: any) {
-      setErr(`Load failed: ${String(e.message || e)}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, []);
-
-  const a = data?.aggregate;
-  const top = data?.top || [];
+  const { data, error, isLoading, refresh } = useMarkets('all');
+  const stats = data?.stats;
+  const rows = data?.list ?? [];
 
   return (
     <section className="mt-16">
@@ -52,93 +26,79 @@ export default function BagsLivePanel() {
             Live BAGS Markets
           </h2>
           <div className="flex items-center gap-3">
-            {a?.at && (
-              <span className="text-xs text-neutral-400">
-                Updated {new Date(a.at).toLocaleTimeString()}
-              </span>
-            )}
+            <span className="text-xs text-zinc-500">
+              {data ? `Updated` : isLoading ? 'Loading…' : error ? 'Error' : ''}
+            </span>
             <button
-              onClick={load}
-              disabled={loading}
-              className="rounded-lg bg-green-600 hover:bg-green-500 active:bg-green-600 text-black px-4 py-2 text-sm font-semibold disabled:opacity-50"
+              onClick={refresh}
+              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
             >
-              {loading ? 'Refreshing…' : 'Refresh'}
+              Refresh
             </button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard title="Total Tokens" value={a ? nf(a.tokens, 0) : '—'} />
-          <StatCard title="Active Pairs" value={a ? nf(a.pairs, 0) : '—'} />
-          <StatCard title="24h Volume" value={a ? `$${nf(a.volume24hUsd)}` : '—'} />
-          <StatCard title="Total Liquidity" value={a ? `$${nf(a.liquidityUsd)}` : '—'} />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <StatCard label="Total Tokens" value={stats ? stats.totalTokens : '—'} />
+          <StatCard label="Active Pairs" value={stats ? stats.activePairs : '—'} />
+          <StatCard label="24h Volume" value={stats ? `$${kmb(stats.volume24h)}` : '—'} />
+          <StatCard label="Total Liquidity" value={stats ? `$${kmb(stats.totalLiquidity)}` : '—'} />
         </div>
 
         {/* Table */}
-        <div className="mt-6 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950">
-          <div className="px-4 py-3 border-b border-neutral-800 text-sm text-neutral-300">
+        <div className="mt-6 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40">
+          <div className="border-b border-zinc-800 px-4 py-3 text-sm text-zinc-400">
             Top Markets (by 24h volume)
           </div>
-          {err && (
-            <div className="px-4 py-6 text-red-400 text-sm">{err}</div>
+
+          {error && (
+            <div className="px-4 py-6 text-sm text-red-400">
+              {String(error?.message ?? 'Failed to load data')}
+            </div>
           )}
-          {!err && (
+
+          {!error && (
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-black/40">
-                  <tr className="text-neutral-400">
-                    <Th title="Pair" />
-                    <Th title="Chain" />
-                    <Th title="DEX" />
-                    <Th title="Price (USD)" right />
-                    <Th title="24h Δ" right />
-                    <Th title="24h Vol" right />
-                    <Th title="Liquidity" right />
-                    <Th title="FDV" right />
-                    <th className="px-4 py-2"></th>
+              <table className="min-w-full text-left text-sm text-zinc-300">
+                <thead className="bg-zinc-900/60 text-zinc-400">
+                  <tr>
+                    <th className="px-4 py-3">Pair</th>
+                    <th className="px-4 py-3">Chain</th>
+                    <th className="px-4 py-3">DEX</th>
+                    <th className="px-4 py-3">Price (USD)</th>
+                    <th className="px-4 py-3">24h Δ</th>
+                    <th className="px-4 py-3">24h Vol</th>
+                    <th className="px-4 py-3">Liquidity</th>
+                    <th className="px-4 py-3">FDV</th>
+                    <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {loading && top.length === 0 && (
-                    [...Array(6)].map((_, i) => (
-                      <tr key={i} className="border-t border-neutral-900">
-                        <td className="px-4 py-4" colSpan={9}>
-                          <div className="h-6 w-full animate-pulse rounded bg-neutral-800" />
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                  {!loading && top.length === 0 && (
-                    <tr className="border-t border-neutral-900">
-                      <td className="px-4 py-6 text-neutral-400" colSpan={9}>No data.</td>
-                    </tr>
-                  )}
-                  {top.map((r, i) => (
-                    <tr key={i} className="border-t border-neutral-900 hover:bg-black/30">
+                  {(isLoading ? Array.from({ length: 8 }) : rows).map((r: any, i: number) => (
+                    <tr key={r?.id ?? i} className="border-t border-zinc-800 hover:bg-zinc-900/40">
+                      <td className="px-4 py-3 font-medium text-white">{isLoading ? '—' : r.pair}</td>
+                      <td className="px-4 py-3">{isLoading ? '—' : r.chain}</td>
+                      <td className="px-4 py-3 capitalize">{isLoading ? '—' : r.dex}</td>
+                      <td className="px-4 py-3">{isLoading ? '—' : cf.format(r.priceUsd)}</td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          {r.logo ? (
-                            <Image src={r.logo} alt={r.pair} width={28} height={28} className="rounded" />
-                          ) : (
-                            <div className="w-7 h-7 rounded bg-neutral-800" />
-                          )}
-                          <div className="text-green-100">{r.pair}</div>
-                        </div>
+                        {isLoading ? '—' : (
+                          <span className={r.change24h >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                            {pf.format(r.change24h)}%
+                          </span>
+                        )}
                       </td>
-                      <td className="px-4 py-3 text-neutral-300">{r.chainId}</td>
-                      <td className="px-4 py-3 text-neutral-300">{r.dexId}</td>
-                      <td className="px-4 py-3 text-right text-neutral-200">${nf(r.priceUsd)}</td>
-                      <td className={`px-4 py-3 text-right ${r.change24 >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {nf(r.change24)}%
-                      </td>
-                      <td className="px-4 py-3 text-right text-neutral-200">${nf(r.vol24)}</td>
-                      <td className="px-4 py-3 text-right text-neutral-200">${nf(r.liquidity)}</td>
-                      <td className="px-4 py-3 text-right text-neutral-200">${nf(r.fdv)}</td>
-                      <td className="px-4 py-3 text-right">
-                        {r.url && (
-                          <a href={r.url} target="_blank" rel="noreferrer"
-                             className="text-xs rounded bg-green-600 text-black px-3 py-1 font-medium hover:bg-green-500">
+                      <td className="px-4 py-3">{isLoading ? '—' : `$${kmb(r.vol24h)}`}</td>
+                      <td className="px-4 py-3">{isLoading ? '—' : `$${kmb(r.liquidity)}`}</td>
+                      <td className="px-4 py-3">{isLoading ? '—' : `$${kmb(r.fdv)}`}</td>
+                      <td className="px-4 py-3">
+                        {!isLoading && r.url && (
+                          <a
+                            href={r.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-md bg-emerald-700/80 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-600"
+                          >
                             Dexscreener
                           </a>
                         )}
@@ -152,20 +112,5 @@ export default function BagsLivePanel() {
         </div>
       </div>
     </section>
-  );
-}
-
-function StatCard({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 shadow-[0_0_0_1px_rgba(0,255,136,.06)]">
-      <div className="text-xs uppercase tracking-wide text-green-400 font-semibold mb-1">{title}</div>
-      <div className="text-2xl font-semibold text-green-100">{value}</div>
-    </div>
-  );
-}
-
-function Th({ title, right }: { title: string; right?: boolean }) {
-  return (
-    <th className={`px-4 py-2 text-xs uppercase tracking-wide ${right ? 'text-right' : 'text-left'}`}>{title}</th>
   );
 }
