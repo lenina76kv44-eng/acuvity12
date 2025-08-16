@@ -49,7 +49,7 @@ export default function BagsLivePanel() {
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-2xl font-semibold tracking-tight text-white">
-            Live BAGS Markets <span className="text-green-400/80 text-base ml-2">via Dexscreener</span>
+            Live BAGS Markets
           </h2>
           <div className="flex items-center gap-3">
             {a?.at && (
