@@ -14,7 +14,7 @@ type ApiResp = {
   };
   list?: Array<{
     mint: string; pairsCount: number; topPair: { pairAddress: string; dex: string; priceUsd: number | null; fdv: number | null; liquidityUsd: number; vol24: number; url: string | null; base: { symbol: string | null; name: string | null; image: string | null; }; } | null;
-  };
+  }>,
   top?: Array<{
     pair: string; chainId: string; dexId: string; url: string;
     priceUsd: number; change24: number; vol24: number; liquidity: number; fdv: number; logo: string | null;
