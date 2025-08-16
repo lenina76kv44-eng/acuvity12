@@ -4,6 +4,7 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'i.imgur.com' },
       { protocol: 'https', hostname: 'cdn.dexscreener.com' },
+      { protocol: 'https', hostname: 'dd.dexscreener.com' },
       { protocol: 'https', hostname: 'assets.dexscreener.com' },
       { protocol: 'https', hostname: 'assets.coingecko.com' },
       { protocol: 'https', hostname: 'ipfs.io' },
