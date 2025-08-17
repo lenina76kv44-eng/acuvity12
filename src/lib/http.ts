@@ -1,18 +1,21 @@
-// src/lib/http.ts
-type CacheEntry<T> = { at: number; ttl: number; value: T };
-const g: any = globalThis as any;
-if (!g.__mem) g.__mem = new Map<string, CacheEntry<any>>();
-
-export function setCache<T>(k: string, v: T, ttlMs: number) { g.__mem.set(k, { at: Date.now(), ttl: ttlMs, value: v }); }
-export function getCache<T>(k: string): T | null {
-  const e = g.__mem.get(k) as CacheEntry<T> | undefined;
-  if (!e) return null; if (Date.now() - e.at > e.ttl) { g.__mem.delete(k); return null; } return e.value;
+export async function fetchJson<T=any>(url: string, init?: RequestInit, retries = 2, timeoutMs = 15000): Promise<T> {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...init, signal: controller.signal, headers: { 'accept': 'application/json', ...(init?.headers||{}) } });
+    if (!res.ok) throw new Error(`${res.status}`);
+    return await res.json() as T;
+  } catch (e) {
+    if (retries > 0) return fetchJson<T>(url, init, retries - 1, timeoutMs + 3000);
+    throw e;
+  } finally {
+    clearTimeout(t);
+  }
 }
 
-export async function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
-
-export function num(x: any) {
-  if (typeof x === 'number') return x;
-  if (typeof x === 'string') return Number(x.replace(/[$,]/g, '')) || 0;
-  return 0;
-}
+export const n = {
+  f(v?: number | string, d = 2) {
+    const x = typeof v === 'string' ? Number(v) : (v ?? 0);
+    return isFinite(x) ? x.toLocaleString(undefined, { maximumFractionDigits: d }) : '—';
+  }
+};

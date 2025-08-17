@@ -3,28 +3,26 @@
 import { useEffect, useState } from "react";
 
 type Row = {
-  pair: string;
+  mint: string;
+  symbol: string;
   priceUsd: number | null;
   change24h: number | null;
-  vol24hUsd: number | null;
+  vol24h: number | null;
   liquidityUsd: number | null;
   fdvUsd: number | null;
   link: string | null;
-  chain?: string;
-  dex?: string;
 };
 
 type Resp = {
-  lastUpdated: number;
-  stats: {
+  ok: boolean;
+  kpis: {
     totalTokens24h: number;
     activeTokens: number;
-    volume24hUsd: number;
-    totalLiquidityUsd: number;
+    totalLiquidity: number;
+    totalVol24h: number;
+    allTimeTokens: number | null;
   };
   top: Row[];
-  note?: string;
-  error?: string;
 };
 
 function k(n: number | null | undefined) {
@@ -43,11 +41,11 @@ export default function BagsLivePanel() {
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch("/api/bags/live", { cache: "no-store" });
+      const res = await fetch("/api/bags/markets?h=24", { cache: "no-store" });
       const json: Resp = await res.json();
       setData(json);
     } catch (e) {
-      console.error("Failed to load bags live:", e);
+      console.error("Failed to load bags markets:", e);
     } finally {
       setLoading(false);
     }
@@ -59,90 +57,107 @@ export default function BagsLivePanel() {
     return () => clearInterval(id);
   }, []);
 
-  const stats = data?.stats;
+  const kpis = data?.kpis;
 
   return (
     <section className="mt-16">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-2xl font-semibold tracking-tight text-white">
-            Live <span className="text-emerald-400">BAGS</span> Markets
+            Live <span className="text-[#00ff88]">BAGS</span> Markets
           </h2>
           <button
             onClick={load}
-            className="rounded-lg bg-emerald-600/20 px-3 py-1 text-emerald-300 ring-1 ring-emerald-500/30 hover:bg-emerald-600/30"
+            className="rounded-xl bg-green-600 text-black px-4 py-2 font-semibold hover:bg-green-500 active:bg-green-600 btn-animated"
           >
             Refresh
           </button>
         </div>
 
         {/* KPI cards */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Kpi loading={loading} label="TOTAL TOKENS (24h)" value={stats?.totalTokens24h ?? 0} />
-          <Kpi loading={loading} label="ACTIVE TOKENS" value={stats?.activeTokens ?? 0} />
-          <Kpi loading={loading} label="24H VOLUME" value={k(stats?.volume24hUsd)} wide />
-          <Kpi loading={loading} label="TOTAL LIQUIDITY" value={k(stats?.totalLiquidityUsd)} wide />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up">
+            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Total Tokens (24h)</div>
+            <div className="mt-2 text-3xl font-semibold text-[#00ff88]">
+              {loading ? <span className="animate-pulse text-[#00ff88]/50">…</span> : (kpis?.totalTokens24h ?? 0)}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up stagger-1">
+            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Active Tokens</div>
+            <div className="mt-2 text-3xl font-semibold text-[#00ff88]">
+              {loading ? <span className="animate-pulse text-[#00ff88]/50">…</span> : (kpis?.activeTokens ?? 0)}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up stagger-2">
+            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">24h Volume</div>
+            <div className="mt-2 text-3xl font-semibold text-[#00ff88]">
+              {loading ? <span className="animate-pulse text-[#00ff88]/50">…</span> : k(kpis?.totalVol24h ?? 0)}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up stagger-3">
+            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Total Liquidity</div>
+            <div className="mt-2 text-3xl font-semibold text-[#00ff88]">
+              {loading ? <span className="animate-pulse text-[#00ff88]/50">…</span> : k(kpis?.totalLiquidity ?? 0)}
+            </div>
+          </div>
         </div>
 
         {/* Table */}
-        <div className="mt-8 overflow-hidden rounded-2xl border border-emerald-700/30 bg-neutral-900/60 shadow-[0_0_30px_rgba(16,185,129,0.08)]">
-          <div className="border-b border-emerald-700/20 px-4 py-3 text-sm text-emerald-300">
-            Top markets by <span className="font-medium text-emerald-400">FDV</span> (best pair per token)
+        <div className="mt-8 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950">
+          <div className="border-b border-neutral-800 px-4 py-3 text-sm text-[#7AEFB8]">
+            Top markets by <span className="font-medium text-[#00ff88]">FDV</span> (program-based discovery)
           </div>
 
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-neutral-900/70 text-neutral-300">
-                <tr>
-                  <Th>Pair</Th>
-                  <Th className="text-right">Price (USD)</Th>
-                  <Th className="text-right">24h Δ</Th>
-                  <Th className="text-right">24h Vol</Th>
-                  <Th className="text-right">Liquidity</Th>
-                  <Th className="text-right">FDV</Th>
-                  <Th className="text-right">Link</Th>
+              <thead className="bg-black/50 text-[#7AEFB8]">
+                <tr className="[&>th]:px-4 [&>th]:py-3 [&>th]:text-left">
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">Pair</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">Price (USD)</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">24h Δ</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">24h Vol</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">Liquidity</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">FDV</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">Link</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-800">
-                {loading && (!data?.top || data.top.length === 0) && (
+                {loading && (!data?.top?.length) && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-neutral-400">Loading…</td>
+                    <td colSpan={7} className="px-4 py-8 text-center text-[#00ff88]/70">Loading…</td>
                   </tr>
                 )}
-                {!loading && (!data?.top || data.top.length === 0) && (
+                {(data?.top ?? []).map((r) => (
+                  <tr key={r.mint} className="text-[#00ff88] hover:bg-black/50 hover-glow transition-all duration-200">
+                    <td className="px-4 py-3 text-[#00ff88]">{r.symbol}/SOL</td>
+                    <td className="px-4 py-3 text-[#00ff88]">{r.priceUsd ? `$${r.priceUsd.toFixed(6)}` : "—"}</td>
+                    <td className="px-4 py-3 text-[#00ff88]">{r.change24h !== null ? `${r.change24h.toFixed(2)}%` : "—"}</td>
+                    <td className="px-4 py-3 text-[#00ff88]">{k(r.vol24h)}</td>
+                    <td className="px-4 py-3 text-[#00ff88]">{k(r.liquidityUsd)}</td>
+                    <td className="px-4 py-3 text-[#00ff88]">{k(r.fdvUsd)}</td>
+                    <td className="px-4 py-3">
+                      {r.link ? (
+                        <a 
+                          href={r.link} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="rounded-lg bg-green-600 hover:bg-green-500 text-black px-3 py-1.5 text-xs font-semibold transition-colors duration-200 btn-animated"
+                        >
+                          Dexscreener
+                        </a>
+                      ) : (
+                        <span className="text-[#00ff88]/50">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {!loading && (!data?.top?.length) && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-neutral-400">No data</td>
+                    <td className="px-4 py-6 text-[#00ff88]/70 text-center" colSpan={7}>
+                      No markets found for the selected window.
+                    </td>
                   </tr>
                 )}
-                {(data?.top ?? []).map((r, i) => {
-                  const price = r.priceUsd ? `$${Number(r.priceUsd).toFixed(6)}` : '—';
-                  const change = r.change24h !== null ? `${r.change24h > 0 ? '+' : ''}${r.change24h.toFixed(2)}%` : '—';
-                  const vol = k(r.vol24hUsd);
-                  const liq = k(r.liquidityUsd);
-                  const fdv = k(r.fdvUsd);
-                  return (
-                    <tr key={i} className="hover:bg-neutral-900/60">
-                      <Td>{r.pair}</Td>
-                      <Td right>{price}</Td>
-                      <Td right className={r.change24h !== null ? (r.change24h >= 0 ? 'text-emerald-400' : 'text-red-400') : ''}>{change}</Td>
-                      <Td right>{vol}</Td>
-                      <Td right>{liq}</Td>
-                      <Td right>{fdv}</Td>
-                      <Td right>
-                        {r.link ? (
-                          <a
-                            className="text-emerald-400 hover:text-emerald-300 underline decoration-emerald-500/40"
-                            href={r.link}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Dexscreener
-                          </a>
-                        ) : '—'}
-                      </Td>
-                    </tr>
-                  );
-                })}
               </tbody>
             </table>
           </div>
@@ -150,22 +165,4 @@ export default function BagsLivePanel() {
       </div>
     </section>
   );
-}
-
-function Kpi({ label, value, loading, wide }: { label: string; value: string | number; loading?: boolean; wide?: boolean }) {
-  return (
-    <div className={`rounded-2xl border border-emerald-700/30 bg-neutral-900/60 p-5 shadow-[0_0_30px_rgba(16,185,129,0.08)] ${wide ? 'md:col-span-2' : ''}`}>
-      <div className="text-xs font-medium uppercase tracking-wider text-emerald-300">{label}</div>
-      <div className="mt-2 text-3xl font-bold text-white tabular-nums">
-        {loading ? <span className="animate-pulse text-neutral-500">…</span> : value}
-      </div>
-    </div>
-  );
-}
-
-function Th({ children, className = '' }: React.PropsWithChildren<{ className?: string }>) {
-  return <th className={`px-4 py-3 text-left font-semibold tracking-wide ${className}`}>{children}</th>;
-}
-function Td({ children, right = false, className = '' }: React.PropsWithChildren<{ right?: boolean; className?: string }>) {
-  return <td className={`px-4 py-3 ${right ? 'text-right' : ''} ${className}`}>{children}</td>;
 }
