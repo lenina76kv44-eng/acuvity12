@@ -100,7 +100,7 @@ export default function BagsLivePanel() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 text-sm">
-                {(!payload || payload.top.length === 0) && (
+                {!payload?.top?.length && (
                   <tr><td className="px-4 py-5 text-white/50" colSpan={7}>No markets yet (or still indexing).</td></tr>
                 )}
                 {payload?.top.map((r, i) => (
