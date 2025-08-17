@@ -1,22 +1,58 @@
 'use client';
 
-import React from 'react';
-import { useMarkets } from '@/src/hooks/useMarkets';
-import { cf, kmb, pf } from '@/src/lib/number';
+import { useEffect, useState, useCallback } from 'react';
 
-function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
-      <div className="text-xs uppercase tracking-wider text-zinc-400">{label}</div>
-      <div className="mt-2 text-3xl font-bold text-white">{value}</div>
-    </div>
-  );
-}
+type Row = {
+  id: string;
+  url: string;
+  chainId: string;
+  dexId: string;
+  base: { symbol: string; address: string };
+  priceUsd: number;
+  change24h: number;
+  vol24h: number;
+  liquidityUsd: number;
+  fdv: number;
+};
+
+type Payload = {
+  totals: {
+    totalTokens: number;
+    activePairs: number;
+    volume24h: number;
+    totalLiquidity: number;
+  };
+  list: Row[];
+};
 
 export default function BagsLivePanel() {
-  const { data, error, isLoading, refresh } = useMarkets('all');
-  const stats = data?.stats;
-  const rows = data?.list ?? [];
+  const [data, setData] = useState<Payload | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setErr(null);
+    try {
+      const r = await fetch('/api/dexscreener/solana', { cache: 'no-store' });
+      if (!r.ok) throw new Error(`${r.status}`);
+      const j = (await r.json()) as Payload;
+      setData(j);
+    } catch (e: any) {
+      setErr(`Failed to load: ${e?.message || 'error'}`);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 60_000); // refresh every 60s
+    return () => clearInterval(id);
+  }, [load]);
+
+  const t = data?.totals;
+  const rows = data?.list || [];
 
   return (
     <section className="mt-16">
@@ -25,92 +61,127 @@ export default function BagsLivePanel() {
           <h2 className="text-2xl font-semibold tracking-tight text-white">
             Live BAGS Markets
           </h2>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-zinc-500">
-              {data ? `Updated` : isLoading ? 'Loading…' : error ? 'Error' : ''}
-            </span>
-            <button
-              onClick={refresh}
-              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
-            >
-              Refresh
-            </button>
-          </div>
+          <button
+            onClick={load}
+            className="rounded-md bg-emerald-600/30 px-3 py-1.5 text-emerald-300 hover:bg-emerald-500/40"
+          >
+            Refresh
+          </button>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <StatCard label="Total Tokens" value={stats ? stats.totalTokens : '—'} />
-          <StatCard label="Active Pairs" value={stats ? stats.activePairs : '—'} />
-          <StatCard label="24h Volume" value={stats ? `$${kmb(stats.volume24h)}` : '—'} />
-          <StatCard label="Total Liquidity" value={stats ? `$${kmb(stats.totalLiquidity)}` : '—'} />
+          <Stat label="TOTAL TOKENS" value={fmtInt(t?.totalTokens)} />
+          <Stat label="ACTIVE PAIRS" value={fmtInt(t?.activePairs)} />
+          <Stat label="24H VOLUME" value={fmtUsd(t?.volume24h)} />
+          <Stat label="TOTAL LIQUIDITY" value={fmtUsd(t?.totalLiquidity)} />
         </div>
 
-        {/* Table */}
-        <div className="mt-6 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40">
-          <div className="border-b border-zinc-800 px-4 py-3 text-sm text-zinc-400">
-            Top Markets (by 24h volume)
-          </div>
-
-          {error && (
-            <div className="px-4 py-6 text-sm text-red-400">
-              {String(error?.message ?? 'Failed to load data')}
-            </div>
-          )}
-
-          {!error && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm text-zinc-300">
-                <thead className="bg-zinc-900/60 text-zinc-400">
-                  <tr>
-                    <th className="px-4 py-3">Pair</th>
-                    <th className="px-4 py-3">Chain</th>
-                    <th className="px-4 py-3">DEX</th>
-                    <th className="px-4 py-3">Price (USD)</th>
-                    <th className="px-4 py-3">24h Δ</th>
-                    <th className="px-4 py-3">24h Vol</th>
-                    <th className="px-4 py-3">Liquidity</th>
-                    <th className="px-4 py-3">FDV</th>
-                    <th className="px-4 py-3"></th>
+        <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/40">
+          <table className="min-w-full text-sm">
+            <thead className="bg-white/5 text-neutral-400">
+              <tr className="[&>th]:px-4 [&>th]:py-3 [&>th]:text-left">
+                <th>PAIR</th>
+                <th>CHAIN</th>
+                <th>DEX</th>
+                <th>PRICE (USD)</th>
+                <th>24H Δ</th>
+                <th>24H VOL</th>
+                <th>LIQUIDITY</th>
+                <th>FDV</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {loading && (
+                <tr>
+                  <td colSpan={9} className="p-6 text-center text-neutral-400">
+                    Loading…
+                  </td>
+                </tr>
+              )}
+              {err && !loading && (
+                <tr>
+                  <td colSpan={9} className="p-6 text-center text-red-400">
+                    {err}
+                  </td>
+                </tr>
+              )}
+              {!loading &&
+                !err &&
+                rows.map((p) => (
+                  <tr
+                    key={p.id}
+                    className="[&>td]:px-4 [&>td]:py-3 hover:bg-white/5"
+                  >
+                    <td className="font-medium text-white">
+                      {p.base.symbol}/SOL
+                    </td>
+                    <td className="capitalize text-neutral-300">{p.chainId}</td>
+                    <td className="capitalize text-neutral-300">{p.dexId}</td>
+                    <td className="text-neutral-100">{fmtUsd(p.priceUsd)}</td>
+                    <td
+                      className={
+                        p.change24h >= 0 ? 'text-emerald-400' : 'text-red-400'
+                      }
+                    >
+                      {fmtPct(p.change24h)}
+                    </td>
+                    <td className="text-neutral-100">{fmtUsd(p.vol24h)}</td>
+                    <td className="text-neutral-100">
+                      {fmtUsd(p.liquidityUsd)}
+                    </td>
+                    <td className="text-neutral-100">{fmtUsd(p.fdv)}</td>
+                    <td>
+                      {p.url ? (
+                        <a
+                          className="rounded-md bg-emerald-500/15 px-2 py-1 text-emerald-300 hover:bg-emerald-500/25"
+                          href={p.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Dexscreener
+                        </a>
+                      ) : (
+                        <span className="text-neutral-500">—</span>
+                      )}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {(isLoading ? Array.from({ length: 8 }) : rows).map((r: any, i: number) => (
-                    <tr key={r?.id ?? i} className="border-t border-zinc-800 hover:bg-zinc-900/40">
-                      <td className="px-4 py-3 font-medium text-white">{isLoading ? '—' : r.pair}</td>
-                      <td className="px-4 py-3">{isLoading ? '—' : r.chain}</td>
-                      <td className="px-4 py-3 capitalize">{isLoading ? '—' : r.dex}</td>
-                      <td className="px-4 py-3">{isLoading ? '—' : cf.format(r.priceUsd)}</td>
-                      <td className="px-4 py-3">
-                        {isLoading ? '—' : (
-                          <span className={r.change24h >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-                            {pf.format(r.change24h)}%
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">{isLoading ? '—' : `$${kmb(r.vol24h)}`}</td>
-                      <td className="px-4 py-3">{isLoading ? '—' : `$${kmb(r.liquidity)}`}</td>
-                      <td className="px-4 py-3">{isLoading ? '—' : `$${kmb(r.fdv)}`}</td>
-                      <td className="px-4 py-3">
-                        {!isLoading && r.url && (
-                          <a
-                            href={r.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-md bg-emerald-700/80 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-600"
-                          >
-                            Dexscreener
-                          </a>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                ))}
+            </tbody>
+          </table>
         </div>
+
+        <p className="mt-3 text-xs text-neutral-500">
+          Data via api.dexscreener.com • auto-refresh every ~60s.
+        </p>
       </div>
     </section>
   );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
+      <div className="text-xs uppercase tracking-wider text-neutral-400">
+        {label}
+      </div>
+      <div className="mt-2 text-3xl font-semibold text-emerald-300">
+        {value || '—'}
+      </div>
+    </div>
+  );
+}
+
+function fmtUsd(v?: number) {
+  const x = Number(v || 0);
+  return '$' + x.toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+function fmtInt(v?: number) {
+  const x = Number(v || 0);
+  return x.toLocaleString();
+}
+function fmtPct(v?: number) {
+  const x = Number(v || 0);
+  const sign = x > 0 ? '+' : '';
+  return sign + x.toFixed(2) + '%';
 }
