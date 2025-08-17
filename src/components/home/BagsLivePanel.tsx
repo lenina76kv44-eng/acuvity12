@@ -23,7 +23,7 @@ function fmtUsd(n?: number) {
 function Card({title, value}:{title:string; value:React.ReactNode}) {
   return (
     <div className="rounded-2xl border border-[#0E983B]/20 bg-gradient-to-br from-black/90 to-[#0a0a0a] p-5 shadow-[0_0_40px_rgba(14,152,59,0.15)] hover:shadow-[0_0_60px_rgba(14,152,59,0.25)] transition-all duration-300">
-      <div className="text-xs uppercase tracking-widest text-[#0E983B]/90 mb-3 font-semibold">{title}</div>
+      <div className="text-xs uppercase tracking-widest text-[#00ff88] mb-3 font-semibold">{title}</div>
       <div className="text-4xl font-bold text-[#00ff88]">{value}</div>
     </div>
   );
