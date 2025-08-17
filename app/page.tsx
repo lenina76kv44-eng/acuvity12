@@ -338,7 +338,7 @@ export default function HomePage() {
       {/* Ecosystem Section */}
       <section className="py-24 relative z-30 overflow-hidden">
         <div className="container mx-auto px-4 relative z-40">
-          <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto card-hover animate-scale-in">
+          <div className="bg-gradient-to-br from-gray-900/30 to-gray-800/20 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto card-hover animate-scale-in">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="animate-slide-in-left">
                 <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
