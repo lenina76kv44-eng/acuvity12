@@ -1,187 +1,105 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import useSWR from 'swr';
+import { fmtUsd, fmtUsdPrecise, fmtNum, fmtPct } from '@/src/lib/number';
 
-type Row = {
-  id: string;
-  url: string;
-  chainId: string;
-  dexId: string;
-  base: { symbol: string; address: string };
-  priceUsd: number;
-  change24h: number;
-  vol24h: number;
-  liquidityUsd: number;
-  fdv: number;
+type Api = {
+  totals: { allTimeTokens: number; new24h: number; volume24h: number; totalFdv: number };
+  top: {
+    pairAddress?: string; chainId?: string; dexId?: string; url?: string;
+    name: string; priceUsd: number | null; change24h: number | null;
+    volume24h: number | null; liquidityUsd: number | null; fdv: number | null; createdAt: number | null;
+  }[];
+  generatedAt: number;
 };
 
-type Payload = {
-  totals: {
-    totalTokens: number;
-    activePairs: number;
-    volume24h: number;
-    totalLiquidity: number;
-  };
-  list: Row[];
-};
+const fetcher = (u: string) => fetch(u).then(r => r.json());
 
 export default function BagsLivePanel() {
-  const [data, setData] = useState<Payload | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setErr(null);
-    try {
-      const r = await fetch('/api/dexscreener/solana', { cache: 'no-store' });
-      if (!r.ok) throw new Error(`${r.status}`);
-      const j = (await r.json()) as Payload;
-      setData(j);
-    } catch (e: any) {
-      setErr(`Failed to load: ${e?.message || 'error'}`);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-    const id = setInterval(load, 60_000); // refresh every 60s
-    return () => clearInterval(id);
-  }, [load]);
+  const { data, isLoading, mutate } = useSWR<Api>('/api/bags/metrics', fetcher, {
+    refreshInterval: 60_000, revalidateOnFocus: false,
+  });
 
   const t = data?.totals;
-  const rows = data?.list || [];
 
   return (
     <section className="mt-16">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold tracking-tight text-white">
-            Live BAGS Markets
-          </h2>
-          <button
-            onClick={load}
-            className="rounded-md bg-emerald-600/30 px-3 py-1.5 text-emerald-300 hover:bg-emerald-500/40"
-          >
+          <h2 className="text-2xl font-semibold tracking-tight text-white">Live BAGS Markets</h2>
+          <button onClick={() => mutate()} className="rounded-md border border-emerald-500/50 px-3 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-500/10 transition">
             Refresh
           </button>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Stat label="TOTAL TOKENS" value={fmtInt(t?.totalTokens)} />
-          <Stat label="ACTIVE PAIRS" value={fmtInt(t?.activePairs)} />
-          <Stat label="24H VOLUME" value={fmtUsd(t?.volume24h)} />
-          <Stat label="TOTAL LIQUIDITY" value={fmtUsd(t?.totalLiquidity)} />
+          <div className="rounded-xl border border-white/10 bg-[#0b0f0c] p-4 shadow-[0_0_60px_-20px_rgba(16,185,129,0.35)]">
+            <div className="text-xs uppercase tracking-wide text-emerald-400">Total Tokens</div>
+            <div className="mt-2 text-4xl font-bold text-white">{fmtNum(t?.allTimeTokens)}</div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-[#0b0f0c] p-4 shadow-[0_0_60px_-20px_rgba(16,185,129,0.35)]">
+            <div className="text-xs uppercase tracking-wide text-emerald-400">New Tokens (24h)</div>
+            <div className="mt-2 text-4xl font-bold text-white">{fmtNum(t?.new24h)}</div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-[#0b0f0c] p-4 shadow-[0_0_60px_-20px_rgba(16,185,129,0.35)]">
+            <div className="text-xs uppercase tracking-wide text-emerald-400">24h Volume</div>
+            <div className="mt-2 text-4xl font-bold text-white">{fmtUsd(t?.volume24h)}</div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-[#0b0f0c] p-4 shadow-[0_0_60px_-20px_rgba(16,185,129,0.35)]">
+            <div className="text-xs uppercase tracking-wide text-emerald-400">Total FDV</div>
+            <div className="mt-2 text-4xl font-bold text-white">{fmtUsd(t?.totalFdv)}</div>
+          </div>
         </div>
 
-        <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/40">
-          <table className="min-w-full text-sm">
-            <thead className="bg-white/5 text-neutral-400">
-              <tr className="[&>th]:px-4 [&>th]:py-3 [&>th]:text-left">
-                <th>PAIR</th>
-                <th>CHAIN</th>
-                <th>DEX</th>
-                <th>PRICE (USD)</th>
-                <th>24H Δ</th>
-                <th>24H VOL</th>
-                <th>LIQUIDITY</th>
-                <th>FDV</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {loading && (
+        <div className="mt-8 overflow-hidden rounded-xl border border-white/10">
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-[#0a0d0b] text-sm">
+              <thead className="bg-[#0f1411] text-emerald-300/90">
                 <tr>
-                  <td colSpan={9} className="p-6 text-center text-neutral-400">
-                    Loading…
-                  </td>
+                  <th className="px-4 py-3 text-left font-medium">Pair</th>
+                  <th className="px-4 py-3 text-left font-medium">Chain</th>
+                  <th className="px-4 py-3 text-left font-medium">DEX</th>
+                  <th className="px-4 py-3 text-right font-medium">Price (USD)</th>
+                  <th className="px-4 py-3 text-right font-medium">24h Δ</th>
+                  <th className="px-4 py-3 text-right font-medium">24h Vol</th>
+                  <th className="px-4 py-3 text-right font-medium">Liquidity</th>
+                  <th className="px-4 py-3 text-right font-medium">FDV</th>
+                  <th className="px-4 py-3 text-right font-medium">Link</th>
                 </tr>
-              )}
-              {err && !loading && (
-                <tr>
-                  <td colSpan={9} className="p-6 text-center text-red-400">
-                    {err}
-                  </td>
-                </tr>
-              )}
-              {!loading &&
-                !err &&
-                rows.map((p) => (
-                  <tr
-                    key={p.id}
-                    className="[&>td]:px-4 [&>td]:py-3 hover:bg-white/5"
-                  >
-                    <td className="font-medium text-white">
-                      {p.base.symbol}/SOL
+              </thead>
+              <tbody className="divide-y divide-white/5 text-white/90">
+                {(data?.top || []).map((r, i) => (
+                  <tr key={`${r.chainId}-${r.pairAddress}-${i}`}>
+                    <td className="px-4 py-3">{r.name}</td>
+                    <td className="px-4 py-3">{r.chainId || 'solana'}</td>
+                    <td className="px-4 py-3">{r.dexId || '-'}</td>
+                    <td className="px-4 py-3 text-right">{r.priceUsd != null ? fmtUsdPrecise(r.priceUsd) : '-'}</td>
+                    <td className="px-4 py-3 text-right">
+                      <span className={Number(r.change24h) >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                        {r.change24h != null ? fmtPct(r.change24h) : '-'}
+                      </span>
                     </td>
-                    <td className="capitalize text-neutral-300">{p.chainId}</td>
-                    <td className="capitalize text-neutral-300">{p.dexId}</td>
-                    <td className="text-neutral-100">{fmtUsd(p.priceUsd)}</td>
-                    <td
-                      className={
-                        p.change24h >= 0 ? 'text-emerald-400' : 'text-red-400'
-                      }
-                    >
-                      {fmtPct(p.change24h)}
-                    </td>
-                    <td className="text-neutral-100">{fmtUsd(p.vol24h)}</td>
-                    <td className="text-neutral-100">
-                      {fmtUsd(p.liquidityUsd)}
-                    </td>
-                    <td className="text-neutral-100">{fmtUsd(p.fdv)}</td>
-                    <td>
-                      {p.url ? (
-                        <a
-                          className="rounded-md bg-emerald-500/15 px-2 py-1 text-emerald-300 hover:bg-emerald-500/25"
-                          href={p.url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Dexscreener
-                        </a>
-                      ) : (
-                        <span className="text-neutral-500">—</span>
-                      )}
+                    <td className="px-4 py-3 text-right">{r.volume24h != null ? fmtUsd(r.volume24h) : '-'}</td>
+                    <td className="px-4 py-3 text-right">{r.liquidityUsd != null ? fmtUsd(r.liquidityUsd) : '-'}</td>
+                    <td className="px-4 py-3 text-right">{r.fdv != null ? fmtUsd(r.fdv) : '-'}</td>
+                    <td className="px-4 py-3 text-right">
+                      {r.url ? <a className="text-emerald-400 hover:underline" href={r.url} target="_blank" rel="noreferrer">Dexscreener</a> : '-'}
                     </td>
                   </tr>
                 ))}
-            </tbody>
-          </table>
+                {!isLoading && (!data?.top || data.top.length === 0) && (
+                  <tr><td className="px-4 py-6 text-center text-white/60" colSpan={9}>
+                    No BAGS tokens yet. Edit <code>src/config/bags.local.ts</code>.
+                  </td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="bg-[#0f1411] px-4 py-2 text-right text-xs text-white/50">
+            Data via Dexscreener (enriched) • Auto-refresh 60s
+          </div>
         </div>
-
-        <p className="mt-3 text-xs text-neutral-500">
-          Data via api.dexscreener.com • auto-refresh every ~60s.
-        </p>
       </div>
     </section>
   );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-neutral-900/40 p-5">
-      <div className="text-xs uppercase tracking-wider text-neutral-400">
-        {label}
-      </div>
-      <div className="mt-2 text-3xl font-semibold text-emerald-300">
-        {value || '—'}
-      </div>
-    </div>
-  );
-}
-
-function fmtUsd(v?: number) {
-  const x = Number(v || 0);
-  return '$' + x.toLocaleString(undefined, { maximumFractionDigits: 0 });
-}
-function fmtInt(v?: number) {
-  const x = Number(v || 0);
-  return x.toLocaleString();
-}
-function fmtPct(v?: number) {
-  const x = Number(v || 0);
-  const sign = x > 0 ? '+' : '';
-  return sign + x.toFixed(2) + '%';
 }
