@@ -161,9 +161,6 @@ export default function BagsLivePanel() {
               </tbody>
             </table>
           </div>
-          <div className="border-t border-neutral-800 px-4 py-2 text-xs text-neutral-500">
-            Data via Helius + DexScreener (fallback Birdeye) • Auto-refresh every 60s • Program-based discovery
-          </div>
         </div>
       </div>
     </section>
