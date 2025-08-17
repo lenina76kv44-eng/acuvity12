@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Users, BarChart3, Coins, ArrowRight, CheckCircle, Zap, Shield, Target } from "lucide-react";
 import Icon from '@/src/components/ui/Icon';
-import dynamic from "next/dynamic";
-const BagsStats = dynamic(() => import("@/src/components/home/BagsStats"), { ssr: false });
+import BagsLivePanel from '@/src/components/home/BagsLivePanel';
 
 export default function HomePage() {
   return (
@@ -154,7 +153,7 @@ export default function HomePage() {
       </div>
 
       {/* Bags Live Markets */}
-      <BagsStats />
+      <BagsLivePanel />
 
       {/* What is Acuvity Section */}
       <section id="features" className="py-24 text-center relative z-40">
