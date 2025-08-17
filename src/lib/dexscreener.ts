@@ -1,117 +1,106 @@
 // src/lib/dexscreener.ts
+const DEX_URL = 'https://api.dexscreener.com/latest/dex';
+
 export type DexPair = {
   chainId: string;
-  dexId: string;
+  dexId?: string;
   pairAddress?: string;
-  pairCreatedAt?: number; // ms
-  url?: string;
-
-  baseToken: { address: string; symbol?: string; name?: string; logoURI?: string };
-  quoteToken: { address: string; symbol?: string; name?: string };
-
-  priceUsd?: number;
+  baseToken: { address: string; symbol?: string };
+  quoteToken: { address: string; symbol?: string };
+  priceUsd?: string;
   fdv?: number;
   liquidity?: { usd?: number };
   volume?: { h24?: number };
-  priceChange?: { h24?: number };
+  pairCreatedAt?: number; // ms
+  url?: string; // link back to dexscreener
 };
 
-const DEX_IDS = ["raydium", "meteora", "pumpswap"] as const;
+type DexSearchResponse = { pairs?: DexPair[] };
 
-async function fetchLatestDex(dexId: string): Promise<DexPair[]> {
-  const url = `https://api.dexscreener.com/latest/dex/pairs/solana/${dexId}`;
-  const res = await fetch(url, { next: { revalidate: 30 } });
-  if (!res.ok) throw new Error(`Dexscreener ${dexId} ${res.status}`);
-  const json = await res.json();
-  return (json?.pairs || []) as DexPair[];
-}
-
-export async function fetchSolanaLatestPairs(): Promise<DexPair[]> {
-  const results = await Promise.allSettled(DEX_IDS.map(fetchLatestDex));
-  const all: DexPair[] = [];
-  for (const r of results) {
-    if (r.status === "fulfilled") all.push(...r.value);
+async function safeFetch(url: string, init?: RequestInit, retries = 2): Promise<Response> {
+  let lastErr: unknown;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const r = await fetch(url, { ...init, next: { revalidate: 60 } });
+      if (r.ok) return r;
+      lastErr = new Error(`${r.status} ${r.statusText}`);
+    } catch (e) {
+      lastErr = e;
+    }
+    await new Promise(res => setTimeout(res, 300 * (i + 1)));
   }
-  return all;
+  throw lastErr ?? new Error('fetch failed');
 }
 
-export type BagsMetrics = {
-  tokens24h: number;
-  activePairs: number;
-  volume24hUsd: number;
-  marketCapSumUsd: number;
-  allTimeTokens?: number | null;
-  top: Array<{
-    mint: string;
-    symbol: string;
-    name: string;
-    dex: string;
-    priceUsd: number | null;
-    change24h: number | null;
-    volume24hUsd: number | null;
-    liquidityUsd: number | null;
-    fdvUsd: number | null;
-    url?: string;
-    logoURI?: string;
-    chainId: string;
-  }>;
-};
+/** 
+ * Pulls a wide search result and filters to Solana + tokens whose symbol ends with the given suffix (e.g. "BAGS"). 
+ * DexScreener search supports free text; "chain:solana BAGS" narrows result set.
+ */
+export async function fetchBagsUniverse(suffix = 'BAGS'): Promise<DexPair[]> {
+  const q = encodeURIComponent(`chain:solana ${suffix}`);
+  const res = await safeFetch(`${DEX_URL}/search?q=${q}`);
+  const data = (await res.json()) as DexSearchResponse;
 
-export function dedupeByBaseMint(pairs: DexPair[]): DexPair[] {
-  const seen = new Set<string>();
-  const out: DexPair[] = [];
-  for (const p of pairs) {
-    const mint = p?.baseToken?.address;
-    if (!mint || seen.has(mint)) continue;
-    seen.add(mint);
-    out.push(p);
+  const raw = data.pairs?.filter(p => p.chainId === 'solana') ?? [];
+
+  // Deduplicate by baseToken (keep best pair by liquidity)
+  const bestByMint = new Map<string, DexPair>();
+  for (const p of raw) {
+    const sym = (p.baseToken.symbol || '').toUpperCase();
+    if (!sym.endsWith(suffix.toUpperCase())) continue;
+
+    const id = p.baseToken.address;
+    const current = bestByMint.get(id);
+    const curLiq = current?.liquidity?.usd ?? 0;
+    const liq = p.liquidity?.usd ?? 0;
+    if (!current || liq > curLiq) bestByMint.set(id, p);
   }
-  return out;
+  return Array.from(bestByMint.values());
 }
 
-export function onlyCreatedLast24h(pairs: DexPair[]): DexPair[] {
-  const since = Date.now() - 24 * 60 * 60 * 1000;
-  return pairs.filter(p => (p.pairCreatedAt ?? 0) >= since);
-}
+export function computeMetrics(pairs: DexPair[]) {
+  const now = Date.now();
+  const dayAgo = now - 24 * 60 * 60 * 1000;
 
-export function filterByBagsSuffix(pairs: DexPair[], suffix = "BAGS"): DexPair[] {
-  const s = (suffix || "").trim();
-  if (!s) return pairs;
-  return pairs.filter(p => p?.baseToken?.address?.endsWith(s));
-}
-
-export function toMetrics(pairs: DexPair[], allTimeTokens?: number | null): BagsMetrics {
-  const tokens24h = pairs.length;
-
-  let activePairs = 0;
-  let volume24hUsd = 0;
-  let marketCapSumUsd = 0;
+  let totalTokens24h = 0;
+  let activeTokens = 0;
+  let vol24 = 0;
+  let liq = 0;
 
   for (const p of pairs) {
-    const vol = p?.volume?.h24 ?? 0;
-    const fdv = p?.fdv ?? 0;
-    if (vol > 0) activePairs++;
-    volume24hUsd += vol || 0;
-    marketCapSumUsd += fdv || 0;
+    const created = p.pairCreatedAt ?? 0;
+    if (created >= dayAgo) totalTokens24h++;
+    if ((p.liquidity?.usd ?? 0) > 0) activeTokens++;
+    vol24 += p.volume?.h24 ?? 0;
+    liq += p.liquidity?.usd ?? 0;
   }
 
-  const top = [...pairs]
-    .sort((a, b) => (b.fdv ?? 0) - (a.fdv ?? 0))
-    .slice(0, 10)
-    .map(p => ({
-      mint: p.baseToken.address,
-      symbol: p.baseToken.symbol || p.baseToken.address.slice(0, 4),
-      name: p.baseToken.name || p.baseToken.symbol || p.baseToken.address,
-      dex: p.dexId,
-      priceUsd: p.priceUsd ?? null,
-      change24h: p?.priceChange?.h24 ?? null,
-      volume24hUsd: p?.volume?.h24 ?? null,
-      liquidityUsd: p?.liquidity?.usd ?? null,
-      fdvUsd: p.fdv ?? null,
-      url: p.url,
-      logoURI: (p.baseToken as any)?.logoURI || undefined,
-      chainId: p.chainId,
-    }));
+  // Top by FDV, fallback to liquidity if FDV is missing
+  const top = [...pairs].sort((a, b) => {
+    const af = a.fdv ?? 0, bf = b.fdv ?? 0;
+    if (af !== bf) return bf - af;
+    const al = a.liquidity?.usd ?? 0, bl = b.liquidity?.usd ?? 0;
+    return bl - al;
+  }).slice(0, 10);
 
-  return { tokens24h, activePairs, volume24hUsd, marketCapSumUsd, allTimeTokens: allTimeTokens ?? null, top };
+  return {
+    totals: {
+      tokens24h: totalTokens24h,
+      activeTokens,
+      volume24h: vol24,
+      liquidityTotal: liq,
+    },
+    top,
+  };
+}
+
+export function formatUsd(v?: number) {
+  const n = Number(v ?? 0);
+  return n >= 1e9
+    ? `$${(n/1e9).toFixed(2)}B`
+    : n >= 1e6
+      ? `$${(n/1e6).toFixed(2)}M`
+      : n >= 1e3
+        ? `$${(n/1e3).toFixed(2)}K`
+        : `$${n.toFixed(0)}`;
 }

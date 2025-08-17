@@ -1,84 +1,169 @@
-"use client";
-import useSWR from "swr";
-import { useMemo } from "react";
+// src/components/home/BagsLivePanel.tsx
+'use client';
 
-const fetcher = (u: string) => fetch(u).then(r => r.json());
+import * as React from 'react';
+import { formatUsd } from '@/src/lib/dexscreener';
 
-function StatCard({label, value}:{label:string; value:string}) {
+type Row = {
+  baseToken: { address: string; symbol?: string };
+  quoteToken: { symbol?: string };
+  priceUsd?: string;
+  volume?: { h24?: number };
+  liquidity?: { usd?: number };
+  fdv?: number;
+  url?: string;
+};
+
+type ApiResp = {
+  ok: boolean;
+  updatedAt: number;
+  totals: {
+    tokens24h: number;
+    activeTokens: number;
+    volume24h: number;
+    liquidityTotal: number;
+  };
+  list: Row[];
+  countUniverse: number;
+  error?: string;
+};
+
+export default function BagsLivePanel() {
+  const [data, setData] = React.useState<ApiResp | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/bags-live', { cache: 'no-store' });
+      const j = (await res.json()) as ApiResp;
+      setData(j);
+    } catch (e) {
+      setData({ ok: false, updatedAt: Date.now(), totals: { tokens24h: 0, activeTokens: 0, volume24h: 0, liquidityTotal: 0 }, list: [], countUniverse: 0, error: 'fetch failed' });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    load();
+    const id = setInterval(load, 60_000);
+    return () => clearInterval(id);
+  }, [load]);
+
+  const t = data?.totals;
+  const list = data?.list ?? [];
+
   return (
-    <div className="rounded-2xl border border-zinc-700 bg-[#0B0E12]/70 p-6 shadow-[0_0_40px_rgba(0,255,120,0.05)]">
-      <div className="text-xs uppercase tracking-wider text-zinc-400">{label}</div>
-      <div className="mt-2 text-3xl font-semibold text-white">{value}</div>
+    <section className="mt-16">
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold tracking-tight text-white">
+            Live <span className="text-emerald-400">BAGS</span> Markets
+          </h2>
+          <button
+            onClick={load}
+            className="rounded-lg bg-emerald-600/20 px-3 py-1 text-emerald-300 ring-1 ring-emerald-500/30 hover:bg-emerald-600/30"
+          >
+            Refresh
+          </button>
+        </div>
+
+        {/* KPI cards */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Kpi loading={loading} label="TOTAL TOKENS (24h)" value={t?.tokens24h ?? 0} />
+          <Kpi loading={loading} label="ACTIVE TOKENS" value={t?.activeTokens ?? 0} />
+          <Kpi loading={loading} label="24H VOLUME" value={formatUsd(t?.volume24h)} wide />
+          <Kpi loading={loading} label="TOTAL LIQUIDITY" value={formatUsd(t?.liquidityTotal)} wide />
+        </div>
+
+        {/* Table */}
+        <div className="mt-8 overflow-hidden rounded-2xl border border-emerald-700/30 bg-neutral-900/60 shadow-[0_0_30px_rgba(16,185,129,0.08)]">
+          <div className="border-b border-emerald-700/20 px-4 py-3 text-sm text-emerald-300">
+            Top markets by <span className="font-medium text-emerald-400">FDV</span> (best pair per token)
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-neutral-900/70 text-neutral-300">
+                <tr>
+                  <Th>Pair</Th>
+                  <Th className="text-right">Price (USD)</Th>
+                  <Th className="text-right">24h Δ</Th>
+                  <Th className="text-right">24h Vol</Th>
+                  <Th className="text-right">Liquidity</Th>
+                  <Th className="text-right">FDV</Th>
+                  <Th className="text-right">Link</Th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-800">
+                {loading && list.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-neutral-400">Loading…</td>
+                  </tr>
+                )}
+                {!loading && list.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-neutral-400">No data</td>
+                  </tr>
+                )}
+                {list.map((r) => {
+                  const sym = r.baseToken.symbol ?? r.baseToken.address.slice(0, 6);
+                  // DexScreener не всегда отдаёт 24h Δ в этом ответе — посчитаем как отсутствующую (—)
+                  const price = r.priceUsd ? `$${Number(r.priceUsd).toFixed(6)}` : '—';
+                  const vol = formatUsd(r.volume?.h24);
+                  const liq = formatUsd(r.liquidity?.usd);
+                  const fdv = r.fdv ? formatUsd(r.fdv) : '—';
+                  return (
+                    <tr key={r.baseToken.address} className="hover:bg-neutral-900/60">
+                      <Td>{sym}/{r.quoteToken.symbol ?? 'SOL'}</Td>
+                      <Td right>{price}</Td>
+                      <Td right>—</Td>
+                      <Td right>{vol}</Td>
+                      <Td right>{liq}</Td>
+                      <Td right>{fdv}</Td>
+                      <Td right>
+                        {r.url ? (
+                          <a
+                            className="text-emerald-400 hover:text-emerald-300 underline decoration-emerald-500/40"
+                            href={r.url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Dexscreener
+                          </a>
+                        ) : '—'}
+                      </Td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="border-t border-emerald-700/20 px-4 py-2 text-xs text-neutral-400">
+            Data via DexScreener • Auto refresh every 60s • Universe: tokens with symbol ending "BAGS" on Solana (best pair per token)
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Kpi({ label, value, loading, wide }: { label: string; value: string | number; loading?: boolean; wide?: boolean }) {
+  return (
+    <div className={`rounded-2xl border border-emerald-700/30 bg-neutral-900/60 p-5 shadow-[0_0_30px_rgba(16,185,129,0.08)] ${wide ? 'md:col-span-2' : ''}`}>
+      <div className="text-xs font-medium uppercase tracking-wider text-emerald-300">{label}</div>
+      <div className="mt-2 text-3xl font-bold text-white tabular-nums">
+        {loading ? <span className="animate-pulse text-neutral-500">…</span> : value}
+      </div>
     </div>
   );
 }
 
-function usd(n: number | null | undefined) {
-  if (!n) return "$0";
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+function Th({ children, className = '' }: React.PropsWithChildren<{ className?: string }>) {
+  return <th className={`px-4 py-3 text-left font-semibold tracking-wide ${className}`}>{children}</th>;
 }
-
-export default function BagsLivePanel() {
-  const { data, mutate, isLoading } = useSWR("/api/bags/live", fetcher, { refreshInterval: 60_000 });
-
-  const m = data?.metrics;
-  const list = data?.list || [];
-
-  const cards = useMemo(() => [
-    { label: "24h New Tokens", val: String(m?.created24h ?? 0) },
-    { label: "24h Active Pairs", val: String(m?.activePairs24h ?? 0) },
-    { label: "24h Total Volume", val: usd(m?.totalVolume24hUSD) },
-    { label: "Total Tokens (all-time)", val: m?.totalTokensAllTime != null ? String(m.totalTokensAllTime) : "—" },
-  ], [m]);
-
-  return (
-    <section className="mx-auto mt-16 max-w-7xl px-4">
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-semibold tracking-tight text-white">Live BAGS Markets</h2>
-        <button
-          onClick={() => mutate()}
-          className="rounded-lg bg-emerald-600/80 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
-        >
-          Refresh
-        </button>
-      </div>
-
-      {/* Stats grid */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {cards.map((c, i) => <StatCard key={i} label={c.label} value={c.val} />)}
-      </div>
-
-      {/* Table */}
-      <div className="mt-8 overflow-hidden rounded-2xl border border-zinc-700 bg-[#0B0E12]/70">
-        <div className="border-b border-zinc-700 px-6 py-3 text-sm uppercase tracking-wider text-zinc-400">
-          Top Tokens by Market Cap (24h, minted via Bags)
-        </div>
-        <div className="divide-y divide-zinc-800">
-          <div className="grid grid-cols-[220px,110px,110px,130px,130px,1fr] px-6 py-3 text-xs uppercase tracking-wider text-zinc-400">
-            <div>Pair</div><div>Price</div><div>24h Vol</div><div>Liquidity</div><div>Market Cap</div><div>Mint</div>
-          </div>
-          {isLoading && !data && (
-            <div className="px-6 py-6 text-zinc-400">Loading…</div>
-          )}
-          {list.map((t: any) => (
-            <div key={t.mint} className="grid grid-cols-[220px,110px,110px,130px,130px,1fr] items-center px-6 py-3 text-sm text-white">
-              <div className="flex items-center gap-3">
-                {t.logo ? <img src={t.logo} alt="" className="h-6 w-6 rounded" /> : <div className="h-6 w-6 rounded bg-emerald-600/30" />}
-                <div className="truncate"><span className="text-emerald-400">{t.symbol || "?"}</span> <span className="text-zinc-400">/ SOL</span></div>
-              </div>
-              <div className="tabular-nums">{usd((t.price || 0) * 1)}</div>
-              <div className="tabular-nums text-zinc-300">{usd(t.volume24hUSD)}</div>
-              <div className="tabular-nums text-zinc-300">{usd(t.liquidityUSD)}</div>
-              <div className="tabular-nums text-emerald-400">{usd(t.marketCapUSD)}</div>
-              <div className="truncate text-zinc-400">{t.mint}</div>
-            </div>
-          ))}
-          {!isLoading && list.length === 0 && (
-            <div className="px-6 py-6 text-zinc-400">No tokens found in the last 24h.</div>
-          )}
-        </div>
-        <div className="px-6 py-3 text-xs text-zinc-500">Data: Helius + Birdeye · auto-refresh every 60s.</div>
-      </div>
-    </section>
-  );
+function Td({ children, right = false }: React.PropsWithChildren<{ right?: boolean }>) {
+  return <td className={`px-4 py-3 ${right ? 'text-right' : ''}`}>{children}</td>;
 }
