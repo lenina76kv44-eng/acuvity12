@@ -66,7 +66,7 @@ export default function BagsLivePanel() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => load()}
-              className="rounded-lg bg-[#0E983B]/20 border border-[#0E983B]/30 px-4 py-2 text-sm font-semibold text-[#0E983B] hover:bg-[#0E983B]/30 hover:border-[#0E983B]/50 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="rounded-lg bg-[#0E983B]/20 border border-[#0E983B]/30 px-4 py-2 text-sm font-semibold text-[#00ff88] hover:bg-[#0E983B]/30 hover:border-[#0E983B]/50 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               {refreshing ? 'Refreshing…' : 'Refresh'}
             </button>
