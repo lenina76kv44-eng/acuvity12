@@ -1,6 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
+import { useEffect, useState, useCallback } from 'react';
 import { fmtUsd, fmtUsdPrecise, fmtNum, fmtPct } from '@/src/lib/number';
 
 type Api = {
@@ -13,12 +13,33 @@ type Api = {
   generatedAt: number;
 };
 
-const fetcher = (u: string) => fetch(u).then(r => r.json());
-
 export default function BagsLivePanel() {
-  const { data, isLoading, mutate } = useSWR<Api>('/api/bags/metrics', fetcher, {
-    refreshInterval: 60_000, revalidateOnFocus: false,
-  });
+  const [data, setData] = useState<Api | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch('/api/bags/metrics');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const result = await response.json();
+      setData(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch data');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   const t = data?.totals;
 
@@ -27,7 +48,7 @@ export default function BagsLivePanel() {
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-2xl font-semibold tracking-tight text-white">Live BAGS Markets</h2>
-          <button onClick={() => mutate()} className="rounded-md border border-emerald-500/50 px-3 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-500/10 transition">
+          <button onClick={fetchData} className="rounded-md border border-emerald-500/50 px-3 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-500/10 transition">
             Refresh
           </button>
         </div>
