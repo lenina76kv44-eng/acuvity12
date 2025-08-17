@@ -1,44 +1,48 @@
-// app/api/bags/markets/route.ts
 import { NextResponse } from "next/server";
-import { fetchSolanaLatestPairs, dedupeByBaseMint, onlyCreatedLast24h, filterByBagsSuffix, toMetrics } from "@/src/lib/dexscreener";
+import { fetchBagsMintsSince } from "@/src/lib/bags/helius";
+import { enrichMarkets } from "@/src/lib/markets/markets";
 
-export const revalidate = 30; // SSR cache window (seconds)
+export const revalidate = 120; // SSG cache
 
-async function fetchAllTimeTokensFromExternal(): Promise<number | null> {
-  const url = process.env.BAGS_STATS_URL?.trim();
-  if (!url) return null;
+export async function GET(request: Request) {
   try {
-    const r = await fetch(url, { cache: "no-store", headers: { "Accept": "application/json" } });
-    if (!r.ok) return null;
-    const j = await r.json();
-    const n = Number(j?.totalTokensAllTime);
-    return Number.isFinite(n) ? n : null;
-  } catch {
-    return null;
-  }
-}
+    const { searchParams } = new URL(request.url);
+    const lookbackHours = Number(searchParams.get("h") || "24");
+    const now = Math.floor(Date.now() / 1000);
+    const since = now - lookbackHours * 3600;
 
-export async function GET() {
-  try {
-    const [pairs, totalAll] = await Promise.all([
-      fetchSolanaLatestPairs(),
-      fetchAllTimeTokensFromExternal(),
-    ]);
+    // 1) discover mints from Bags programs (last 24h)
+    const mints24h = await fetchBagsMintsSince(since);
 
-    // 1) последние пары за 24 часа
-    let candidates = onlyCreatedLast24h(pairs);
-    // 2) уникальные по base mint
-    candidates = dedupeByBaseMint(candidates);
-    // 3) фильтр "bags"-мяток по суффиксу (если NEXT_PUBLIC_BAGS_SUFFIX не задан — пропускаем)
-    const suffix = process.env.NEXT_PUBLIC_BAGS_SUFFIX || "BAGS";
-    candidates = filterByBagsSuffix(candidates, suffix);
+    // 2) For KPI "all-time tokens" we can return distinct mints we observed in last week as approximation
+    // (If needed, add a weekly scan and persist; for now, just expose 24h and active.)
+    const rows = await enrichMarkets(mints24h);
 
-    const metrics = toMetrics(candidates, totalAll);
-    return NextResponse.json({ ok: true, data: metrics }, { status: 200 });
+    // KPIs
+    const totalTokens24h = mints24h.length;
+    const totalLiquidity = rows.reduce((s,r)=> s + (r.liquidityUsd || 0), 0);
+    const totalVol24h = rows.reduce((s,r)=> s + (r.vol24h || 0), 0);
+
+    // active = rows that currently have liquidity > 0
+    const activeTokens = rows.filter(r => (r.liquidityUsd||0) > 0).length;
+
+    // top 10 by FDV
+    const top = [...rows].sort((a,b)=> (b.fdvUsd||0) - (a.fdvUsd||0)).slice(0,10);
+
+    return NextResponse.json({
+      ok: true,
+      kpis: {
+        totalTokens24h,
+        activeTokens,
+        totalLiquidity,
+        totalVol24h,
+        // leave allTimeTokens null for now unless we add persistence
+        allTimeTokens: null
+      },
+      top
+    });
   } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: e?.message || "failed" },
-      { status: 500 }
-    );
+    console.error("bags/markets error:", e);
+    return NextResponse.json({ ok: false, error: e?.message || "failed" }, { status: 500 });
   }
 }

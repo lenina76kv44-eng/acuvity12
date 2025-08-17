@@ -1,58 +1,63 @@
-// src/components/home/BagsLivePanel.tsx
-'use client';
+"use client";
 
-import * as React from 'react';
-import { formatUsd } from '@/src/lib/dexscreener';
+import { useEffect, useState } from "react";
 
 type Row = {
-  baseToken: { address: string; symbol?: string };
-  quoteToken: { symbol?: string };
-  priceUsd?: string;
-  volume?: { h24?: number };
-  liquidity?: { usd?: number };
-  fdv?: number;
-  url?: string;
+  mint: string;
+  symbol: string;
+  priceUsd: number | null;
+  change24h: number | null;
+  vol24h: number | null;
+  liquidityUsd: number | null;
+  fdvUsd: number | null;
+  link: string | null;
 };
 
-type ApiResp = {
+type Resp = {
   ok: boolean;
-  updatedAt: number;
-  totals: {
-    tokens24h: number;
+  kpis: {
+    totalTokens24h: number;
     activeTokens: number;
-    volume24h: number;
-    liquidityTotal: number;
+    totalLiquidity: number;
+    totalVol24h: number;
+    allTimeTokens: number | null;
   };
-  list: Row[];
-  countUniverse: number;
-  error?: string;
+  top: Row[];
 };
+
+function k(n: number | null | undefined) {
+  if (!n || !isFinite(n)) return "$0";
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000_000) return `$${(n/1_000_000_000).toFixed(2)}B`;
+  if (abs >= 1_000_000) return `$${(n/1_000_000).toFixed(2)}M`;
+  if (abs >= 1_000) return `$${(n/1_000).toFixed(2)}K`;
+  return `$${n.toFixed(2)}`;
+}
 
 export default function BagsLivePanel() {
-  const [data, setData] = React.useState<ApiResp | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [data, setData] = useState<Resp | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const load = React.useCallback(async () => {
+  async function load() {
     setLoading(true);
     try {
-      const res = await fetch('/api/bags-live', { cache: 'no-store' });
-      const j = (await res.json()) as ApiResp;
-      setData(j);
+      const res = await fetch("/api/bags/markets?h=24", { cache: "no-store" });
+      const json: Resp = await res.json();
+      setData(json);
     } catch (e) {
-      setData({ ok: false, updatedAt: Date.now(), totals: { tokens24h: 0, activeTokens: 0, volume24h: 0, liquidityTotal: 0 }, list: [], countUniverse: 0, error: 'fetch failed' });
+      console.error("Failed to load bags markets:", e);
     } finally {
       setLoading(false);
     }
+  }
+
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 60_000); // auto refresh 60s
+    return () => clearInterval(id);
   }, []);
 
-  React.useEffect(() => {
-    load();
-    const id = setInterval(load, 60_000);
-    return () => clearInterval(id);
-  }, [load]);
-
-  const t = data?.totals;
-  const list = data?.list ?? [];
+  const kpis = data?.kpis;
 
   return (
     <section className="mt-16">
@@ -63,107 +68,104 @@ export default function BagsLivePanel() {
           </h2>
           <button
             onClick={load}
-            className="rounded-lg bg-[#00ff88]/20 px-3 py-1 text-[#00ff88] ring-1 ring-[#00ff88]/30 hover:bg-[#00ff88]/30"
+            className="rounded-xl bg-green-600 text-black px-4 py-2 font-semibold hover:bg-green-500 active:bg-green-600 btn-animated"
           >
             Refresh
           </button>
         </div>
 
         {/* KPI cards */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Kpi loading={loading} label="TOTAL TOKENS (24h)" value={t?.tokens24h ?? 0} />
-          <Kpi loading={loading} label="ACTIVE TOKENS" value={t?.activeTokens ?? 0} />
-          <Kpi loading={loading} label="24H VOLUME" value={formatUsd(t?.volume24h)} wide />
-          <Kpi loading={loading} label="TOTAL LIQUIDITY" value={formatUsd(t?.liquidityTotal)} wide />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up">
+            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Total Tokens (24h)</div>
+            <div className="mt-2 text-3xl font-semibold text-[#00ff88]">
+              {loading ? <span className="animate-pulse text-[#00ff88]/50">…</span> : (kpis?.totalTokens24h ?? 0)}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up stagger-1">
+            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Active Tokens</div>
+            <div className="mt-2 text-3xl font-semibold text-[#00ff88]">
+              {loading ? <span className="animate-pulse text-[#00ff88]/50">…</span> : (kpis?.activeTokens ?? 0)}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up stagger-2">
+            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">24h Volume</div>
+            <div className="mt-2 text-3xl font-semibold text-[#00ff88]">
+              {loading ? <span className="animate-pulse text-[#00ff88]/50">…</span> : k(kpis?.totalVol24h ?? 0)}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 find-glow card-hover animate-slide-in-up stagger-3">
+            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] mb-1 font-semibold">Total Liquidity</div>
+            <div className="mt-2 text-3xl font-semibold text-[#00ff88]">
+              {loading ? <span className="animate-pulse text-[#00ff88]/50">…</span> : k(kpis?.totalLiquidity ?? 0)}
+            </div>
+          </div>
         </div>
 
         {/* Table */}
-        <div className="mt-8 overflow-hidden rounded-2xl border border-emerald-700/30 bg-neutral-900/60 shadow-[0_0_30px_rgba(16,185,129,0.08)]">
-          <div className="border-b border-emerald-700/20 px-4 py-3 text-sm text-emerald-300">
-            Top markets by <span className="font-medium text-[#00ff88]">FDV</span> (best pair per token)
+        <div className="mt-8 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950">
+          <div className="border-b border-neutral-800 px-4 py-3 text-sm text-[#7AEFB8]">
+            Top markets by <span className="font-medium text-[#00ff88]">FDV</span> (program-based discovery)
           </div>
 
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-neutral-900/70 text-neutral-300">
-                <tr>
-                  <Th className="text-[#00ff88]">Pair</Th>
-                  <Th className="text-right text-[#00ff88]">Price (USD)</Th>
-                  <Th className="text-right text-[#00ff88]">24h Δ</Th>
-                  <Th className="text-right text-[#00ff88]">24h Vol</Th>
-                  <Th className="text-right text-[#00ff88]">Liquidity</Th>
-                  <Th className="text-right text-[#00ff88]">FDV</Th>
-                  <Th className="text-right text-[#00ff88]">Link</Th>
+              <thead className="bg-black/50 text-[#7AEFB8]">
+                <tr className="[&>th]:px-4 [&>th]:py-3 [&>th]:text-left">
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">Pair</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">Price (USD)</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">24h Δ</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">24h Vol</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">Liquidity</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">FDV</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs text-[#00ff88]">Link</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-800">
-                {loading && list.length === 0 && (
+                {loading && (!data?.top?.length) && (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-[#00ff88]/70">Loading…</td>
                   </tr>
                 )}
-                {!loading && list.length === 0 && (
+                {(data?.top ?? []).map((r) => (
+                  <tr key={r.mint} className="text-[#00ff88] hover:bg-black/50 hover-glow transition-all duration-200">
+                    <td className="px-4 py-3 text-[#00ff88]">{r.symbol}/SOL</td>
+                    <td className="px-4 py-3 text-[#00ff88]">{r.priceUsd ? `$${r.priceUsd.toFixed(6)}` : "—"}</td>
+                    <td className="px-4 py-3 text-[#00ff88]">{r.change24h !== null ? `${r.change24h.toFixed(2)}%` : "—"}</td>
+                    <td className="px-4 py-3 text-[#00ff88]">{k(r.vol24h)}</td>
+                    <td className="px-4 py-3 text-[#00ff88]">{k(r.liquidityUsd)}</td>
+                    <td className="px-4 py-3 text-[#00ff88]">{k(r.fdvUsd)}</td>
+                    <td className="px-4 py-3">
+                      {r.link ? (
+                        <a 
+                          href={r.link} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="rounded-lg bg-green-600 hover:bg-green-500 text-black px-3 py-1.5 text-xs font-semibold transition-colors duration-200 btn-animated"
+                        >
+                          Dexscreener
+                        </a>
+                      ) : (
+                        <span className="text-[#00ff88]/50">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {!loading && (!data?.top?.length) && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-[#00ff88]/70">No data</td>
+                    <td className="px-4 py-6 text-[#00ff88]/70 text-center" colSpan={7}>
+                      No markets found for the selected window.
+                    </td>
                   </tr>
                 )}
-                {list.map((r) => {
-                  const sym = r.baseToken.symbol ?? r.baseToken.address.slice(0, 6);
-                  // DexScreener не всегда отдаёт 24h Δ в этом ответе — посчитаем как отсутствующую (—)
-                  const price = r.priceUsd ? `$${Number(r.priceUsd).toFixed(6)}` : '—';
-                  const vol = formatUsd(r.volume?.h24);
-                  const liq = formatUsd(r.liquidity?.usd);
-                  const fdv = r.fdv ? formatUsd(r.fdv) : '—';
-                  return (
-                    <tr key={r.baseToken.address} className="hover:bg-neutral-900/60">
-                      <Td className="text-[#00ff88]">{sym}/{r.quoteToken.symbol ?? 'SOL'}</Td>
-                      <Td right className="text-[#00ff88]">{price}</Td>
-                      <Td right className="text-[#00ff88]">—</Td>
-                      <Td right className="text-[#00ff88]">{vol}</Td>
-                      <Td right className="text-[#00ff88]">{liq}</Td>
-                      <Td right className="text-[#00ff88]">{fdv}</Td>
-                      <Td right>
-                        {r.url ? (
-                          <a
-                            className="text-[#00ff88] hover:text-[#00cc6a] underline decoration-[#00ff88]/40"
-                            href={r.url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Dexscreener
-                          </a>
-                        ) : '—'}
-                      </Td>
-                    </tr>
-                  );
-                })}
               </tbody>
             </table>
           </div>
-
-          <div className="border-t border-emerald-700/20 px-4 py-2 text-xs text-neutral-400">
-            Data via DexScreener • Auto refresh every 60s • Universe: tokens with symbol ending "BAGS" on Solana (best pair per token)
+          <div className="border-t border-neutral-800 px-4 py-2 text-xs text-neutral-500">
+            Data via Helius + DexScreener (fallback Birdeye) • Auto-refresh every 60s • Program-based discovery
           </div>
         </div>
       </div>
     </section>
   );
-}
-
-function Kpi({ label, value, loading, wide }: { label: string; value: string | number; loading?: boolean; wide?: boolean }) {
-  return (
-    <div className={`rounded-2xl border border-emerald-700/30 bg-neutral-900/60 p-5 shadow-[0_0_30px_rgba(16,185,129,0.08)] ${wide ? 'md:col-span-2' : ''}`}>
-      <div className="text-xs font-medium uppercase tracking-wider text-[#00ff88]">{label}</div>
-      <div className="mt-2 text-3xl font-bold text-[#00ff88] tabular-nums">
-        {loading ? <span className="animate-pulse text-[#00ff88]/50">…</span> : value}
-      </div>
-    </div>
-  );
-}
-
-function Th({ children, className = '' }: React.PropsWithChildren<{ className?: string }>) {
-  return <th className={`px-4 py-3 text-left font-semibold tracking-wide ${className}`}>{children}</th>;
-}
-function Td({ children, right = false, className = '' }: React.PropsWithChildren<{ right?: boolean; className?: string }>) {
-  return <td className={`px-4 py-3 ${right ? 'text-right' : ''} ${className}`}>{children}</td>;
 }
