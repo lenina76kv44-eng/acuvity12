@@ -1,100 +1,86 @@
 import { NextResponse } from 'next/server';
-import { loadBagsTokens } from '@/src/lib/bags';
-import { getBestPairForMint } from '@/src/lib/dexscreener';
+import { discoverBagsTokens } from '@/src/lib/helius-bags';
+import { loadMarketsForMints } from '@/src/lib/dexscreener';
+import { getCached, setCached, getLastGood } from '@/src/lib/http';
 
-type TopRow = {
-  pairAddress?: string;
-  chainId?: string;
-  dexId?: string;
-  url?: string;
-  name: string;
-  priceUsd: number | null;
-  change24h: number | null;
-  volume24h: number | null;
-  liquidityUsd: number | null;
-  fdv: number | null;
-  createdAt: number | null;
+export const dynamic = 'force-dynamic';
+
+type MetricPayload = {
+  updatedAt: number;
+  totals: {
+    tokens24h: number;
+    activeTokens: number;      // tokens with liquidity > 1k or volume>0
+    vol24hUsd: number;
+    liquidityUsd: number;
+  };
+  top: Array<{
+    mint: string;
+    name?: string;
+    priceUsd?: number;
+    fdv?: number;
+    liquidityUsd?: number;
+    vol24hUsd?: number;
+    url?: string;
+    dexId?: string;
+  }>;
 };
 
-const CACHE_TTL_MS = 45_000;
-let cacheAt = 0;
-let cacheData: any | null = null;
-
-function now() { return Date.now(); }
-
-export const revalidate = 0;
+const CACHE_KEY = 'bags:metrics:v2';
+const TTL = 60_000; // 60s
 
 export async function GET() {
-  if (cacheData && now() - cacheAt < CACHE_TTL_MS) {
-    return NextResponse.json(cacheData);
+  // serve hot cache immediately
+  const hot = getCached<MetricPayload>(CACHE_KEY);
+  if (hot) return NextResponse.json(hot, { headers: { 'x-cache': 'hit' } });
+
+  try {
+    const { today } = await discoverBagsTokens(24);
+    const mints = today.map(t => t.mint);
+    const markets = await loadMarketsForMints(mints);
+
+    // aggregate
+    let active = 0;
+    let vol24 = 0;
+    let liq = 0;
+    for (const m of markets) {
+      if ((m.liquidityUsd ?? 0) > 1000 || (m.vol24hUsd ?? 0) > 0) active += 1;
+      vol24 += m.vol24hUsd ?? 0;
+      liq += m.liquidityUsd ?? 0;
+    }
+
+    // join names
+    const nameByMint = new Map(today.map(t => [t.mint, t.name]));
+    const top = markets
+      .map(m => ({
+        mint: m.mint,
+        name: nameByMint.get(m.mint),
+        priceUsd: m.priceUsd,
+        fdv: m.fdv,
+        liquidityUsd: m.liquidityUsd,
+        vol24hUsd: m.vol24hUsd,
+        url: m.url,
+        dexId: m.dexId,
+      }))
+      .sort((a, b) => (b.fdv ?? 0) - (a.fdv ?? 0))
+      .slice(0, 10);
+
+    const payload: MetricPayload = {
+      updatedAt: Date.now(),
+      totals: {
+        tokens24h: today.length,
+        activeTokens: active,
+        vol24hUsd: Math.round(vol24),
+        liquidityUsd: Math.round(liq),
+      },
+      top,
+    };
+
+    setCached(CACHE_KEY, payload, TTL);
+    return NextResponse.json(payload, { headers: { 'x-cache': 'miss' } });
+  } catch (e) {
+    // graceful fallback to last good data
+    const last = getLastGood<MetricPayload>(CACHE_KEY);
+    if (last) return NextResponse.json(last, { headers: { 'x-cache': 'stale' } });
+    return NextResponse.json({ error: 'failed' }, { status: 502 });
   }
-
-  const tokens = await loadBagsTokens();
-  if (!tokens.length) {
-    const empty = { totals: { allTimeTokens: 0, new24h: 0, volume24h: 0, totalFdv: 0 }, top: [], generatedAt: now() };
-    cacheData = empty; cacheAt = now();
-    return NextResponse.json(empty);
-  }
-
-  // batch throttle
-  const BATCH = 10;
-  const enriched: Array<{ fdv: number; vol24: number; createdAt?: number; row: TopRow }> = [];
-
-  for (let i = 0; i < tokens.length; i += BATCH) {
-    const part = tokens.slice(i, i + BATCH);
-    const settled = await Promise.allSettled(part.map(async t => {
-      const pair = await getBestPairForMint(t.mint);
-      if (!pair) return null;
-
-      const fdv = (pair.fdv ?? pair.marketCap ?? 0) as number;
-      const vol24 = (pair.volume?.h24 ?? 0) as number;
-      const createdAt =
-        t.createdAt ??
-        (typeof pair.createdAt === 'number' ? pair.createdAt : undefined) ??
-        (typeof pair.age === 'number' ? (now() - pair.age * 1000) : undefined);
-
-      const row: TopRow = {
-        pairAddress: pair.pairAddress,
-        chainId: pair.chainId,
-        dexId: pair.dexId,
-        url: pair.url,
-        name: `${pair.baseToken?.symbol || 'TOKEN'}/${pair.quoteToken?.symbol || 'SOL'}`,
-        priceUsd: pair.priceUsd ? Number(pair.priceUsd) : null,
-        change24h: pair.priceChange?.h24 ?? null,
-        volume24h: vol24 || null,
-        liquidityUsd: pair.liquidity?.usd ?? null,
-        fdv: fdv || null,
-        createdAt: createdAt ?? null,
-      };
-
-      return { fdv, vol24, createdAt, row };
-    }));
-
-    for (const s of settled) if (s.status === 'fulfilled' && s.value) enriched.push(s.value);
-    if (i + BATCH < tokens.length) await new Promise(r => setTimeout(r, 180));
-  }
-
-  let sumVol24 = 0, sumFdv = 0, new24h = 0;
-  const tNow = now();
-
-  for (const e of enriched) {
-    sumVol24 += e.vol24 || 0;
-    sumFdv   += e.fdv   || 0;
-    if (e.createdAt && (tNow - e.createdAt) <= 24 * 3600 * 1000) new24h++;
-  }
-
-  const top = enriched
-    .sort((a, b) => (b.fdv || 0) - (a.fdv || 0))
-    .slice(0, 10)
-    .map(e => e.row);
-
-  const payload = {
-    totals: { allTimeTokens: tokens.length, new24h, volume24h: sumVol24, totalFdv: sumFdv },
-    top,
-    generatedAt: tNow,
-  };
-
-  cacheData = payload;
-  cacheAt = tNow;
-  return NextResponse.json(payload);
 }

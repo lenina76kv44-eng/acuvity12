@@ -1,108 +1,129 @@
-type HeliusTx = {
-  signature: string;
-  timestamp: number;
-  instructions?: any[];
-  events?: { token?: { mint?: string } };
+import { jfetch } from './http';
+
+const API_KEY = process.env.HELIUS_API_KEY!;
+if (!API_KEY) console.warn('HELIUS_API_KEY is missing');
+
+// try both common Helius RPC hosts; use the first that works
+const HELIUS_ENDPOINTS = [
+  process.env.HELIUS_RPC_URL, // if project already defines it
+  `https://rpc.helius.xyz/?api-key=${API_KEY}`,
+  `https://mainnet.helius-rpc.com/?api-key=${API_KEY}`,
+].filter(Boolean) as string[];
+
+type SearchAssetsResp = {
+  result: {
+    items: Array<{
+      id: string;                 // mint
+      content?: { metadata?: { name?: string } };
+      authorities?: any[];
+      creators?: Array<{ address: string; share?: number }>;
+      token_info?: { supply?: string };
+      mint?: string;
+      interface?: string;         // "FungibleToken"
+      firstVerifiedCreators?: string[];
+      ownership?: any;
+      // timestamps (name depends on version, keep both checks later)
+      createdAt?: string | number;
+      // sometimes present as unix ms
+      // sometimes we need to use recent_action time, so we sort anyway
+    }>;
+    total?: number;
+  };
 };
 
-const HELIUS_BASE = "https://mainnet.helius-rpc.com";
-
-async function fetchJson(url: string, body: any) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-    // no-cache to avoid stale when user hits Refresh
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`helius ${res.status}`);
-  return res.json();
+async function heliusRPC<T>(method: string, params: any): Promise<T> {
+  let lastErr: any;
+  for (const url of HELIUS_ENDPOINTS) {
+    try {
+      const body = {
+        jsonrpc: '2.0',
+        id: 'bags',
+        method,
+        params,
+      };
+      const res = await jfetch<{ result: any }>(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+        timeoutMs: 9000,
+      });
+      return res as unknown as T;
+    } catch (e) {
+      lastErr = e;
+      continue;
+    }
+  }
+  throw lastErr ?? new Error('No Helius endpoint succeeded');
 }
 
-/**
- * Returns list of unique mint addresses created by the given programs within last `hours`.
- * We detect SPL token mints by scanning instructions for InitializeMint / CreateMint patterns.
- */
-export async function getRecentMintsByPrograms(
-  programIds: string[],
-  heliusKey: string,
-  hours = 24,
-  maxPerProgram = 300
-): Promise<{ mint: string; ts: number }[]> {
-  const since = Math.floor(Date.now() / 1000) - hours * 3600;
-  const mintSet = new Map<string, number>();
+export type DiscoveredToken = {
+  mint: string;
+  name?: string;
+  createdAtMs?: number;
+};
 
-  // Helius Enhanced getTransactions for each program (paginated-light; stop once ts < since)
-  for (const program of programIds) {
-    let before: string | null = null;
-    let fetched = 0;
-    while (fetched < maxPerProgram) {
-      const body = {
-        jsonrpc: "2.0",
-        id: "bags",
-        method: "getSignaturesForAddress",
-        params: [
-          program,
-          { before, limit: 100 },
-        ],
+export async function discoverBagsTokens(hours = 24): Promise<{
+  today: DiscoveredToken[];
+}> {
+  const creatorsEnv = (process.env.BAGS_ACTOR_IDS || '').trim();
+  const creators = creatorsEnv ? creatorsEnv.split(',').map(s => s.trim()).filter(Boolean) : [];
+  if (!creators.length) {
+    // safe fallback: empty
+    return { today: [] };
+  }
+  const sinceMs = Date.now() - hours * 3600_000;
+
+  const pageSize = 1000;
+  const aggregates: DiscoveredToken[] = [];
+
+  for (const creator of creators) {
+    let page = 1;
+    // We sort by recent_action to get newest mints first; stop when older than window
+    while (true) {
+      const payload = {
+        ownerAddress: null,
+        creatorAddress: creator,
+        tokenType: 'fungible',
+        page,
+        limit: pageSize,
+        sortBy: { sortBy: 'recent_action', sortOrder: 'desc' },
       };
-      const sigsResp = await fetchJson(`${HELIUS_BASE}/?api-key=${heliusKey}`, body);
-      const sigs = sigsResp.result as { signature: string; blockTime?: number }[];
-      if (!sigs?.length) break;
+      const data = await heliusRPC<SearchAssetsResp>('searchAssets', payload);
+      const items = data?.result?.items ?? [];
+      if (!items.length) break;
 
-      const cutoffIndex = sigs.findIndex(s => (s.blockTime || 0) < since);
-      const batch = cutoffIndex >= 0 ? sigs.slice(0, cutoffIndex) : sigs;
-      if (!batch.length) break;
-
-      // fetch parsed transactions for batch signatures
-      const txBody = {
-        jsonrpc: "2.0",
-        id: "bags-tx",
-        method: "getTransactions",
-        params: [ batch.map(s => s.signature), { maxSupportedTransactionVersion: 0 } ],
-      };
-      const txResp = await fetchJson(`${HELIUS_BASE}/?api-key=${heliusKey}`, txBody);
-      const txs = (txResp.result || []) as any[];
-
-      for (const t of txs) {
-        const ts = t?.blockTime || 0;
-        // parse instructions to find SPL InitializeMint
-        const messages = t?.transaction?.message;
-        const inner = t?.meta?.innerInstructions || [];
-        const allIx = [
-          ...(messages?.instructions || []),
-          ...inner.flatMap((x: any) => x.instructions || []),
-        ];
-
-        let mintAddr: string | null = null;
-
-        // Heuristic 1: Helius parsed events
-        const heliusMint = t?.meta?.postTokenBalances?.find((b: any) => b?.owner === null)?.mint;
-        if (heliusMint) mintAddr = heliusMint;
-
-        // Heuristic 2: scan for InitializeMint (program spl-token)
-        if (!mintAddr) {
-          const splIxs = allIx.filter((ix: any) => ix?.programId === "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-          for (const ix of splIxs) {
-            const name = ix.parsed?.type || ix.parsed?.info?.type || ix.parsed?.instructionName;
-            if (name && /initialize.*mint/i.test(String(name))) {
-              const candidate = ix.parsed?.info?.mint || ix.parsed?.info?.account || ix.parsed?.mint;
-              if (candidate) { mintAddr = candidate; break; }
-            }
-          }
+      let stop = false;
+      for (const it of items) {
+        const mint = it.mint || it.id;
+        if (!mint) continue;
+        const name = it?.content?.metadata?.name;
+        // derive createdAtMs — if missing, treat as now to avoid dropping
+        const createdAtMs =
+          typeof (it as any).createdAt === 'number'
+            ? (it as any).createdAt
+            : typeof (it as any).createdAt === 'string'
+              ? Date.parse((it as any).createdAt)
+              : undefined;
+        // we only need last 24h set
+        if (createdAtMs && createdAtMs < sinceMs) {
+          // since sorted desc, we can stop whole loop for this creator
+          stop = true;
+          break;
         }
-
-        if (mintAddr) {
-          // keep newest timestamp for that mint
-          if (!mintSet.has(mintAddr) || (mintSet.get(mintAddr)! < ts)) mintSet.set(mintAddr, ts);
-        }
+        aggregates.push({ mint, name, createdAtMs });
       }
 
-      fetched += batch.length;
-      before = sigs[sigs.length - 1]?.signature;
-      if (cutoffIndex >= 0) break;
+      if (stop) break;
+      if (items.length < pageSize) break;
+      page += 1;
+      if (page > 10) break; // hard cap safety
     }
   }
 
-  return Array.from(mintSet.entries()).map(([mint, ts]) => ({ mint, ts }));
+  // filter strictly by time if timestamp was present
+  const today = aggregates.filter(t => !t.createdAtMs || t.createdAtMs >= sinceMs);
+  // de-duplicate
+  const uniq = new Map<string, DiscoveredToken>();
+  for (const t of today) uniq.set(t.mint, t);
+  return { today: Array.from(uniq.values()) };
 }
