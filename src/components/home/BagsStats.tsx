@@ -67,18 +67,18 @@ export default function BagsStats() {
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-semibold tracking-tight text-white">
-            Live <span className="text-emerald-400">BAGS</span> Markets
+            Live <span className="bg-gradient-to-r from-[#00ff88] to-[#00cc6a] bg-clip-text text-transparent">BAGS</span> Markets
           </h2>
           <button
             onClick={() => mutate()}
-            className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-sm text-emerald-300 hover:bg-emerald-500/20"
+            className="rounded-xl bg-green-600 text-black px-4 py-2 font-semibold hover:bg-green-500 active:bg-green-600 btn-animated"
           >
             Refresh
           </button>
         </div>
 
         {/* Cards */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Tokens created (24h)" value={isLoading ? "…" : $$.num(d?.tokens24h ?? 0)} />
           <StatCard label="Active pairs (24h volume > 0)" value={isLoading ? "…" : $$.num(d?.activePairs ?? 0)} />
           <StatCard label="Total 24h Volume" value={isLoading ? "…" : $$.usd(d?.volume24hUsd ?? 0)} />
@@ -86,56 +86,56 @@ export default function BagsStats() {
         </div>
 
         {/* Table */}
-        <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0b0f0c] to-black">
+        <div className="mt-8 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950">
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-white/5 text-white">
+              <thead className="bg-black/50 text-[#7AEFB8]">
                 <tr className="[&>th]:px-4 [&>th]:py-3 [&>th]:text-left">
-                  <th>Pair</th>
-                  <th>Chain</th>
-                  <th>DEX</th>
-                  <th>Price (USD)</th>
-                  <th>24h Δ</th>
-                  <th>24h Vol</th>
-                  <th>Liquidity</th>
-                  <th>FDV</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs">Pair</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs">Chain</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs">DEX</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs">Price (USD)</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs">24h Δ</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs">24h Vol</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs">Liquidity</th>
+                  <th className="font-semibold uppercase tracking-wide text-xs">FDV</th>
                   <th></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-neutral-800">
                 {(d?.top || []).map(row => (
-                  <tr key={row.mint} className="text-white/90 hover:bg-white/5">
+                  <tr key={row.mint} className="text-green-100 hover:bg-black/50 hover-glow transition-all duration-200">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {/* token avatar if exists */}
                         {row.logoURI ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={row.logoURI} alt="" className="h-6 w-6 rounded-full border border-white/10" />
+                          <img src={row.logoURI} alt="" className="h-6 w-6 rounded-full border border-neutral-700" />
                         ) : (
-                          <div className="h-6 w-6 rounded-full border border-white/10 bg-white/5" />
+                          <div className="h-6 w-6 rounded-full border border-neutral-700 bg-neutral-800" />
                         )}
                         <div className="leading-tight">
-                          <div className="font-medium text-white">{row.symbol || row.mint.slice(0, 4)}</div>
-                          <div className="text-xs text-white/60">{row.mint.slice(0, 8)}…</div>
+                          <div className="font-medium text-green-100">{row.symbol || row.mint.slice(0, 4)}</div>
+                          <div className="text-xs text-neutral-400">{row.mint.slice(0, 8)}…</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-white/70">{row.chainId}</td>
-                    <td className="px-4 py-3 text-white/70">{row.dex}</td>
-                    <td className="px-4 py-3">{row.priceUsd == null ? "—" : $$.usd(row.priceUsd)}</td>
-                    <td className={`px-4 py-3 ${row.change24h == null ? "text-white/70" : row.change24h >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className="px-4 py-3 text-neutral-300">{row.chainId}</td>
+                    <td className="px-4 py-3 text-neutral-300 capitalize">{row.dex}</td>
+                    <td className="px-4 py-3 text-green-200">{row.priceUsd == null ? "—" : $$.usd(row.priceUsd)}</td>
+                    <td className={`px-4 py-3 ${row.change24h == null ? "text-neutral-400" : row.change24h >= 0 ? "text-green-400" : "text-red-400"}`}>
                       { $$.pct(row.change24h) }
                     </td>
-                    <td className="px-4 py-3">{ $$.usd(row.volume24hUsd) }</td>
-                    <td className="px-4 py-3">{ $$.usd(row.liquidityUsd) }</td>
-                    <td className="px-4 py-3">{ $$.usd(row.fdvUsd) }</td>
+                    <td className="px-4 py-3 text-green-200">{ $$.usd(row.volume24hUsd) }</td>
+                    <td className="px-4 py-3 text-green-200">{ $$.usd(row.liquidityUsd) }</td>
+                    <td className="px-4 py-3 text-green-200">{ $$.usd(row.fdvUsd) }</td>
                     <td className="px-4 py-3">
                       {row.url ? (
                         <a
                           href={row.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-300 hover:bg-emerald-500/20"
+                          className="rounded-lg bg-green-600 hover:bg-green-500 text-black px-3 py-1.5 text-xs font-semibold transition-colors duration-200 btn-animated"
                         >
                           Dexscreener
                         </a>
@@ -144,18 +144,18 @@ export default function BagsStats() {
                   </tr>
                 ))}
                 {!isLoading && (d?.top?.length ?? 0) === 0 && (
-                  <tr><td className="px-4 py-10 text-center text-white/60" colSpan={9}>No recent BAGS tokens found in the last 24h.</td></tr>
+                  <tr><td className="px-4 py-10 text-center text-neutral-400" colSpan={9}>No recent BAGS tokens found in the last 24h.</td></tr>
                 )}
               </tbody>
             </table>
           </div>
-          <div className="border-t border-white/10 px-4 py-3 text-xs text-white/50">
-            Data via api.dexscreener.com • Auto-refresh every ~60s • Filter: base mint ends with "{process.env.NEXT_PUBLIC_BAGS_SUFFIX || "BAGS"}"
+          <div className="border-t border-neutral-800 px-4 py-3 text-xs text-neutral-500">
+            Data via api.dexscreener.com • Auto-refresh every ~60s • Filter: base mint ends with "BAGS"
           </div>
         </div>
 
         {error && (
-          <p className="mt-3 text-sm text-red-400">Failed to load: {(error as any)?.message || "unknown error"}</p>
+          <p className="mt-4 text-sm text-red-400 animate-bounce-in">Failed to load: {(error as any)?.message || "unknown error"}</p>
         )}
       </div>
     </section>
