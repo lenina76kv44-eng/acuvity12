@@ -64,11 +64,6 @@ export default function BagsLivePanel() {
             <span className="text-white/90"> Markets</span>
           </h2>
           <div className="flex items-center gap-3">
-            {data?.demo && (
-              <span className="rounded-lg border border-[#0E983B]/50 bg-[#0E983B]/15 px-3 py-1.5 text-xs font-semibold text-[#0E983B] shadow-lg">
-                Demo data
-              </span>
-            )}
             <button
               onClick={() => load()}
               className="rounded-lg bg-[#0E983B]/20 border border-[#0E983B]/30 px-4 py-2 text-sm font-semibold text-[#0E983B] hover:bg-[#0E983B]/30 hover:border-[#0E983B]/50 transition-all duration-200 shadow-lg hover:shadow-xl"
