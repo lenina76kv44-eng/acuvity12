@@ -156,7 +156,7 @@ export default function HomePage() {
       <BagsLivePanel />
 
       {/* What is Acuvity Section */}
-      <section id="features" className="py-24 text-center relative z-40">
+      <section id="features" className="py-24 text-center relative z-40 bg-transparent">
         <div className="container mx-auto px-4">
           <div className="mb-16">
             <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
@@ -253,9 +253,7 @@ export default function HomePage() {
       </section>
 
       {/* Live Analysis Tools Section */}
-      <section id="tools" className="py-24 relative z-10" style={{
-        background: 'linear-gradient(135deg, rgba(14, 152, 59, 0.05) 0%, rgba(34, 197, 94, 0.02) 50%, rgba(14, 152, 59, 0.05) 100%)'
-      }}>
+      <section id="tools" className="py-24 relative z-10 bg-transparent">
         <div className="container mx-auto px-4 relative z-40">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
@@ -336,9 +334,9 @@ export default function HomePage() {
       </section>
 
       {/* Ecosystem Section */}
-      <section className="py-24 relative z-30 overflow-hidden">
+      <section className="py-24 relative z-30 overflow-hidden bg-transparent">
         <div className="container mx-auto px-4 relative z-40">
-          <div className="bg-gradient-to-br from-gray-900/30 to-gray-800/20 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 max-w-6xl mx-auto card-hover animate-scale-in">
+          <div className="bg-gradient-to-br from-gray-900/20 to-gray-800/10 backdrop-blur-sm border border-gray-700/30 rounded-2xl p-12 max-w-6xl mx-auto card-hover animate-scale-in">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="animate-slide-in-left">
                 <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display uppercase tracking-tight">
