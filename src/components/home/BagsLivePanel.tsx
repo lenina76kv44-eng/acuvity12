@@ -81,15 +81,6 @@ export default function BagsLivePanel() {
           <Card title="Total Liquidity"       value={loading ? sk : fmtUsd(data?.totals.liquidityUsd)} />
         </div>
 
-        {/* Таблицу полностью удаляем */}
-        <div className="mt-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/50 border border-[#0E983B]/20">
-            <div className={`w-2 h-2 rounded-full ${data?.demo ? 'bg-[#0E983B] animate-pulse' : 'bg-green-400'}`}></div>
-            <span className="text-xs font-medium text-[#0E983B]/80">
-              {data?.demo ? 'Demo Mode Active' : 'Live Data'}
-            </span>
-          </div>
-        </div>
       </div>
     </section>
   );
