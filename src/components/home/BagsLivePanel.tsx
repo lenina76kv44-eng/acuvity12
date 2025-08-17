@@ -75,10 +75,10 @@ export default function BagsLivePanel() {
 
         {/* STATS */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <StatsCard title="Total Tokens (24h)" value={isLoading && !payload ? '…' : String(payload?.stats.totalTokens24h ?? 0)} />
-          <StatsCard title="Active Tokens" value={isLoading && !payload ? '…' : String(payload?.stats.activeTokens ?? 0)} />
-          <StatsCard title="24h Volume" value={isLoading && !payload ? '…' : prettyUSD(payload?.stats.volume24hUsd ?? 0)} />
-          <StatsCard title="Total Liquidity" value={isLoading && !payload ? '…' : prettyUSD(payload?.stats.totalLiquidityUsd ?? 0)} />
+          <StatsCard title="Total Tokens (24h)" value={isLoading && !payload ? '…' : String(payload?.stats?.totalTokens24h ?? 0)} />
+          <StatsCard title="Active Tokens" value={isLoading && !payload ? '…' : String(payload?.stats?.activeTokens ?? 0)} />
+          <StatsCard title="24h Volume" value={isLoading && !payload ? '…' : prettyUSD(payload?.stats?.volume24hUsd ?? 0)} />
+          <StatsCard title="Total Liquidity" value={isLoading && !payload ? '…' : prettyUSD(payload?.stats?.totalLiquidityUsd ?? 0)} />
         </div>
 
         {/* TABLE */}
