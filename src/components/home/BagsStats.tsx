@@ -85,11 +85,6 @@ export default function BagsStats() {
           <StatCard label="Sum Market Cap (FDV)" value={isLoading ? "…" : $$.usd(d?.marketCapSumUsd ?? 0)} />
         </div>
 
-        {/* Optional all-time */}
-        <div className="mt-4">
-          <StatCard label="Total tokens (all-time via Bags API)" value={d?.allTimeTokens == null ? "—" : $$.num(d.allTimeTokens)} />
-        </div>
-
         {/* Table */}
         <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0b0f0c] to-black">
           <div className="overflow-x-auto">
