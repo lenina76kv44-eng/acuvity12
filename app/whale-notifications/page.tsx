@@ -1,130 +1,90 @@
-// app/whale-notifications/page.tsx
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import Icon from '@/src/components/ui/Icon';
+import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 
-type Item = {
-  id: string;
-  text: string;
-  created_at?: string;
-  created_timestamp?: number;
-  url?: string;
-  media?: { photos: string[]; videos: string[] };
-  author?: { name?: string; handle?: string; avatar?: string };
-};
+type Item = { id: string; url: string; text: string; time?: string };
+
+function useWhaleFeed(handle = "BagsWhaleBot", limit = 25) {
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string>("");
+
+  const load = async (refresh = false) => {
+    setLoading(true); setErr("");
+    try {
+      const u = new URL("/api/whale-feed", window.location.origin);
+      u.searchParams.set("handle", handle);
+      u.searchParams.set("limit", String(limit));
+      if (refresh) u.searchParams.set("refresh", "1");
+      const r = await fetch(u.toString(), { headers: { accept: "application/json" } });
+      const raw = await r.text();
+      let j: any;
+      try { j = JSON.parse(raw); }
+      catch { throw new Error(`Invalid JSON from API (${raw.slice(0,120)})`); }
+
+      if (!j.ok) throw new Error(j.error || "Feed failed");
+      setItems(Array.isArray(j.items) ? j.items : []);
+    } catch (e: any) {
+      setErr(e.message || String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { items, loading, err, load };
+}
 
 export default function WhaleNotificationsPage() {
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState("");
-  const [items, setItems] = useState<Item[]>([]);
+  const { items, loading, err, load } = useWhaleFeed("BagsWhaleBot", 25);
 
-  useEffect(() => {
-    let gone = false;
-    async function load() {
-      setLoading(true);
-      setErr("");
-      try {
-        const r = await fetch("/api/whale-feed", { cache: "no-store" });
-        const j = await r.json();
-        if (!r.ok || !j?.ok) throw new Error(j?.error || "Failed");
-        if (!gone) setItems(j.items || []);
-      } catch (e: any) {
-        if (!gone) setErr(String(e?.message || e));
-      } finally {
-        if (!gone) setLoading(false);
-      }
-    }
-    load();
-    return () => { gone = true; };
-  }, []);
+  useEffect(() => { load(false); }, []);
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white pt-6">
-      <div className="max-w-5xl mx-auto px-4">
-        <header className="mb-6">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Icon name="whale" size={28} />
-            <span>Whale Notifications</span>
-          </h1>
-          <p className="text-neutral-400">Latest posts from @BagsWhaleBot — parsed directly via FixTweet API</p>
+    <main className="min-h-screen bg-[#0a0a0a] text-white pt-4">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <Breadcrumbs />
+
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold mb-2 find-green-gradient">Whale notifications</h1>
+          <p className="text-[#8A8A8A]">
+            Live feed from <span className="text-[#7AEFB8] font-semibold">@BagsWhaleBot</span>. Latest 25 posts. No links at the end.
+          </p>
         </header>
 
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="text-xs uppercase tracking-wide text-[#7AEFB8] font-semibold flex items-center gap-1">
-              <Icon name="alert" size={14} />
-              Feed
-            </div>
-            <button
-              onClick={() => location.reload()}
-              className="px-3 py-1 rounded-lg bg-green-600 text-black text-xs font-semibold hover:bg-green-500"
-            >
-              Refresh
-            </button>
-          </div>
-
+        <div className="flex items-center gap-3 mb-5">
+          <button
+            onClick={() => load(true)}
+            className="rounded-xl bg-green-600 text-black px-5 py-2 font-semibold hover:bg-green-500 active:bg-green-600 disabled:opacity-50 shadow-[0_0_0_1px_rgba(0,255,136,.2)] transition-all"
+            disabled={loading}
+          >
+            {loading ? "Refreshing…" : "Refresh"}
+          </button>
           {loading && (
-            <div className="flex items-center gap-2 text-green-300">
-              <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
-              Loading…
+            <div className="flex items-center text-green-300/80 text-sm">
+              <div className="animate-spin w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full mr-2"></div>
+              Loading feed…
             </div>
           )}
+          {err && <div className="text-red-400 text-sm">{err}</div>}
+        </div>
 
-          {err && !loading && (
-            <div className="text-red-400 text-sm">Error: {err}</div>
-          )}
-
-          {!loading && !err && (
-            <ul className="space-y-4">
-              {items.map((it) => (
-                <li key={it.id} className="p-4 rounded-xl bg-black/50 border border-neutral-800">
-                  <div className="flex items-start gap-3">
-                    {it.author?.avatar ? (
-                      <img src={it.author.avatar} alt="" className="w-10 h-10 rounded-lg border border-neutral-700 object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg border border-neutral-700 bg-neutral-800" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-neutral-300">
-                        <span className="font-semibold text-white">{it.author?.name || "Whale Bot"}</span>{" "}
-                        <span className="text-neutral-500">@{it.author?.handle || "BagsWhaleBot"}</span>
-                        {it.created_at && <span className="text-neutral-600"> • {new Date(it.created_at).toLocaleString()}</span>}
-                      </div>
-                      <div className="mt-1 whitespace-pre-wrap text-green-100">{it.text}</div>
-
-                      {(it.media?.photos?.length ?? 0) > 0 && (
-                        <div className="mt-3 grid grid-cols-2 gap-2">
-                          {it.media!.photos!.slice(0, 4).map((src, i) => (
-                            <img key={i} src={src} alt="" className="w-full rounded-lg border border-neutral-800" />
-                          ))}
-                        </div>
-                      )}
-                      {(it.media?.videos?.length ?? 0) > 0 && (
-                        <div className="mt-3">
-                          {/* show first MP4 as a link; we avoid autoplay in list */}
-                          <a href={it.media!.videos![0]} target="_blank" className="text-xs text-green-400 underline">Open video</a>
-                        </div>
-                      )}
-                    </div>
-
-                    {it.url && (
-                      <Link
-                        href={it.url}
-                        target="_blank"
-                        className="px-3 py-1 bg-green-600 hover:bg-green-500 text-black text-xs font-semibold rounded-lg"
-                      >
-                        Open
-                      </Link>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="space-y-3">
+          {items.map((it) => (
+            <article key={it.id} className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 shadow-[0_0_0_1px_rgba(16,185,129,0.06)] hover:shadow-[0_6px_30px_rgba(16,185,129,.08)] transition-all">
+              <div className="flex items-center justify-between mb-2">
+                <a href={it.url} target="_blank" rel="noopener noreferrer" className="text-xs text-green-300/80 hover:text-green-200">
+                  {it.url.replace(/^https?:\/\//, "")}
+                </a>
+                {it.time && <div className="text-xs text-neutral-400">{it.time}</div>}
+              </div>
+              <p className="whitespace-pre-wrap leading-relaxed text-green-50">{it.text}</p>
+            </article>
+          ))}
 
           {!loading && !err && items.length === 0 && (
-            <div className="text-neutral-400 text-sm">No posts yet.</div>
+            <div className="text-neutral-400 text-sm">
+              No posts found yet. Try Refresh.
+            </div>
           )}
         </div>
       </div>
