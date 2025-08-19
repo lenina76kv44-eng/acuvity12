@@ -32,9 +32,6 @@ export default function WhaleNotificationsPage() {
 
         <header className="mb-8">
           <h1 className="text-3xl font-bold mb-2 find-green-gradient">Whale notifications</h1>
-          <p className="text-[#8A8A8A]">
-            Live feed from <span className="text-[#7AEFB8] font-semibold">@BagsWhaleBot</span>. Latest 25 posts. No links at the end.
-          </p>
         </header>
 
         <div className="flex items-center gap-3 mb-5">
