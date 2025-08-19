@@ -29,7 +29,6 @@ export default function WhaleNotificationsPage() {
     <main className="min-h-screen bg-[#0a0a0a] text-white pt-4">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <Breadcrumbs />
-        </header>
 
         <div className="flex items-center gap-3 mb-5">
           <button
